@@ -1,5 +1,7 @@
 // Lesson data structure and helpers
-// NOTE: Full lesson content is being added by another agent
+import { lessonsM1M3 } from "./lessons_m1_m3";
+import { lessonsM4M6 } from "./lessons_m4_m6";
+import { lessonsM7M9 } from "./lessons_m7_m9";
 
 export interface Lesson {
   module: number;
@@ -48,8 +50,11 @@ export const modules: ModuleInfo[] = [
   { slug: 'advanced', name: 'SQL Server Advanced', color: 'yellow', lessons: [39, 40, 41, 42] },
 ];
 
-// Empty lessons array - will be populated by lesson content agent
-export const lessons: Lesson[] = [];
+export const lessons: Lesson[] = [
+  ...lessonsM1M3,
+  ...lessonsM4M6,
+  ...lessonsM7M9,
+];
 
 /**
  * Get a lesson by its module and lesson slugs
