@@ -70,10 +70,16 @@ export default function PlaygroundPage() {
     }, 50);
   }, [database, query]);
 
+  const defaultQueries: Record<DatabaseName, string> = {
+    company: 'SELECT * FROM employees LIMIT 10;',
+    store: 'SELECT * FROM products LIMIT 10;',
+    school: 'SELECT * FROM students LIMIT 10;',
+  };
+
   const handleReset = useCallback(() => {
-    setQuery('SELECT * FROM employees LIMIT 10;');
+    setQuery(defaultQueries[selectedDb]);
     setResult(null);
-  }, []);
+  }, [selectedDb]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-screen bg-slate-950">

@@ -21,6 +21,7 @@ interface ChallengeBlockProps {
   database: SqlJsDatabase;
   runQuery: (db: SqlJsDatabase, sql: string) => QueryResponse;
   onComplete: () => void;
+  onQueryChange?: (query: string, error?: string) => void;
   className?: string;
 }
 
@@ -29,6 +30,7 @@ export default function ChallengeBlock({
   database,
   runQuery,
   onComplete,
+  onQueryChange,
   className = '',
 }: ChallengeBlockProps) {
   const [query, setQuery] = useState('');
@@ -72,6 +74,7 @@ export default function ChallengeBlock({
     if (!query.trim()) return;
 
     setIsRunning(true);
+    onQueryChange?.(query, undefined);
 
     // Small delay for UX
     setTimeout(() => {
@@ -81,6 +84,10 @@ export default function ChallengeBlock({
       const correct = validateResult(queryResult);
       setIsCorrect(correct);
 
+      if (!queryResult.success) {
+        onQueryChange?.(query, queryResult.error);
+      }
+
       if (correct) {
         onComplete();
       } else {
@@ -89,7 +96,7 @@ export default function ChallengeBlock({
 
       setIsRunning(false);
     }, 100);
-  }, [query, database, runQuery, validateResult, onComplete]);
+  }, [query, database, runQuery, validateResult, onComplete, onQueryChange]);
 
   const handleReset = useCallback(() => {
     setQuery('');

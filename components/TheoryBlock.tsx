@@ -49,8 +49,38 @@ function parseMarkdown(markdown: string): string {
   // Ordered lists
   html = html.replace(/^\d+\. (.+)$/gm, '<li class="text-slate-300 ml-4">$1</li>');
 
+  // Tables — must run before paragraph conversion
+  html = html.replace(
+    /^\|(.+)\|\s*\n\|[-| :]+\|\s*\n((?:\|.+\|\s*\n?)*)/gm,
+    (_, headerRow, bodyRows) => {
+      const headers = headerRow.split('|').map((h: string) => h.trim()).filter(Boolean);
+      const rows = bodyRows
+        .trim()
+        .split('\n')
+        .filter(Boolean)
+        .map((row: string) =>
+          row.split('|').map((c: string) => c.trim()).filter(Boolean)
+        );
+
+      const thead = headers
+        .map((h: string) => `<th class="px-4 py-2 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider border-b border-slate-700">${h}</th>`)
+        .join('');
+
+      const tbody = rows
+        .map((cells: string[]) => {
+          const tds = cells
+            .map((c: string) => `<td class="px-4 py-2 text-slate-400 text-sm border-b border-slate-800">${c}</td>`)
+            .join('');
+          return `<tr class="hover:bg-slate-800/30">${tds}</tr>`;
+        })
+        .join('');
+
+      return `<div class="overflow-x-auto my-6 rounded-lg border border-slate-700"><table class="w-full"><thead class="bg-slate-800/70"><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table></div>`;
+    }
+  );
+
   // Paragraphs
-  html = html.replace(/^(?!<[huplo]|<code|<pre)(.+)$/gm, '<p class="text-slate-300 leading-relaxed my-4">$1</p>');
+  html = html.replace(/^(?!<[hupltd]|<code|<pre|<div)(.+)$/gm, '<p class="text-slate-300 leading-relaxed my-4">$1</p>');
 
   // Clean up empty paragraphs
   html = html.replace(/<p[^>]*>\s*<\/p>/g, '');

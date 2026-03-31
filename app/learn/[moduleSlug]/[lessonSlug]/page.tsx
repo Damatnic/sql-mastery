@@ -2,8 +2,11 @@
 
 import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
-import { Database, ChevronLeft, ChevronRight, BookOpen, Code2, Target } from 'lucide-react';
-import SQLEditor from '@/components/SQLEditor';
+import {
+  Database, ChevronLeft, ChevronRight,
+  BookOpen, Code2, Target, CheckCircle2,
+} from 'lucide-react';
+import ExampleBlock from '@/components/ExampleBlock';
 import ResultsTable from '@/components/ResultsTable';
 import TheoryBlock from '@/components/TheoryBlock';
 import ChallengeBlock from '@/components/ChallengeBlock';
@@ -35,10 +38,7 @@ const badgeColors = {
 };
 
 interface LessonPageProps {
-  params: Promise<{
-    moduleSlug: string;
-    lessonSlug: string;
-  }>;
+  params: Promise<{ moduleSlug: string; lessonSlug: string }>;
 }
 
 export default function LessonPage({ params }: LessonPageProps) {
@@ -47,9 +47,10 @@ export default function LessonPage({ params }: LessonPageProps) {
 
   const [database, setDatabase] = useState<SqlJsDatabase | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [exampleQuery, setExampleQuery] = useState('');
-  const [exampleResult, setExampleResult] = useState<QueryResponse | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | undefined>();
+
+  // Track the most recently active query (examples or challenges) for the AI tutor
+  const [activeQuery, setActiveQuery] = useState('');
+  const [activeError, setActiveError] = useState<string | undefined>();
 
   const lesson = getLessonBySlug(moduleSlug, lessonSlug);
   const moduleInfo = getModuleBySlug(moduleSlug);
@@ -59,11 +60,14 @@ export default function LessonPage({ params }: LessonPageProps) {
 
   const completeLesson = useProgressStore((state) => state.completeLesson);
   const addXP = useProgressStore((state) => state.addXP);
+  const completedLessons = useProgressStore((state) => state.completedLessons);
+
+  const lessonKey = lesson ? `${lesson.moduleSlug}/${lesson.lessonSlug}` : '';
+  const isAlreadyComplete = completedLessons.includes(lessonKey);
 
   // Initialize database
   useEffect(() => {
     if (!lesson) return;
-
     const currentLesson = lesson;
     let mounted = true;
 
@@ -72,59 +76,37 @@ export default function LessonPage({ params }: LessonPageProps) {
       try {
         const dbSchema = databases[currentLesson.database];
         const db = await createDatabase(dbSchema);
-        if (mounted) {
-          setDatabase(db);
-        }
+        if (mounted) setDatabase(db);
       } catch (error) {
         console.error('Failed to initialize database:', error);
       } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
+        if (mounted) setIsLoading(false);
       }
     }
 
     initDb();
-
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, [lesson]);
-
-  const handleRunExample = useCallback(() => {
-    if (!database || !exampleQuery.trim()) return;
-
-    const result = runQuery(database, exampleQuery);
-    setExampleResult(result);
-
-    if (!result.success) {
-      setErrorMessage(result.error);
-    } else {
-      setErrorMessage(undefined);
-    }
-  }, [database, exampleQuery]);
 
   const handleChallengeComplete = useCallback(() => {
     if (!lesson) return;
-
-    const slug = `${lesson.moduleSlug}/${lesson.lessonSlug}`;
-    completeLesson(slug);
+    completeLesson(lessonKey);
     addXP(XP_VALUES.CHALLENGE_COMPLETE);
-  }, [lesson, completeLesson, addXP]);
+  }, [lesson, lessonKey, completeLesson, addXP]);
 
-  // Lesson not found
+  const handleMarkComplete = useCallback(() => {
+    if (!lesson || isAlreadyComplete) return;
+    completeLesson(lessonKey);
+    addXP(XP_VALUES.LESSON_COMPLETE ?? 10);
+  }, [lesson, lessonKey, isAlreadyComplete, completeLesson, addXP]);
+
   if (!lesson || !moduleInfo) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-white mb-4">Lesson Not Found</h1>
-          <p className="text-slate-400 mb-6">
-            This lesson does not exist yet or the URL is incorrect.
-          </p>
-          <Link
-            href="/learn"
-            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
-          >
+          <p className="text-slate-400 mb-6">This lesson does not exist or the URL is incorrect.</p>
+          <Link href="/learn" className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">
             Back to Dashboard
           </Link>
         </div>
@@ -133,6 +115,7 @@ export default function LessonPage({ params }: LessonPageProps) {
   }
 
   const badge = badgeColors[lesson.badge];
+  const hasChallenges = lesson.challenges.length > 0;
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -140,10 +123,7 @@ export default function LessonPage({ params }: LessonPageProps) {
       <header className="border-b border-slate-800 sticky top-0 z-40 bg-slate-950/95 backdrop-blur">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link
-              href="/learn"
-              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
-            >
+            <Link href="/learn" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
               <Database className="w-6 h-6 text-indigo-500" />
               <span className="font-bold text-white">SQL Mastery</span>
             </Link>
@@ -157,13 +137,9 @@ export default function LessonPage({ params }: LessonPageProps) {
       </header>
 
       <div className="flex">
-        {/* Left Sidebar - Lesson Nav */}
+        {/* Sidebar */}
         <aside className="hidden lg:block w-72 border-r border-slate-800 p-4 sticky top-16 h-[calc(100vh-64px)] overflow-y-auto">
-          <LessonNav
-            currentLesson={lesson}
-            moduleLessons={moduleLessons}
-            moduleInfo={moduleInfo}
-          />
+          <LessonNav currentLesson={lesson} moduleLessons={moduleLessons} moduleInfo={moduleInfo} />
         </aside>
 
         {/* Main Content */}
@@ -174,9 +150,13 @@ export default function LessonPage({ params }: LessonPageProps) {
               <span className={`px-3 py-1 text-xs font-medium rounded-full ${badge.bg} ${badge.text} ${badge.border} border`}>
                 {lesson.badge.charAt(0).toUpperCase() + lesson.badge.slice(1)}
               </span>
-              <span className="text-slate-500 text-sm">
-                Lesson {lesson.lesson}
-              </span>
+              <span className="text-slate-500 text-sm">Lesson {lesson.lesson}</span>
+              {isAlreadyComplete && (
+                <span className="flex items-center gap-1 px-2 py-0.5 text-xs text-emerald-400 bg-emerald-900/30 border border-emerald-700/50 rounded-full">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Complete
+                </span>
+              )}
             </div>
             <h1 className="text-3xl font-bold text-white">{lesson.title}</h1>
           </div>
@@ -187,7 +167,7 @@ export default function LessonPage({ params }: LessonPageProps) {
             </div>
           ) : (
             <div className="space-y-10">
-              {/* Theory Section */}
+              {/* Theory */}
               <section>
                 <div className="flex items-center gap-2 mb-4">
                   <BookOpen className="w-5 h-5 text-blue-400" />
@@ -196,8 +176,8 @@ export default function LessonPage({ params }: LessonPageProps) {
                 <TheoryBlock content={lesson.theory.content} />
               </section>
 
-              {/* Examples Section */}
-              {lesson.examples.length > 0 && (
+              {/* Examples — each one independent */}
+              {lesson.examples.length > 0 && database && (
                 <section>
                   <div className="flex items-center gap-2 mb-4">
                     <Code2 className="w-5 h-5 text-green-400" />
@@ -205,28 +185,20 @@ export default function LessonPage({ params }: LessonPageProps) {
                   </div>
                   <div className="space-y-6">
                     {lesson.examples.map((example, idx) => (
-                      <div
+                      <ExampleBlock
                         key={idx}
-                        className="bg-slate-800/50 border border-slate-700 rounded-lg p-4"
-                      >
-                        <h3 className="font-semibold text-white mb-2">{example.title}</h3>
-                        <p className="text-slate-400 text-sm mb-4">{example.explanation}</p>
-                        <SQLEditor
-                          value={exampleQuery || example.sql}
-                          onChange={setExampleQuery}
-                          onRun={handleRunExample}
-                          initialValue={example.sql}
-                          height="120px"
-                        />
-                        {exampleResult && <ResultsTable result={exampleResult} className="mt-4" />}
-                      </div>
+                        example={example}
+                        database={database}
+                        index={idx}
+                        onQueryChange={setActiveQuery}
+                      />
                     ))}
                   </div>
                 </section>
               )}
 
-              {/* Challenges Section */}
-              {lesson.challenges.length > 0 && database && (
+              {/* Challenges */}
+              {hasChallenges && database && (
                 <section>
                   <div className="flex items-center gap-2 mb-4">
                     <Target className="w-5 h-5 text-purple-400" />
@@ -240,10 +212,34 @@ export default function LessonPage({ params }: LessonPageProps) {
                         database={database}
                         runQuery={runQuery}
                         onComplete={handleChallengeComplete}
+                        onQueryChange={(q, err) => {
+                          setActiveQuery(q);
+                          setActiveError(err);
+                        }}
                       />
                     ))}
                   </div>
                 </section>
+              )}
+
+              {/* Mark as Learned — for lessons without challenges */}
+              {!hasChallenges && (
+                <div className="flex items-center justify-end pt-2">
+                  {isAlreadyComplete ? (
+                    <div className="flex items-center gap-2 px-4 py-2 text-emerald-400 bg-emerald-900/20 border border-emerald-700/40 rounded-lg text-sm">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Marked as complete
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleMarkComplete}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      Mark as Learned
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -258,9 +254,7 @@ export default function LessonPage({ params }: LessonPageProps) {
                 <ChevronLeft className="w-5 h-5" />
                 <span>{prevLesson.title}</span>
               </Link>
-            ) : (
-              <div />
-            )}
+            ) : <div />}
 
             {nextLesson ? (
               <Link
@@ -282,12 +276,12 @@ export default function LessonPage({ params }: LessonPageProps) {
         </main>
       </div>
 
-      {/* AI Tutor */}
+      {/* AI Tutor — now sees whichever query was last active */}
       <AITutor
         lessonTitle={lesson.title}
         database={lesson.database}
-        currentQuery={exampleQuery}
-        errorMessage={errorMessage}
+        currentQuery={activeQuery}
+        errorMessage={activeError}
       />
     </div>
   );
