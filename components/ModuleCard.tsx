@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronRight, CheckCircle2 } from 'lucide-react';
+import { ChevronRight, CheckCircle2, Hammer } from 'lucide-react';
 import { useProgressStore } from '@/lib/progress';
+import { useThreadProgressStore } from '@/lib/thread-progress';
+import { getThreadForModule, projectChallenges } from '@/lib/project-threads';
 import type { ModuleInfo } from '@/lib/lessons';
 
 interface ModuleCardProps {
@@ -37,10 +39,28 @@ const moduleNumbers: Record<string, number> = {
 
 export default function ModuleCard({ module, lessonCount, firstLessonSlug }: ModuleCardProps) {
   const getModuleProgress = useProgressStore((state) => state.getModuleProgress);
+  const { isChallengeCompleted } = useThreadProgressStore();
   const progress = getModuleProgress(module.slug, lessonCount);
   const colors = colorClasses[module.color] || colorClasses.blue;
   const moduleNumber = moduleNumbers[module.slug] || 1;
   const isComplete = progress === 100;
+
+  // Get project thread for this module
+  const thread = getThreadForModule(moduleNumber);
+
+  // Calculate project thread progress for this module
+  const threadProgress = (() => {
+    if (!thread) return { completed: 0, total: 0 };
+    const moduleThreadChallenges = Object.entries(projectChallenges)
+      .filter(([key, c]) => {
+        const moduleSlug = key.split('/')[0];
+        return c.threadId === thread.id && moduleSlug === module.slug;
+      });
+    return {
+      total: moduleThreadChallenges.length,
+      completed: moduleThreadChallenges.filter(([key]) => isChallengeCompleted(key)).length,
+    };
+  })();
 
   return (
     <Link
@@ -81,6 +101,19 @@ export default function ModuleCard({ module, lessonCount, firstLessonSlug }: Mod
             style={{ width: `${progress}%` }}
           />
         </div>
+
+        {/* Project Thread Progress */}
+        {thread && threadProgress.total > 0 && (
+          <div className="pt-2 mt-2 border-t border-slate-700/50">
+            <div className="flex items-center gap-2">
+              <Hammer className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-xs text-slate-500">Project</span>
+              <span className="text-xs text-amber-400 ml-auto">
+                {threadProgress.completed}/{threadProgress.total}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </Link>
   );

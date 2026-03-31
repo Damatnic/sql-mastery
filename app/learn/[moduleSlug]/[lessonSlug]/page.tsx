@@ -4,11 +4,12 @@ import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import {
   Database, ChevronLeft, ChevronRight,
-  BookOpen, Code2, Target, CheckCircle2,
+  BookOpen, Code2, Target, CheckCircle2, Hammer,
 } from 'lucide-react';
 import ExampleBlock from '@/components/ExampleBlock';
 import TheoryBlock from '@/components/TheoryBlock';
 import ChallengeBlock from '@/components/ChallengeBlock';
+import ProjectChallengeBlock from '@/components/ProjectChallengeBlock';
 import LessonNav from '@/components/LessonNav';
 import AITutor from '@/components/AITutor';
 import XPBadge from '@/components/XPBadge';
@@ -23,6 +24,7 @@ import {
   getPreviousLesson,
 } from '@/lib/lessons';
 import { useProgressStore, XP_VALUES } from '@/lib/progress';
+import { getProjectChallengeForLesson, getProjectThread } from '@/lib/project-threads';
 import type { Database as SqlJsDatabase } from 'sql.js';
 
 const databases = {
@@ -64,6 +66,10 @@ export default function LessonPage({ params }: LessonPageProps) {
 
   const lessonKey = lesson ? `${lesson.moduleSlug}/${lesson.lessonSlug}` : '';
   const isAlreadyComplete = completedLessons.includes(lessonKey);
+
+  // Look up project challenge for this lesson
+  const projectChallenge = lesson ? getProjectChallengeForLesson(lesson.moduleSlug, lesson.lessonSlug) : null;
+  const projectThread = projectChallenge ? getProjectThread(projectChallenge.threadId) : null;
 
   // Initialize database
   useEffect(() => {
@@ -219,6 +225,27 @@ export default function LessonPage({ params }: LessonPageProps) {
                       />
                     ))}
                   </div>
+                </section>
+              )}
+
+              {/* Project Challenge - if one exists for this lesson */}
+              {projectChallenge && projectThread && database && (
+                <section className="pt-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Hammer className="w-5 h-5 text-amber-400" />
+                    <h2 className="text-xl font-semibold text-white">Project Challenge</h2>
+                  </div>
+                  <ProjectChallengeBlock
+                    challenge={projectChallenge}
+                    thread={projectThread}
+                    lessonKey={lessonKey}
+                    database={database}
+                    runQuery={runQuery}
+                    onQueryChange={(q, err) => {
+                      setActiveQuery(q);
+                      setActiveError(err);
+                    }}
+                  />
                 </section>
               )}
 
