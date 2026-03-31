@@ -14,6 +14,7 @@ import {
 import ProjectStep from '@/components/ProjectStep';
 import AITutor from '@/components/AITutor';
 import XPBadge from '@/components/XPBadge';
+import SchemaViewer from '@/components/SchemaViewer';
 import { createDatabase, runQuery } from '@/lib/db';
 import { COMPANY_DB, STORE_DB, SCHOOL_DB } from '@/lib/databases';
 import { getProjectBySlug, getDifficultyColors, getProjectColors } from '@/lib/projects';
@@ -274,6 +275,12 @@ export default function ProjectPage({ params }: ProjectPageProps) {
           )}
         </div>
       </main>
+
+      {/* Schema Viewer */}
+      <SchemaViewer
+        database={database}
+        databaseName={project.database}
+      />
 
       {/* AI Tutor */}
       <AITutor

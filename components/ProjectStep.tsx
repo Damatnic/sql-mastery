@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from 'react';
 import {
-  Target,
   Lightbulb,
   CheckCircle2,
   XCircle,

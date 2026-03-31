@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Target, Lightbulb, CheckCircle2, XCircle, Eye } from 'lucide-react';
+import { Target, Lightbulb, CheckCircle2, XCircle, Eye, Copy, Check } from 'lucide-react';
 import SQLEditor from './SQLEditor';
 import ResultsTable from './ResultsTable';
 import type { QueryResponse } from '@/lib/db';
@@ -35,11 +35,13 @@ export default function ChallengeBlock({
 }: ChallengeBlockProps) {
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<QueryResponse | null>(null);
+  const [executionTime, setExecutionTime] = useState<number | undefined>();
   const [attempts, setAttempts] = useState(0);
   const [isCorrect, setIsCorrect] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [showSolution, setShowSolution] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+  const [copiedSolution, setCopiedSolution] = useState(false);
 
   const validateResult = useCallback(
     (queryResult: QueryResponse): boolean => {
@@ -78,7 +80,10 @@ export default function ChallengeBlock({
 
     // Small delay for UX
     setTimeout(() => {
+      const startTime = performance.now();
       const queryResult = runQuery(database, query);
+      const endTime = performance.now();
+      setExecutionTime(Math.round(endTime - startTime));
       setResult(queryResult);
 
       const correct = validateResult(queryResult);
@@ -101,8 +106,19 @@ export default function ChallengeBlock({
   const handleReset = useCallback(() => {
     setQuery('');
     setResult(null);
+    setExecutionTime(undefined);
     setIsCorrect(false);
   }, []);
+
+  const handleCopySolution = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(challenge.solution);
+      setCopiedSolution(true);
+      setTimeout(() => setCopiedSolution(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  }, [challenge.solution]);
 
   const handleUseSolution = useCallback(() => {
     setQuery(challenge.solution);
@@ -143,7 +159,7 @@ export default function ChallengeBlock({
               </div>
             ) : null}
 
-            <ResultsTable result={result} />
+            <ResultsTable result={result} executionTime={executionTime} />
           </div>
         )}
 
@@ -185,8 +201,26 @@ export default function ChallengeBlock({
 
         {showSolution && (
           <div className="p-3 rounded-lg bg-slate-900 border border-slate-600">
-            <p className="text-xs text-slate-400 mb-2">Solution:</p>
-            <code className="text-sm text-slate-200 font-mono">{challenge.solution}</code>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-slate-400">Solution:</p>
+              <button
+                onClick={handleCopySolution}
+                className="flex items-center gap-1.5 px-2 py-0.5 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 rounded transition-colors"
+              >
+                {copiedSolution ? (
+                  <>
+                    <Check className="w-3 h-3 text-emerald-400" />
+                    <span className="text-emerald-400">Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3 h-3" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <pre className="text-sm text-slate-200 font-mono whitespace-pre-wrap">{challenge.solution}</pre>
           </div>
         )}
       </div>

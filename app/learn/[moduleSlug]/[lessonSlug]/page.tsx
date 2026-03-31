@@ -7,13 +7,13 @@ import {
   BookOpen, Code2, Target, CheckCircle2,
 } from 'lucide-react';
 import ExampleBlock from '@/components/ExampleBlock';
-import ResultsTable from '@/components/ResultsTable';
 import TheoryBlock from '@/components/TheoryBlock';
 import ChallengeBlock from '@/components/ChallengeBlock';
 import LessonNav from '@/components/LessonNav';
 import AITutor from '@/components/AITutor';
 import XPBadge from '@/components/XPBadge';
-import { createDatabase, runQuery, type QueryResponse } from '@/lib/db';
+import SchemaViewer from '@/components/SchemaViewer';
+import { createDatabase, runQuery } from '@/lib/db';
 import { COMPANY_DB, STORE_DB, SCHOOL_DB } from '@/lib/databases';
 import {
   getLessonBySlug,
@@ -275,6 +275,12 @@ export default function LessonPage({ params }: LessonPageProps) {
           </div>
         </main>
       </div>
+
+      {/* Schema Viewer */}
+      <SchemaViewer
+        database={database}
+        databaseName={lesson.database}
+      />
 
       {/* AI Tutor — now sees whichever query was last active */}
       <AITutor
