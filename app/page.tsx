@@ -93,12 +93,32 @@ export default function HomePage() {
             <Database className="w-8 h-8 text-indigo-500" />
             <span className="font-bold text-white text-xl">SQL Mastery</span>
           </div>
-          <Link
-            href="/learn"
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
-          >
-            Start Learning
-          </Link>
+          <nav className="flex items-center gap-4">
+            <Link
+              href="/learn"
+              className="text-slate-400 hover:text-white text-sm font-medium transition-colors"
+            >
+              Lessons
+            </Link>
+            <Link
+              href="/projects"
+              className="text-slate-400 hover:text-white text-sm font-medium transition-colors"
+            >
+              Projects
+            </Link>
+            <Link
+              href="/playground"
+              className="text-slate-400 hover:text-white text-sm font-medium transition-colors"
+            >
+              Playground
+            </Link>
+            <Link
+              href="/learn"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              Start Learning
+            </Link>
+          </nav>
         </div>
       </header>
 

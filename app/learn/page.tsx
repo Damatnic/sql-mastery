@@ -29,7 +29,15 @@ export default function LearnPage() {
             <Database className="w-6 h-6 text-indigo-500" />
             <span className="font-bold text-white text-lg">SQL Mastery</span>
           </Link>
-          <XPBadge />
+          <div className="flex items-center gap-4">
+            <Link
+              href="/projects"
+              className="text-slate-400 hover:text-white text-sm font-medium transition-colors"
+            >
+              Projects
+            </Link>
+            <XPBadge />
+          </div>
         </div>
       </header>
 
@@ -79,6 +87,12 @@ export default function LearnPage() {
 
         {/* Quick Links */}
         <div className="mt-12 flex items-center justify-center gap-4">
+          <Link
+            href="/projects"
+            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
+          >
+            Try Projects
+          </Link>
           <Link
             href="/playground"
             className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors"
