@@ -2,6 +2,7 @@
 import { lessonsM1M3 } from "./lessons_m1_m3";
 import { lessonsM4M6 } from "./lessons_m4_m6";
 import { lessonsM7M9 } from "./lessons_m7_m9";
+import { lessonsSchool } from "./lessons_m10_school";
 
 export interface Lesson {
   module: number;
@@ -48,12 +49,14 @@ export const modules: ModuleInfo[] = [
   { slug: 'window-functions', name: 'Window Functions', color: 'pink', lessons: [29, 30, 31, 32, 33] },
   { slug: 'database-objects', name: 'Database Objects', color: 'indigo', lessons: [34, 35, 36, 37, 38] },
   { slug: 'advanced', name: 'SQL Server Advanced', color: 'yellow', lessons: [39, 40, 41, 42] },
+  { slug: 'school-advanced', name: 'Advanced SQL (WCTC)', color: 'emerald', lessons: [43, 44, 45, 46, 47, 48, 49, 50, 51, 52] },
 ];
 
 export const lessons: Lesson[] = [
   ...lessonsM1M3,
   ...lessonsM4M6,
   ...lessonsM7M9,
+  ...lessonsSchool,
 ];
 
 /**
