@@ -60,7 +60,7 @@ const features = [
   {
     icon: Server,
     title: 'Job-Ready Skills',
-    description: 'Learn the SQL skills that matter for real jobs and enterprise applications.',
+    description: 'Learn the SQL skills that matter for real analyst and BI jobs.',
     color: 'text-teal-400',
     bgColor: 'bg-teal-500/10',
     borderColor: 'border-teal-500/20',
@@ -241,7 +241,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Comprehensive Curriculum
+              Full Curriculum
             </h2>
             <p className="text-slate-400 max-w-2xl mx-auto text-lg">
               9 modules covering everything from basic queries to advanced SQL mastery.
@@ -328,7 +328,7 @@ export default function HomePage() {
             Ready to Master SQL?
           </h2>
           <p className="text-xl text-slate-400 mb-10">
-            Join thousands learning SQL the right way. No signup required, completely free.
+            Free, in your browser, no signup.
           </p>
           <Link
             href="/learn"
