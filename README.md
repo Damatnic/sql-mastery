@@ -1,36 +1,55 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SQL Mastery
 
-## Getting Started
+Interactive SQL learning platform. Write real queries against real databases in the browser. 42 lessons across 9 modules, with an AI tutor that helps when you get stuck.
 
-First, run the development server:
+**Live site:** [sql-mastery-seven.vercel.app](https://sql-mastery-seven.vercel.app)
+
+**Stack:** Next.js · TypeScript · Tailwind · SQL.js (SQLite in the browser)
+
+## What it does
+
+- **Run SQL in the browser.** SQLite via SQL.js, no setup, no signup.
+- **Real practice databases.** Employees, orders, students, and other realistic schemas. Not toy data.
+- **AI-powered tutor.** When you're stuck on a query, ask the tutor for a hint or an explanation. It's contextual to the lesson you're on.
+- **Schema viewer.** See the tables and columns alongside the editor so you don't have to keep guessing what's available.
+- **Progress + XP + streaks.** Standard gamification to keep momentum going.
+
+## Curriculum (9 modules, 42 lessons)
+
+| Module | Topic | Lessons |
+|---|---|---|
+| 1 | Getting Started — SELECT, WHERE, ORDER BY | 5 |
+| 2 | Data Analysis — aggregates, GROUP BY, HAVING | 5 |
+| 3 | Joining Tables — INNER, LEFT, self-joins | 5 |
+| 4 | Subqueries & CTEs — nested queries, WITH clause | 4 |
+| 5 | Modifying Data — INSERT, UPDATE, DELETE | 4 |
+| 6 | Functions — string, date, math | 5 |
+| 7 | Window Functions — RANK, LAG, running totals | 5 |
+| 8 | Database Objects — views, indexes, constraints | 5 |
+| 9 | Advanced SQL — transactions, optimization | 4 |
+
+Plus a separate advanced SQL Server module covering stored procedures, triggers, user-defined functions, XML/JSON support, indexing strategies, and temporal tables.
+
+## Why I built it
+
+Same reason as [python-mastery](https://github.com/Damatnic/python-mastery). I'm in WCTC's AI Data Specialist program and I wanted a way to practice SQL that wasn't "read a textbook chapter then attempt a problem set." Browser-based, instant feedback, real schemas. Built for myself, free for anyone else.
+
+The advanced SQL Server module matches what's being taught in the Advanced SQL class at WCTC. CTEs, window functions, partitioning, all of it.
+
+## Local dev
 
 ```bash
+git clone https://github.com/Damatnic/sql-mastery.git
+cd sql-mastery
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Notable technical bits
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **SQL.js for in-browser SQLite.** Every user gets their own database instance, no shared state, no server load.
+- **AI tutor uses streaming responses** so feedback feels responsive even on complex explanations.
+- **Project system** lets you work through guided, multi-step projects with step unlocking so you can't skip ahead until your current step works.
+- **Execution time displayed** with every query so you start building intuition for what's fast and what's not.
