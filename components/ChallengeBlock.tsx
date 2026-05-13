@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Target, Lightbulb, CheckCircle2, XCircle, Eye, Copy, Check, Columns, MessageCircle } from 'lucide-react';
 import SQLEditor from './SQLEditor';
 import ResultsTable from './ResultsTable';
@@ -142,6 +142,26 @@ export default function ChallengeBlock({
   const [showSolution, setShowSolution] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [copiedSolution, setCopiedSolution] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(`sql-mastery-code-${challenge.id}`);
+    if (saved) {
+      setQuery(saved);
+    } else {
+      setQuery('');
+    }
+    
+    // Also reset other states on challenge change just in case
+    setResult(null);
+    setExecutionTime(undefined);
+    setIsCorrect(false);
+  }, [challenge.id]);
+
+  useEffect(() => {
+    if (query) {
+      localStorage.setItem(`sql-mastery-code-${challenge.id}`, query);
+    }
+  }, [query, challenge.id]);
 
   const validateResult = useCallback(
     (queryResult: QueryResponse): boolean => {

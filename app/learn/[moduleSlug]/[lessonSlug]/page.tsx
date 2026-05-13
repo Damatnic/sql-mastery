@@ -94,6 +94,7 @@ export default function LessonPage({ params }: LessonPageProps) {
 
   const [database, setDatabase] = useState<SqlJsDatabase | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [dbError, setDbError] = useState<string | null>(null);
   const [activeQuery, setActiveQuery] = useState('');
   const [activeError, setActiveError] = useState<string | undefined>();
 
@@ -133,6 +134,7 @@ export default function LessonPage({ params }: LessonPageProps) {
         if (mounted) setDatabase(db);
       } catch (error) {
         console.error('Failed to initialize database:', error);
+        if (mounted) setDbError(error instanceof Error ? error.message : 'Unknown error');
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -257,6 +259,22 @@ export default function LessonPage({ params }: LessonPageProps) {
               <div className="flex flex-col items-center gap-3">
                 <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                 <span className="text-slate-400">Loading database...</span>
+              </div>
+            </div>
+          ) : dbError ? (
+            <div className="h-64 flex items-center justify-center p-8 text-center">
+              <div className="max-w-md p-6 rounded-2xl border-2 border-red-500/30 bg-red-500/10">
+                <div className="text-4xl mb-4">⚠️</div>
+                <h2 className="text-xl font-bold text-white mb-2">Engine Failed to Load</h2>
+                <p className="text-slate-400 text-sm mb-6">
+                  We couldn't initialize the SQL WebAssembly engine. This usually happens on slow or restricted networks.
+                </p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="px-6 py-2.5 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors"
+                >
+                  Refresh & Retry
+                </button>
               </div>
             </div>
           ) : (
