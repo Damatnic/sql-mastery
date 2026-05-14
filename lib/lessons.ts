@@ -312,7 +312,7 @@ GROUP BY grouping_column;
 \`\`\`
 
 ## The Golden Rule
-**Every column in SELECT must either be in GROUP BY or be inside an aggregate function.** This trips up almost every beginner. If you GROUP BY department, you can SELECT department and AVG(salary), but not name — because there are multiple names per department and SQL doesn't know which one to show.
+**Every column in SELECT must either be in GROUP BY or be inside an aggregate function.** If you GROUP BY department, you can SELECT department and AVG(salary), but not name, because there are multiple names per department and SQL doesn't know which one to show.
 
 ## How It Works
 1. SQL splits the table into groups by the GROUP BY column
@@ -389,8 +389,8 @@ WHERE column IS NOT NULL
 COALESCE(column, default_value)
 \`\`\`
 
-## The Tricky Part
-\`WHERE manager_id = NULL\` will never match anything — even if manager_id IS null. You must write \`WHERE manager_id IS NULL\`. This trips up almost everyone.
+## Common Mistake
+\`WHERE manager_id = NULL\` will never match anything, even if manager_id is null. You must write \`WHERE manager_id IS NULL\`.
 
 ## COALESCE
 COALESCE(a, b, c) returns the first non-NULL value from the list.
@@ -1765,7 +1765,7 @@ WHERE row_num <= 3  -- filter on ROW_NUMBER() OVER (PARTITION BY group ORDER BY 
 
 Think of a stored procedure as a saved script you can run over and over. Instead of typing out the same query every time, you save it with a name and just call that name. It's like a function in programming but for SQL.
 
-Honestly stored procs are way cleaner than just running raw SQL everywhere. Your app calls one line and the database handles all the logic.
+Stored procedures keep business logic in the database instead of scattered across application code. The app calls one line and the database handles the work.
 
 ## T-SQL Syntax
 
@@ -2002,7 +2002,7 @@ AS RETURN (
 SELECT * FROM dbo.GetDeptEmployees('Engineering');
 \`\`\`
 
-Table-valued functions are honestly super useful. You can join them to other tables, filter them, do whatever you'd do with a regular table.
+Table-valued functions can be joined, filtered, and used anywhere a regular table can.
 
 ## SQLite Reality
 
@@ -2106,7 +2106,7 @@ END;
 
 Dynamic SQL is SQL that builds itself at runtime. Instead of a fixed query, you construct the query string using variables, then execute it.
 
-Sounds cool but honestly it's also dangerous if you're not careful. SQL injection is a real thing.
+Powerful when you need it, dangerous if you don't parameterize. SQL injection is the main risk.
 
 ## T-SQL Dynamic SQL
 
@@ -2240,7 +2240,7 @@ SQLite doesn't have native XML support. The challenges here use string concatena
     title: "JSON in SQL Server", badge: "practice", database: "company",
     theory: { content: `## JSON in SQL Server
 
-SQL Server 2016+ has great JSON support. Way more readable than XML honestly, and it's what most modern APIs use.
+SQL Server 2016+ supports JSON parsing and serialization, which is what most modern APIs use.
 
 ## FOR JSON — Query Results to JSON
 
