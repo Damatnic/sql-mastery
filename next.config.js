@@ -1,7 +1,11 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Empty turbopack config to use Turbopack by default
-  turbopack: {},
+  // Pin Turbopack to this project directory so multiple lockfiles up the tree don't trigger a workspace-root warning.
+  turbopack: {
+    root: path.resolve(__dirname),
+  },
 
   webpack: (config, { isServer }) => {
     // Enable async WebAssembly
