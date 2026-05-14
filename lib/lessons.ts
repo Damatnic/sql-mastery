@@ -1051,7 +1051,7 @@ Calculating tenure, finding records in a date range, grouping by month/year, agi
     moduleSlug: "functions", lessonSlug: "math-functions",
     title: "Math Functions", badge: "practice", database: "company",
     theory: { content: `## Mental Model
-Math functions handle numeric calculations. Most are straightforward — the ones worth knowing are ROUND (crucial for money), ABS (absolute value), and integer division.
+Math functions handle numeric calculations. Most are straightforward — the ones worth knowing are ROUND (required for money), ABS (absolute value), and integer division.
 
 ## Common Functions
 \`\`\`sql

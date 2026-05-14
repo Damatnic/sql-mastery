@@ -48,9 +48,9 @@ Each lesson teaches you a concept, and then you apply it immediately to build th
     id: 'ecommerce-intelligence',
     title: 'E-Commerce Intelligence Report',
     description: 'Build a weekly sales analytics report for an online store',
-    scenario: `Welcome to ShopSmart! You're the new junior analyst on the Business Intelligence team. The marketing director needs a comprehensive weekly sales report that tracks customer behavior, product performance, and revenue trends.
+    scenario: `Welcome to ShopSmart! You're the new junior analyst on the BI team. The marketing director wants a weekly sales report that covers customer behavior, product performance, and revenue trends.
 
-As you learn JOINs, subqueries, and window functions, you'll assemble the complete intelligence report piece by piece.`,
+As you learn JOINs, subqueries, and window functions, you'll build out the report piece by piece.`,
     database: 'store',
     databaseLabel: 'STORE_DB',
     color: 'emerald',
@@ -62,9 +62,9 @@ As you learn JOINs, subqueries, and window functions, you'll assemble the comple
     id: 'school-analytics',
     title: 'School Performance Analytics',
     description: 'Analyze student and teacher performance for a school district',
-    scenario: `Greenfield School District hired you to modernize their analytics. The superintendent wants data-driven insights on student achievement, teacher effectiveness, and course outcomes.
+    scenario: `Greenfield School District hired you to work on their analytics. The superintendent wants reports on student achievement, teacher effectiveness, and course outcomes.
 
-Using advanced SQL techniques, you'll build the analytics platform that helps educators make better decisions.`,
+Using window functions, CTEs, and advanced joins, you'll build the queries that run their reporting dashboard.`,
     database: 'school',
     databaseLabel: 'SCHOOL_DB',
     color: 'amber',

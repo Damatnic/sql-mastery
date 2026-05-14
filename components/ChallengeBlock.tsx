@@ -27,101 +27,6 @@ interface ChallengeBlockProps {
   className?: string;
 }
 
-// Generate a helpful explanation for the solution based on its content
-function generateSolutionExplanation(solution: string, expectedColumns: string[]): string {
-  const explanations: string[] = [];
-  const upper = solution.toUpperCase();
-
-  if (upper.includes('SELECT DISTINCT')) {
-    explanations.push('DISTINCT removes duplicate rows from the results');
-  } else if (upper.includes('SELECT')) {
-    if (expectedColumns.length === 1) {
-      explanations.push(`We select just the ${expectedColumns[0]} column to get exactly what was asked`);
-    } else {
-      explanations.push(`We select ${expectedColumns.join(', ')} to get the required columns`);
-    }
-  }
-
-  if (upper.includes('JOIN') || upper.includes('INNER JOIN')) {
-    explanations.push('JOIN combines rows from multiple tables based on a related column');
-  }
-  if (upper.includes('LEFT JOIN')) {
-    explanations.push('LEFT JOIN includes all rows from the first table, even if no match exists');
-  }
-
-  if (upper.includes('WHERE')) {
-    explanations.push('WHERE filters the rows to only those matching our condition');
-  }
-
-  if (upper.includes('GROUP BY')) {
-    explanations.push('GROUP BY groups rows with the same values, allowing us to aggregate');
-  }
-
-  if (upper.includes('HAVING')) {
-    explanations.push('HAVING filters groups after aggregation (unlike WHERE which filters before)');
-  }
-
-  if (upper.includes('ORDER BY')) {
-    if (upper.includes('DESC')) {
-      explanations.push('ORDER BY with DESC sorts from highest to lowest');
-    } else {
-      explanations.push('ORDER BY sorts the results in ascending order');
-    }
-  }
-
-  if (upper.includes('LIMIT')) {
-    explanations.push('LIMIT restricts how many rows are returned');
-  }
-
-  if (upper.includes('COUNT(')) {
-    explanations.push('COUNT() counts the number of rows or non-null values');
-  }
-  if (upper.includes('SUM(')) {
-    explanations.push('SUM() adds up all the values in a column');
-  }
-  if (upper.includes('AVG(')) {
-    explanations.push('AVG() calculates the average of a column');
-  }
-  if (upper.includes('MAX(') || upper.includes('MIN(')) {
-    explanations.push('MAX/MIN finds the highest or lowest value');
-  }
-
-  if (upper.includes('LIKE')) {
-    explanations.push('LIKE performs pattern matching with % as a wildcard');
-  }
-
-  if (upper.includes('BETWEEN')) {
-    explanations.push('BETWEEN checks if a value is within a range (inclusive)');
-  }
-
-  if (upper.includes('IN (')) {
-    explanations.push('IN checks if a value matches any in a list');
-  }
-
-  if (explanations.length === 0) {
-    return 'This query uses the basic SQL structure to retrieve the requested data.';
-  }
-
-  return explanations.join('. ') + '.';
-}
-
-// Make hints sound like a senior dev giving a nudge
-function formatHint(hint: string): string {
-  const prefixes = [
-    "Here's a thought: ",
-    "Consider this: ",
-    "A nudge in the right direction: ",
-    "Think about it this way: ",
-    "Quick tip: ",
-  ];
-
-  if (hint.length > 60 || hint.includes('...') || hint.toLowerCase().startsWith('try') || hint.toLowerCase().startsWith('think')) {
-    return hint;
-  }
-
-  const prefix = prefixes[Math.floor(hint.length % prefixes.length)];
-  return prefix + hint.charAt(0).toLowerCase() + hint.slice(1);
-}
 
 export default function ChallengeBlock({
   challenge,
@@ -253,8 +158,6 @@ export default function ChallengeBlock({
     setShowSolution(true);
   }, [challenge.solution]);
 
-  const solutionExplanation = generateSolutionExplanation(challenge.solution, challenge.expectedColumns);
-
   return (
     <div className={`challenge-block ${className}`}>
       {/* Challenge header */}
@@ -376,10 +279,7 @@ export default function ChallengeBlock({
         {showHint && challenge.hint && (
           <div className="challenge-hint">
             <MessageCircle className="challenge-hint-icon w-5 h-5" />
-            <div>
-              <p className="text-sm font-medium text-amber-300 mb-1">From a senior dev:</p>
-              <p className="text-sm text-amber-200/80">{formatHint(challenge.hint)}</p>
-            </div>
+            <p className="text-sm text-amber-200/80">{challenge.hint}</p>
           </div>
         )}
 
@@ -412,11 +312,6 @@ export default function ChallengeBlock({
               {challenge.solution}
             </pre>
 
-            {/* Solution explanation */}
-            <div className="challenge-solution-explanation">
-              <p className="text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wider">Why this works:</p>
-              <p>{solutionExplanation}</p>
-            </div>
           </div>
         )}
       </div>

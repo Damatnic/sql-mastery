@@ -27,8 +27,8 @@ const features = [
   },
   {
     icon: Brain,
-    title: 'AI-Powered Tutor',
-    description: 'Get personalized help, explanations, and hints from an intelligent SQL tutor when you get stuck.',
+    title: 'AI Tutor',
+    description: 'Get unstuck with an AI tutor that knows your current lesson and can see your query. Ask questions, get hints, debug errors.',
     color: 'text-purple-400',
     bgColor: 'bg-purple-500/10',
     borderColor: 'border-purple-500/20',
@@ -36,7 +36,7 @@ const features = [
   {
     icon: Database,
     title: 'Real Databases',
-    description: 'Practice on realistic databases with employees, orders, students, and more. Just like production.',
+    description: 'Three databases — a company org chart, an e-commerce store, and a school. Real schemas, real data.',
     color: 'text-green-400',
     bgColor: 'bg-green-500/10',
     borderColor: 'border-green-500/20',
@@ -44,15 +44,15 @@ const features = [
   {
     icon: BarChart3,
     title: 'Progress Tracking',
-    description: 'Track your progress, earn XP, and build streaks as you master SQL concepts.',
+    description: 'Lessons save automatically. XP tracks as you complete challenges. Pick up where you left off.',
     color: 'text-orange-400',
     bgColor: 'bg-orange-500/10',
     borderColor: 'border-orange-500/20',
   },
   {
     icon: BookOpen,
-    title: '42 Lessons',
-    description: 'From SELECT basics to advanced window functions, CTEs, and database design.',
+    title: '52 Lessons',
+    description: 'SELECT basics through window functions, CTEs, stored procedures, and SQL Server concepts.',
     color: 'text-pink-400',
     bgColor: 'bg-pink-500/10',
     borderColor: 'border-pink-500/20',
@@ -60,7 +60,7 @@ const features = [
   {
     icon: Server,
     title: 'Job-Ready Skills',
-    description: 'Learn the SQL skills that matter for real analyst and BI jobs.',
+    description: 'Covers what comes up in actual data analyst interviews and on the job, not toy examples.',
     color: 'text-teal-400',
     bgColor: 'bg-teal-500/10',
     borderColor: 'border-teal-500/20',
@@ -82,18 +82,18 @@ const curriculum = [
 const steps = [
   {
     icon: BookOpen,
-    title: 'Learn',
-    description: 'Read concise theory with clear examples and explanations.',
+    title: 'Read',
+    description: 'Short theory section with a mental model and syntax. No walls of text.',
   },
   {
     icon: Terminal,
-    title: 'Practice',
-    description: 'Write SQL queries in our interactive editor with instant feedback.',
+    title: 'Run examples',
+    description: 'Every lesson has runnable examples. Modify them, break them, see what happens.',
   },
   {
     icon: Rocket,
-    title: 'Master',
-    description: 'Complete challenges, track progress, and build real SQL skills.',
+    title: 'Do the challenges',
+    description: 'Write queries from scratch against real data. Hints unlock if you get stuck, solution after 3 attempts.',
   },
 ];
 
@@ -157,8 +157,7 @@ export default function HomePage() {
           </h1>
 
           <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Learn SQL the right way with hands-on practice, real databases, and AI-powered guidance.
-            From your first SELECT to advanced window functions and beyond.
+            52 lessons. Three real databases. Runs in the browser. Built while taking Advanced SQL at WCTC.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -201,7 +200,7 @@ export default function HomePage() {
               <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center">
                 <Award className="w-4 h-4 text-amber-400" />
               </div>
-              <span>42 Lessons</span>
+              <span>52 Lessons</span>
             </div>
           </div>
         </div>
@@ -212,10 +211,10 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Everything You Need to Learn SQL
+              What&apos;s in Here
             </h2>
             <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-              A complete learning experience with interactive tools, AI assistance, and real-world practice.
+              Built while taking Advanced SQL at WCTC. Everything runs in the browser, no account needed.
             </p>
           </div>
 
@@ -241,10 +240,10 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              Full Curriculum
+              What&apos;s Covered
             </h2>
             <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-              9 modules covering everything from basic queries to advanced SQL mastery.
+              10 modules, 52 lessons. Starts at SELECT and ends at SQL Server-specific topics from Advanced SQL class.
             </p>
           </div>
 
@@ -283,10 +282,10 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              How It Works
+              How a Lesson Works
             </h2>
             <p className="text-slate-400 text-lg">
-              A simple three-step process to SQL mastery.
+              Same format every time, so you know what to expect.
             </p>
           </div>
 
@@ -320,15 +319,11 @@ export default function HomePage() {
         <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl" />
 
         <div className="relative max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-900/30 border border-emerald-700/50 rounded-full text-emerald-400 text-sm mb-6">
-            <Rocket className="w-4 h-4" />
-            <span>Start your SQL journey today</span>
-          </div>
           <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to Master SQL?
+            Ready to start?
           </h2>
           <p className="text-xl text-slate-400 mb-10">
-            Free, in your browser, no signup.
+            Free. In your browser. No signup.
           </p>
           <Link
             href="/learn"
@@ -348,7 +343,7 @@ export default function HomePage() {
             <span className="font-bold text-white">SQL Mastery</span>
           </div>
           <p className="text-slate-500 text-sm">
-            Learn SQL from zero to pro
+            Built by Nick D&apos;Amato
           </p>
         </div>
       </footer>

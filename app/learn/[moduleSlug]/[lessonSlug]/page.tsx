@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, use, useMemo } from 'react';
+import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import {
   Database, ChevronLeft, ChevronRight,
-  BookOpen, Code2, Target, CheckCircle2, Hammer, GraduationCap, Home, ArrowRight
+  BookOpen, Code2, Target, CheckCircle2, Hammer, Home
 } from 'lucide-react';
 import ExampleBlock from '@/components/ExampleBlock';
 import TheoryBlock from '@/components/TheoryBlock';
@@ -40,49 +40,6 @@ const badgeColors = {
   challenge: { bg: 'bg-purple-900/50', text: 'text-purple-400', border: 'border-purple-700/50' },
 };
 
-// Extract learning objectives from theory content
-function extractLearningObjectives(theoryContent: string): string[] {
-  const objectives: string[] = [];
-
-  // Look for section headers that indicate what will be learned
-  const sectionHeaders = theoryContent.match(/^## (Mental Model|Syntax|How It Works|When To Use This|Operators|Key Rules)/gm);
-  if (sectionHeaders) {
-    if (sectionHeaders.some(h => h.includes('Mental Model'))) {
-      objectives.push('Understand the core concept and when to use it');
-    }
-    if (sectionHeaders.some(h => h.includes('Syntax'))) {
-      objectives.push('Learn the SQL syntax and structure');
-    }
-    if (sectionHeaders.some(h => h.includes('Operators'))) {
-      objectives.push('Master the available operators and their usage');
-    }
-    if (sectionHeaders.some(h => h.includes('How It Works'))) {
-      objectives.push('See how the command works in practice');
-    }
-    if (sectionHeaders.some(h => h.includes('When To Use This'))) {
-      objectives.push('Know when to apply this in real queries');
-    }
-  }
-
-  // Add objectives based on lesson content
-  if (theoryContent.includes('JOIN')) {
-    objectives.push('Combine data from multiple tables');
-  }
-  if (theoryContent.includes('GROUP BY')) {
-    objectives.push('Aggregate and summarize data');
-  }
-  if (theoryContent.includes('subquer')) {
-    objectives.push('Write nested queries for complex logic');
-  }
-
-  // Ensure we have at least some objectives
-  if (objectives.length === 0) {
-    objectives.push('Master this SQL concept');
-    objectives.push('Practice with real database queries');
-  }
-
-  return objectives.slice(0, 4); // Limit to 4 objectives
-}
 
 interface LessonPageProps {
   params: Promise<{ moduleSlug: string; lessonSlug: string }>;
@@ -113,12 +70,6 @@ export default function LessonPage({ params }: LessonPageProps) {
 
   const projectChallenge = lesson ? getProjectChallengeForLesson(lesson.moduleSlug, lesson.lessonSlug) : null;
   const projectThread = projectChallenge ? getProjectThread(projectChallenge.threadId) : null;
-
-  // Extract learning objectives
-  const learningObjectives = useMemo(() => {
-    if (!lesson) return [];
-    return extractLearningObjectives(lesson.theory.content);
-  }, [lesson]);
 
   // Initialize database
   useEffect(() => {
@@ -238,22 +189,6 @@ export default function LessonPage({ params }: LessonPageProps) {
             <h1 className="text-3xl font-bold text-white">{lesson.title}</h1>
           </div>
 
-          {/* Learning Objectives */}
-          <div className="lesson-objectives mb-8">
-            <h2 className="lesson-objectives-title">
-              <GraduationCap className="w-5 h-5 text-indigo-400" />
-              What you&apos;ll learn
-            </h2>
-            <ul className="lesson-objectives-list">
-              {learningObjectives.map((objective, idx) => (
-                <li key={idx} className="lesson-objectives-item">
-                  <ArrowRight className="lesson-objectives-bullet w-4 h-4 mt-0.5" />
-                  <span>{objective}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
           {isLoading ? (
             <div className="h-64 flex items-center justify-center">
               <div className="flex flex-col items-center gap-3">
@@ -309,20 +244,6 @@ export default function LessonPage({ params }: LessonPageProps) {
                       />
                     ))}
                   </div>
-                </section>
-              )}
-
-              {/* What You Learned Recap (before challenges) */}
-              {hasChallenges && (
-                <section className="p-4 rounded-lg bg-slate-800/30 border border-slate-700/50">
-                  <h3 className="text-sm font-semibold text-slate-300 mb-2 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    Quick recap before the challenges
-                  </h3>
-                  <p className="text-sm text-slate-400">
-                    You&apos;ve learned about {lesson.title.toLowerCase()}. Now it&apos;s time to practice!
-                    {lesson.examples.length > 0 && ` Review the ${lesson.examples.length} example${lesson.examples.length !== 1 ? 's' : ''} above if you need a refresher.`}
-                  </p>
                 </section>
               )}
 
