@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "SQL Mastery — Interactive SQL with a real engine in your browser";
+export const alt = "sql-mastery, personal SQL practice site";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

@@ -1,350 +1,109 @@
-import Link from 'next/link';
-import {
-  Database,
-  Code2,
-  Brain,
-  BarChart3,
-  Rocket,
-  BookOpen,
-  Server,
-  Users,
-  CheckCircle2,
-  ChevronRight,
-  Terminal,
-  Sparkles,
-  Play,
-  Award,
-} from 'lucide-react';
+import Link from "next/link";
 
-const features = [
-  {
-    icon: Code2,
-    title: 'Interactive SQL Editor',
-    description: 'Write and execute real SQL queries in your browser with instant feedback. No setup required.',
-    color: 'text-blue-400',
-    bgColor: 'bg-blue-500/10',
-    borderColor: 'border-blue-500/20',
-  },
-  {
-    icon: Brain,
-    title: 'AI Tutor',
-    description: 'Get unstuck with an AI tutor that knows your current lesson and can see your query. Ask questions, get hints, debug errors.',
-    color: 'text-purple-400',
-    bgColor: 'bg-purple-500/10',
-    borderColor: 'border-purple-500/20',
-  },
-  {
-    icon: Database,
-    title: 'Real Databases',
-    description: 'Three databases — a company org chart, an e-commerce store, and a school. Real schemas, real data.',
-    color: 'text-green-400',
-    bgColor: 'bg-green-500/10',
-    borderColor: 'border-green-500/20',
-  },
-  {
-    icon: BarChart3,
-    title: 'Progress Tracking',
-    description: 'Lessons save automatically. XP tracks as you complete challenges. Pick up where you left off.',
-    color: 'text-orange-400',
-    bgColor: 'bg-orange-500/10',
-    borderColor: 'border-orange-500/20',
-  },
-  {
-    icon: BookOpen,
-    title: '52 Lessons',
-    description: 'SELECT basics through window functions, CTEs, stored procedures, and SQL Server concepts.',
-    color: 'text-pink-400',
-    bgColor: 'bg-pink-500/10',
-    borderColor: 'border-pink-500/20',
-  },
-  {
-    icon: Server,
-    title: 'Job-Ready Skills',
-    description: 'Covers what comes up in actual data analyst interviews and on the job, not toy examples.',
-    color: 'text-teal-400',
-    bgColor: 'bg-teal-500/10',
-    borderColor: 'border-teal-500/20',
-  },
-];
-
-const curriculum = [
-  { name: 'Getting Started', lessons: 5, color: 'bg-blue-500', desc: 'SELECT, WHERE, ORDER BY' },
-  { name: 'Data Analysis', lessons: 5, color: 'bg-green-500', desc: 'Aggregates, GROUP BY, HAVING' },
-  { name: 'Joining Tables', lessons: 5, color: 'bg-purple-500', desc: 'INNER, LEFT, Self-joins' },
-  { name: 'Subqueries & CTEs', lessons: 4, color: 'bg-orange-500', desc: 'Nested queries, WITH clause' },
-  { name: 'Modifying Data', lessons: 4, color: 'bg-red-500', desc: 'INSERT, UPDATE, DELETE' },
-  { name: 'Functions', lessons: 5, color: 'bg-teal-500', desc: 'String, Date, Math functions' },
-  { name: 'Window Functions', lessons: 5, color: 'bg-pink-500', desc: 'RANK, LAG, Running totals' },
-  { name: 'Database Objects', lessons: 5, color: 'bg-indigo-500', desc: 'Views, Indexes, Constraints' },
-  { name: 'Advanced SQL', lessons: 4, color: 'bg-amber-500', desc: 'Transactions, Optimization' },
-];
-
-const steps = [
-  {
-    icon: BookOpen,
-    title: 'Read',
-    description: 'Short theory section with a mental model and syntax. No walls of text.',
-  },
-  {
-    icon: Terminal,
-    title: 'Run examples',
-    description: 'Every lesson has runnable examples. Modify them, break them, see what happens.',
-  },
-  {
-    icon: Rocket,
-    title: 'Do the challenges',
-    description: 'Write queries from scratch against real data. Hints unlock if you get stuck, solution after 3 attempts.',
-  },
+const modules = [
+  { num: "01", slug: "getting-started", firstLesson: "select-basics", title: "Getting Started", desc: "SELECT, WHERE, ORDER BY.", lessons: 5 },
+  { num: "02", slug: "data-analysis", firstLesson: "aggregate-functions", title: "Data Analysis", desc: "Aggregates, GROUP BY, HAVING.", lessons: 5 },
+  { num: "03", slug: "joining-tables", firstLesson: "inner-join", title: "Joining Tables", desc: "INNER, LEFT, self-joins.", lessons: 5 },
+  { num: "04", slug: "subqueries-ctes", firstLesson: "subqueries-where", title: "Subqueries & CTEs", desc: "Nested queries and WITH clauses.", lessons: 4 },
+  { num: "05", slug: "modifying-data", firstLesson: "insert", title: "Modifying Data", desc: "INSERT, UPDATE, DELETE.", lessons: 4 },
+  { num: "06", slug: "functions", firstLesson: "string-functions", title: "Functions", desc: "String, date, math.", lessons: 5 },
+  { num: "07", slug: "window-functions", firstLesson: "ranking-functions", title: "Window Functions", desc: "RANK, LAG, running totals.", lessons: 5 },
+  { num: "08", slug: "database-objects", firstLesson: "views", title: "Database Objects", desc: "Views, indexes, constraints.", lessons: 5 },
+  { num: "09", slug: "advanced", firstLesson: "recursive-ctes", title: "Advanced SQL", desc: "Recursive CTEs, pivot, optimization.", lessons: 4 },
+  { num: "10", slug: "school-advanced", firstLesson: "stored-procedures", title: "SQL Server (WCTC)", desc: "Course notes: procs, dynamic SQL, JSON.", lessons: 10 },
 ];
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-slate-950">
-      {/* Header */}
-      <header className="border-b border-slate-800">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Database className="w-8 h-8 text-indigo-500" />
-            <span className="font-bold text-white text-xl">SQL Mastery</span>
-          </div>
-          <nav className="flex items-center gap-4">
-            <Link
-              href="/learn"
-              className="text-slate-400 hover:text-white text-sm font-medium transition-colors"
-            >
-              Lessons
-            </Link>
-            <Link
-              href="/projects"
-              className="text-slate-400 hover:text-white text-sm font-medium transition-colors"
-            >
-              Projects
-            </Link>
-            <Link
-              href="/playground"
-              className="text-slate-400 hover:text-white text-sm font-medium transition-colors"
-            >
-              Playground
-            </Link>
-            <Link
-              href="/learn"
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors"
-            >
-              Start Learning
-            </Link>
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+      <header className="border-b border-slate-800/60">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+          <span className="font-mono text-sm font-medium">sql-mastery</span>
+          <nav className="flex items-center gap-5 text-sm text-slate-400">
+            <Link href="/learn" className="hover:text-slate-100 transition-colors">Lessons</Link>
+            <Link href="/projects" className="hover:text-slate-100 transition-colors">Projects</Link>
+            <Link href="/playground" className="hover:text-slate-100 transition-colors">Playground</Link>
           </nav>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative py-24 px-6 overflow-hidden">
-        {/* Background gradient effects */}
-        <div className="absolute inset-0 bg-gradient-to-b from-indigo-950/20 via-transparent to-transparent" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
-
-        <div className="relative max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-900/40 border border-indigo-700/50 rounded-full text-indigo-400 text-sm mb-8 backdrop-blur-sm">
-            <Sparkles className="w-4 h-4" />
-            <span>Interactive SQL Learning Platform</span>
-          </div>
-
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight tracking-tight">
-            Master SQL From
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
-              {' '}Zero to Pro
-            </span>
-          </h1>
-
-          <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            52 lessons. Three real databases. Runs in the browser. Built while taking Advanced SQL at WCTC.
+      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-12 sm:py-16">
+        <section className="max-w-2xl">
+          <h1 className="font-mono text-xl text-slate-100">sql-mastery</h1>
+          <p className="mt-4 text-base leading-relaxed text-slate-400">
+            SQL lessons I built while taking Advanced SQL at WCTC. Three
+            SQLite databases run in the browser via sql.js so I can drill
+            queries without standing anything up. An AI tutor is wired in
+            for when I get stuck on a lesson.
           </p>
+          <p className="mt-3 text-base leading-relaxed text-slate-400">
+            Ten modules, fifty-two lessons, plus a free-form playground
+            and a few longer guided projects. Kept here as personal
+            reference and warm-up practice.
+          </p>
+        </section>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/learn"
-              className="group w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40"
-            >
-              Start Learning Free
-              <ChevronRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
+        <section className="mt-12">
+          <h2 className="font-mono text-xs uppercase tracking-widest text-slate-500 mb-4">
+            Modules
+          </h2>
+          <ul className="divide-y divide-slate-800/60 border-y border-slate-800/60">
+            {modules.map((m) => (
+              <li key={m.slug}>
+                <Link
+                  href={`/learn/${m.slug}/${m.firstLesson}`}
+                  className="grid grid-cols-[3rem_1fr_auto] gap-4 py-3 items-baseline hover:bg-slate-900/40 -mx-3 px-3 rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                >
+                  <span className="font-mono text-xs text-indigo-400">{m.num}</span>
+                  <div className="min-w-0">
+                    <p className="text-slate-100 font-medium">{m.title}</p>
+                    <p className="text-sm text-slate-400">{m.desc}</p>
+                  </div>
+                  <span className="text-xs text-slate-500 whitespace-nowrap">{m.lessons} lessons</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="mt-10 grid sm:grid-cols-2 gap-4">
+          <div className="rounded-lg border border-slate-800/60 bg-slate-900/30 p-4">
+            <h2 className="font-mono text-xs uppercase tracking-widest text-slate-500">
+              Playground
+            </h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Same SQLite engine as the lessons, no scaffolding. Drop in,
+              run whatever.
+            </p>
             <Link
               href="/playground"
-              className="group w-full sm:w-auto px-8 py-4 bg-slate-800/80 hover:bg-slate-700 text-white font-semibold rounded-xl transition-all duration-200 border border-slate-700 hover:border-slate-600 flex items-center justify-center gap-2"
+              className="mt-3 inline-block text-sm text-indigo-400 hover:underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
             >
-              <Play className="w-4 h-4" />
-              Try SQL Playground
+              Open the playground →
             </Link>
           </div>
-
-          <div className="mt-14 flex flex-wrap items-center justify-center gap-8 text-slate-500">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              </div>
-              <span>100% Free</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
-                <Users className="w-4 h-4 text-blue-400" />
-              </div>
-              <span>No signup required</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center">
-                <Code2 className="w-4 h-4 text-purple-400" />
-              </div>
-              <span>Browser-based</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center">
-                <Award className="w-4 h-4 text-amber-400" />
-              </div>
-              <span>52 Lessons</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-24 px-6 bg-slate-900/50 border-y border-slate-800/50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              What&apos;s in Here
+          <div className="rounded-lg border border-slate-800/60 bg-slate-900/30 p-4">
+            <h2 className="font-mono text-xs uppercase tracking-widest text-slate-500">
+              Projects
             </h2>
-            <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-              Built while taking Advanced SQL at WCTC. Everything runs in the browser, no account needed.
+            <p className="mt-2 text-sm text-slate-400">
+              Longer-form guided projects that reuse what the modules
+              cover. Useful when I want a less-structured exercise.
             </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature) => (
-              <div
-                key={feature.title}
-                className={`group p-6 ${feature.bgColor} border ${feature.borderColor} rounded-xl hover:border-opacity-50 transition-all duration-300 hover:-translate-y-1`}
-              >
-                <div className={`w-12 h-12 rounded-lg ${feature.bgColor} border ${feature.borderColor} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                  <feature.icon className={`w-6 h-6 ${feature.color}`} />
-                </div>
-                <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-                <p className="text-slate-400 text-sm leading-relaxed">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Curriculum Section */}
-      <section className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              What&apos;s Covered
-            </h2>
-            <p className="text-slate-400 max-w-2xl mx-auto text-lg">
-              10 modules, 52 lessons. Starts at SELECT and ends at SQL Server-specific topics from Advanced SQL class.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-4">
-            {curriculum.map((module, idx) => (
-              <div
-                key={module.name}
-                className="group flex items-start gap-4 p-4 bg-slate-800/30 border border-slate-700/50 rounded-xl hover:bg-slate-800/50 hover:border-slate-600/50 transition-all duration-200"
-              >
-                <div className={`w-10 h-10 ${module.color} rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0 group-hover:scale-105 transition-transform`}>
-                  {idx + 1}
-                </div>
-                <div className="min-w-0">
-                  <h3 className="font-semibold text-white">{module.name}</h3>
-                  <p className="text-xs text-slate-500 mb-1">{module.lessons} lessons</p>
-                  <p className="text-xs text-slate-400">{module.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-10">
             <Link
-              href="/learn"
-              className="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+              href="/projects"
+              className="mt-3 inline-block text-sm text-indigo-400 hover:underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
             >
-              View full curriculum
-              <ChevronRight className="w-4 h-4" />
+              Open the project list →
             </Link>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
-      {/* How It Works Section */}
-      <section className="py-24 px-6 bg-slate-900/50 border-y border-slate-800/50">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-              How a Lesson Works
-            </h2>
-            <p className="text-slate-400 text-lg">
-              Same format every time, so you know what to expect.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {steps.map((step, idx) => (
-              <div key={step.title} className="text-center relative">
-                {idx < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-8 left-[60%] w-[80%] h-px bg-gradient-to-r from-slate-700 to-transparent" />
-                )}
-                <div className="relative">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-indigo-900/50 border border-indigo-700/50 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <step.icon className="w-8 h-8 text-indigo-400" />
-                  </div>
-                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-indigo-600 rounded-full flex items-center justify-center text-white text-xs font-bold md:hidden">
-                    {idx + 1}
-                  </div>
-                </div>
-                <div className="text-indigo-400 text-sm font-medium mb-2">Step {idx + 1}</div>
-                <h3 className="text-xl font-semibold text-white mb-2">{step.title}</h3>
-                <p className="text-slate-400 text-sm leading-relaxed">{step.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="relative py-28 px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-indigo-950/30 via-transparent to-transparent" />
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl" />
-
-        <div className="relative max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
-            Ready to start?
-          </h2>
-          <p className="text-xl text-slate-400 mb-10">
-            Free. In your browser. No signup.
-          </p>
-          <Link
-            href="/learn"
-            className="group inline-flex items-center gap-2 px-10 py-5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-lg rounded-xl transition-all duration-200 shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/30"
-          >
-            Start Learning Now
-            <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-800 py-8 px-6">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Database className="w-6 h-6 text-indigo-500" />
-            <span className="font-bold text-white">SQL Mastery</span>
-          </div>
-          <p className="text-slate-500 text-sm">
-            Built by Nick D&apos;Amato
-          </p>
+      <footer className="border-t border-slate-800/60 py-6">
+        <div className="max-w-5xl mx-auto px-6 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+          <span className="font-mono">sql-mastery</span>
+          <span>Personal practice. Next.js + sql.js.</span>
         </div>
       </footer>
     </div>

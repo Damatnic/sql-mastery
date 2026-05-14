@@ -15,20 +15,21 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://damato-sql.vercel.app'),
-  title: 'SQL Mastery - Learn SQL From Zero to Pro',
-  description: 'Interactive SQL learning platform with hands-on practice and a real SQLite engine running in your browser via SQL.js. Master SQL from basic queries to advanced window functions.',
-  keywords: ['SQL', 'learn SQL', 'SQL tutorial', 'database', 'SQL Server', 'interactive learning', 'SQL.js'],
+  title: 'sql-mastery',
+  description:
+    "Personal SQL practice. Lessons I built while taking Advanced SQL at WCTC, kept here as reference. SQLite runs in the browser via sql.js.",
   authors: [{ name: "Nicholas D'Amato" }],
+  robots: { index: false, follow: false },
   openGraph: {
-    title: 'SQL Mastery - Learn SQL From Zero to Pro',
-    description: 'Interactive SQL learning platform with hands-on practice and a real SQLite engine in your browser via SQL.js.',
+    title: 'sql-mastery',
+    description: 'Personal SQL practice. SQLite runs in the browser via sql.js.',
     type: 'website',
     url: 'https://damato-sql.vercel.app',
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'SQL Mastery - Learn SQL From Zero to Pro',
-    description: 'Interactive SQL learning platform with a real SQLite engine in your browser via SQL.js.',
+    card: 'summary',
+    title: 'sql-mastery',
+    description: 'Personal SQL practice. SQLite runs in the browser via sql.js.',
   },
 };
 
