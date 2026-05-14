@@ -258,6 +258,21 @@ export default function LessonPage({ params }: LessonPageProps) {
 
               {projectChallenge && projectThread && database && (
                 <section className="pt-2">
+                  <div className="mb-3 px-3 py-2 rounded border border-amber-400/30 bg-amber-400/[0.04] font-mono text-xs">
+                    <p>
+                      <span className="text-amber-400">✦ project thread</span>
+                      <span className="text-slate-500"> · </span>
+                      <Link
+                        href={`/projects/thread/${projectThread.id}`}
+                        className="text-slate-200 hover:text-amber-300 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
+                      >
+                        {projectThread.title}
+                      </Link>
+                    </p>
+                    <p className="mt-1 text-slate-500">
+                      step {String(projectChallenge.stepNumber).padStart(2, "0")} of {String(projectThread.totalSteps).padStart(2, "0")} · {projectChallenge.title}
+                    </p>
+                  </div>
                   <ProjectChallengeBlock
                     challenge={projectChallenge}
                     thread={projectThread}

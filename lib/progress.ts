@@ -127,14 +127,15 @@ export interface Rank {
   name: string;
   threshold: number;
   next: number | null;
+  blurb: string;
 }
 
 const RANKS: Rank[] = [
-  { name: 'user', threshold: 0, next: 100 },
-  { name: 'apprentice', threshold: 100, next: 500 },
-  { name: 'contributor', threshold: 500, next: 1500 },
-  { name: 'engineer', threshold: 1500, next: 4000 },
-  { name: 'architect', threshold: 4000, next: null },
+  { name: 'select novice', threshold: 0, next: 100, blurb: 'SELECT, WHERE, ORDER BY. you can read a table.' },
+  { name: 'data analyst', threshold: 100, next: 500, blurb: 'GROUP BY, HAVING, aggregates. you can answer a question without exporting to excel.' },
+  { name: 'bi developer', threshold: 500, next: 1500, blurb: 'JOINs, subqueries, CTEs. you can stitch tables together without flattening to a giant view.' },
+  { name: 'query architect', threshold: 1500, next: 4000, blurb: 'window functions, optimization, ranking. you reach for PARTITION BY before a self-join.' },
+  { name: 'database engineer', threshold: 4000, next: null, blurb: 'all 52 lessons cleared. you ship sql other people read.' },
 ];
 
 export function getRank(xp: number): Rank {
