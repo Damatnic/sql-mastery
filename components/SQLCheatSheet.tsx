@@ -71,11 +71,48 @@ const CHEAT_SHEET_DATA: CheatSheetSection[] = [
     ],
   },
   {
+    title: 'CASE Expressions',
+    items: [
+      { syntax: 'CASE WHEN ... THEN ... END', description: 'Inline conditional value', example: "CASE WHEN sal > 100000 THEN 'High' ELSE 'Normal' END" },
+      { syntax: 'CASE col WHEN x THEN ...', description: 'Simple CASE; compare one column against values', example: "CASE dept WHEN 'Eng' THEN 1 ELSE 0 END" },
+      { syntax: 'Multiple WHEN clauses', description: 'Stack conditions; first match wins', example: "CASE WHEN x < 10 THEN 'low' WHEN x < 50 THEN 'mid' ELSE 'hi' END" },
+      { syntax: 'CASE inside aggregation', description: 'Conditional counts and sums', example: 'SUM(CASE WHEN active THEN 1 ELSE 0 END)' },
+    ],
+  },
+  {
+    title: 'CTEs (WITH clause)',
+    items: [
+      { syntax: 'WITH name AS (...)', description: 'Named subquery; reuse below', example: 'WITH big AS (SELECT * FROM e WHERE salary > 90000) SELECT * FROM big' },
+      { syntax: 'Multiple CTEs', description: 'Comma-separate; each can reference earlier ones', example: 'WITH a AS (...), b AS (SELECT * FROM a) SELECT * FROM b' },
+      { syntax: 'WITH RECURSIVE name AS (...)', description: 'Recursive CTE; base case UNION ALL recursive case', example: 'WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM n WHERE i < 10) SELECT * FROM n' },
+    ],
+  },
+  {
+    title: 'Window Functions',
+    items: [
+      { syntax: 'ROW_NUMBER() OVER (...)', description: 'Sequential number; no ties', example: 'ROW_NUMBER() OVER (ORDER BY salary DESC)' },
+      { syntax: 'RANK() OVER (...)', description: 'Gaps after ties (1,2,2,4)', example: 'RANK() OVER (ORDER BY salary DESC)' },
+      { syntax: 'DENSE_RANK() OVER (...)', description: 'No gaps after ties (1,2,2,3)', example: 'DENSE_RANK() OVER (ORDER BY salary DESC)' },
+      { syntax: 'PARTITION BY col', description: 'Reset window per partition', example: 'RANK() OVER (PARTITION BY dept ORDER BY salary DESC)' },
+      { syntax: 'LAG(col, n)', description: 'Value from n rows back', example: 'LAG(salary, 1) OVER (ORDER BY hire_date)' },
+      { syntax: 'LEAD(col, n)', description: 'Value from n rows ahead', example: 'LEAD(salary, 1) OVER (ORDER BY hire_date)' },
+      { syntax: 'SUM(...) OVER (...)', description: 'Running totals; any aggregate works', example: 'SUM(salary) OVER (ORDER BY hire_date)' },
+      { syntax: 'ROWS BETWEEN', description: 'Custom window frame', example: 'AVG(x) OVER (ORDER BY d ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)' },
+    ],
+  },
+  {
+    title: 'Correlated Subqueries',
+    items: [
+      { syntax: 'WHERE col > (SELECT ... WHERE outer = inner)', description: 'Subquery references the outer row', example: 'WHERE salary > (SELECT AVG(salary) FROM e e2 WHERE e2.dept = e.dept)' },
+      { syntax: 'EXISTS (SELECT 1 ...)', description: 'Existence check; faster than IN for big sets', example: 'WHERE EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id)' },
+      { syntax: 'NOT EXISTS', description: 'Inverse; rows with no match', example: 'WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id)' },
+    ],
+  },
+  {
     title: 'Other',
     items: [
       { syntax: 'AS alias', description: 'Rename column/table', example: 'SELECT name AS employee_name' },
       { syntax: 'COALESCE(a, b)', description: 'First non-null value', example: 'COALESCE(nickname, name)' },
-      { syntax: 'CASE WHEN ... THEN ... END', description: 'Conditional logic', example: "CASE WHEN sal > 100000 THEN 'High' ELSE 'Normal' END" },
       { syntax: 'UNION', description: 'Combine results (removes duplicates)', example: 'SELECT ... UNION SELECT ...' },
       { syntax: 'UNION ALL', description: 'Combine results (keep duplicates)', example: 'SELECT ... UNION ALL SELECT ...' },
     ],

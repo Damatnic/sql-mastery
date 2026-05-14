@@ -55,9 +55,17 @@ export default function LessonPage({ params }: LessonPageProps) {
   const completeLesson = useProgressStore((state) => state.completeLesson);
   const addXP = useProgressStore((state) => state.addXP);
   const completedLessons = useProgressStore((state) => state.completedLessons);
+  const markReviewed = useProgressStore((state) => state.markReviewed);
 
   const lessonKey = lesson ? `${lesson.moduleSlug}/${lesson.lessonSlug}` : '';
   const isAlreadyComplete = completedLessons.includes(lessonKey);
+
+  // Track when a completed lesson is revisited (drives the review queue on /stats)
+  useEffect(() => {
+    if (isAlreadyComplete && lessonKey) {
+      markReviewed(lessonKey);
+    }
+  }, [isAlreadyComplete, lessonKey, markReviewed]);
 
   const projectChallenge = lesson ? getProjectChallengeForLesson(lesson.moduleSlug, lesson.lessonSlug) : null;
   const projectThread = projectChallenge ? getProjectThread(projectChallenge.threadId) : null;

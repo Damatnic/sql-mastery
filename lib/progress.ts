@@ -7,9 +7,11 @@ interface ProgressState {
   streak: number;
   maxStreak: number;
   lastActivity: string;
+  reviewedAt: Record<string, string>;
 
   completeLesson: (slug: string) => void;
   addXP: (amount: number) => void;
+  markReviewed: (slug: string) => void;
   isLessonCompleted: (slug: string) => boolean;
   getModuleProgress: (moduleSlug: string, totalLessons: number) => number;
   resetProgress: () => void;
@@ -44,6 +46,7 @@ export const useProgressStore = create<ProgressState>()(
       streak: 0,
       maxStreak: 0,
       lastActivity: '',
+      reviewedAt: {},
 
       completeLesson: (slug: string) => {
         const state = get();
@@ -75,6 +78,13 @@ export const useProgressStore = create<ProgressState>()(
         });
       },
 
+      markReviewed: (slug: string) => {
+        const state = get();
+        set({
+          reviewedAt: { ...state.reviewedAt, [slug]: new Date().toISOString() },
+        });
+      },
+
       isLessonCompleted: (slug: string) => {
         return get().completedLessons.includes(slug);
       },
@@ -95,6 +105,7 @@ export const useProgressStore = create<ProgressState>()(
           streak: 0,
           maxStreak: 0,
           lastActivity: '',
+          reviewedAt: {},
         });
       },
     }),

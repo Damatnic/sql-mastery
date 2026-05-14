@@ -34,6 +34,7 @@ export default function StatsPage() {
   const maxStreak = useProgressStore((s) => s.maxStreak);
   const lastActivity = useProgressStore((s) => s.lastActivity);
   const completedLessons = useProgressStore((s) => s.completedLessons);
+  const reviewedAt = useProgressStore((s) => s.reviewedAt);
   const completedSteps = useProjectProgressStore((s) => s.completedSteps);
   const completedChallenges = useThreadProgressStore((s) => s.completedChallenges);
 
@@ -77,6 +78,31 @@ export default function StatsPage() {
     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
     return { slug: m.slug, name: m.name, done, total, pct };
   });
+
+  // Review queue: completed lessons sorted by oldest reviewedAt first (or never reviewed since completion).
+  // Drives spaced repetition — the lesson at the top is the one you've forgotten the most.
+  const reviewQueue = completedLessons
+    .filter((k) => validLessonKeys.has(k))
+    .map((k) => {
+      const [moduleSlug, lessonSlug] = k.split("/");
+      const lesson = lessons.find((l) => l.moduleSlug === moduleSlug && l.lessonSlug === lessonSlug);
+      const ts = reviewedAt[k] ?? "";
+      return { key: k, moduleSlug, lessonSlug, title: lesson?.title ?? k, ts };
+    })
+    .sort((a, b) => a.ts.localeCompare(b.ts))
+    .slice(0, 5);
+
+  const weakModules = moduleRows.filter((m) => m.pct < 50 && m.total > 0).slice(0, 5);
+
+  const daysSince = (iso: string): string => {
+    if (!iso) return "never";
+    const days = Math.round(
+      (Date.now() - new Date(iso).getTime()) / 86_400_000,
+    );
+    if (days <= 0) return "today";
+    if (days === 1) return "1d ago";
+    return `${days}d ago`;
+  };
 
   const projectRows = allProjects.map((p) => {
     const done = completedSteps[p.slug]?.length ?? 0;
@@ -277,6 +303,51 @@ export default function StatsPage() {
                 ))}
               </ul>
             </section>
+
+            <section className="mt-10">
+              <p className="text-xs uppercase tracking-widest text-slate-500"># review queue</p>
+              <p className="mt-1 text-[11px] text-slate-500">
+                completed lessons you haven&apos;t opened in a while. the top one is the most forgotten.
+              </p>
+              {reviewQueue.length === 0 ? (
+                <p className="mt-3 text-xs text-slate-500">no completed lessons yet</p>
+              ) : (
+                <ul className="mt-3 text-xs space-y-1">
+                  {reviewQueue.map((r) => (
+                    <li key={r.key} className="grid grid-cols-[1fr_auto_auto] gap-4 items-baseline">
+                      <Link
+                        href={`/learn/${r.moduleSlug}/${r.lessonSlug}`}
+                        className="text-slate-300 hover:text-slate-100 truncate focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
+                      >
+                        {r.moduleSlug}/{r.lessonSlug}
+                      </Link>
+                      <span className="text-slate-500 truncate hidden md:inline">{r.title}</span>
+                      <span className="text-slate-500 tabular-nums">{daysSince(r.ts)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="mt-3 text-[11px] text-slate-600">
+                tip: from the home shell, type <span className="text-slate-400">review</span> to open a random one.
+              </p>
+            </section>
+
+            {weakModules.length > 0 && (
+              <section className="mt-10">
+                <p className="text-xs uppercase tracking-widest text-slate-500"># weak modules</p>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  under 50% complete. worth a pass.
+                </p>
+                <ul className="mt-3 text-xs space-y-1">
+                  {weakModules.map((m) => (
+                    <li key={m.slug} className="grid grid-cols-[1fr_auto] gap-4 items-baseline">
+                      <span className="text-slate-300 truncate">{m.slug}</span>
+                      <span className="text-rose-400 tabular-nums">{m.pct}%</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             <section className="mt-10">
               <p className="text-xs uppercase tracking-widest text-slate-500"># rank ladder</p>

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback, type KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
+import { lessons as allLessons } from "@/lib/lessons";
 
 interface ModuleTarget {
   slug: string;
@@ -40,16 +41,16 @@ export default function HomeTerminal({ modules }: HomeTerminalProps) {
   const readProgress = useCallback(() => {
     try {
       const raw = localStorage.getItem("sql-mastery-progress");
-      if (!raw) return { xp: 0, streak: 0, completed: 0 };
+      if (!raw) return { xp: 0, streak: 0, completed: [] as string[] };
       const parsed = JSON.parse(raw);
       const state = parsed?.state ?? {};
       return {
         xp: state.xp ?? 0,
         streak: state.streak ?? 0,
-        completed: state.completedLessons?.length ?? 0,
+        completed: (state.completedLessons ?? []) as string[],
       };
     } catch {
-      return { xp: 0, streak: 0, completed: 0 };
+      return { xp: 0, streak: 0, completed: [] as string[] };
     }
   }, []);
 
@@ -68,15 +69,17 @@ export default function HomeTerminal({ modules }: HomeTerminalProps) {
 
       switch (head) {
         case "help":
-          out.push("help          show this message");
-          out.push("ls            list modules");
-          out.push("stats         open /stats");
-          out.push("projects      open /projects");
-          out.push("playground    open /playground");
-          out.push("whoami        rank · xp · streak");
-          out.push("cd <module>   open module first lesson");
-          out.push("cat readme    project overview");
-          out.push("clear         clear screen");
+          out.push("help              show this message");
+          out.push("ls                list modules");
+          out.push("stats             open /stats");
+          out.push("projects          open /projects");
+          out.push("playground        open /playground");
+          out.push("whoami            rank · xp · streak");
+          out.push("cd <module>       open module first lesson");
+          out.push("search <keyword>  find a lesson by keyword");
+          out.push("review [module]   open a random completed lesson (to revisit)");
+          out.push("cat readme        project overview");
+          out.push("clear             clear screen");
           break;
         case "ls":
           for (const m of modules) {
@@ -97,7 +100,57 @@ export default function HomeTerminal({ modules }: HomeTerminalProps) {
           break;
         case "whoami": {
           const p = readProgress();
-          out.push(`damato · xp ${p.xp} · streak ${p.streak}d · ${p.completed} lessons done`);
+          out.push(`damato · xp ${p.xp} · streak ${p.streak}d · ${p.completed.length} lessons done`);
+          break;
+        }
+        case "review": {
+          const validKeys = new Set(allLessons.map((l) => `${l.moduleSlug}/${l.lessonSlug}`));
+          const p = readProgress();
+          const pool = arg
+            ? p.completed.filter((k) => validKeys.has(k) && k.startsWith(`${arg}/`))
+            : p.completed.filter((k) => validKeys.has(k));
+          if (pool.length === 0) {
+            out.push(
+              arg
+                ? `review: no completed lessons in module "${arg}". try \`ls\`.`
+                : "review: nothing completed yet. finish a lesson first.",
+            );
+            break;
+          }
+          const pick = pool[Math.floor(Math.random() * pool.length)];
+          out.push(`opening ${pick} (review)…`);
+          router.push(`/learn/${pick}`);
+          break;
+        }
+        case "search":
+        case "find": {
+          if (!arg) {
+            out.push("search: missing keyword · usage: search <keyword>");
+            break;
+          }
+          const needle = arg.toLowerCase();
+          const matches = allLessons
+            .filter((l) => {
+              const haystack = [
+                l.title,
+                l.moduleSlug,
+                l.lessonSlug,
+                l.theory?.content?.slice(0, 400) ?? "",
+              ]
+                .join(" ")
+                .toLowerCase();
+              return haystack.includes(needle);
+            })
+            .slice(0, 8);
+          if (matches.length === 0) {
+            out.push(`search: no lesson matches "${arg}"`);
+          } else {
+            out.push(`# ${matches.length} match${matches.length === 1 ? "" : "es"} for "${arg}"`);
+            for (const l of matches) {
+              out.push(`  ${l.moduleSlug}/${l.lessonSlug}  · ${l.title}`);
+            }
+            out.push("tip: cd <module-slug> to open a module's first lesson");
+          }
           break;
         }
         case "cd": {
@@ -201,7 +254,7 @@ export default function HomeTerminal({ modules }: HomeTerminalProps) {
     } else if (e.key === "Tab") {
       e.preventDefault();
       const lower = value.toLowerCase();
-      const commands = ["help", "ls", "stats", "projects", "playground", "whoami", "cd ", "cat readme", "clear"];
+      const commands = ["help", "ls", "stats", "projects", "playground", "whoami", "cd ", "search ", "review ", "cat readme", "clear"];
       if (lower.startsWith("cd ")) {
         const partial = lower.slice(3).trim();
         const match = modules.find((m) => m.slug.startsWith(partial));

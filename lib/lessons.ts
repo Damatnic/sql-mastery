@@ -1190,6 +1190,13 @@ RANK()       OVER (ORDER BY salary DESC)  -- 1,2,2,4,5... ties get same rank, ga
 DENSE_RANK() OVER (ORDER BY salary DESC)  -- 1,2,2,3,4... ties get same rank, no gap
 \`\`\`
 
+## Picking the right one
+- **ROW_NUMBER**: when you don't care about ties; you want exactly N rows back. Top-3 paginators, deduplication.
+- **RANK**: when ties matter and the gap is informative. "I'm tied for 2nd, the next person is 4th."
+- **DENSE_RANK**: when ties matter but you want consecutive ranks. Bucketing, tier assignment, "show the top 3 distinct salaries."
+
+Run the first example below to actually see the difference on real rows.
+
 ## Syntax
 \`\`\`sql
 SELECT name, salary,
@@ -1206,7 +1213,8 @@ Leaderboards, finding top-N per group, paginating sorted results, deduplication 
     challenges: [
       { id: "29-1", prompt: "Rank all employees by salary (highest first) using DENSE_RANK. Show name, salary, and rank.", hint: "DENSE_RANK() OVER (ORDER BY salary DESC).", expectedColumns: ["name","salary","salary_rank"], validateFn: "return rows.length > 0 && rows[0].salary_rank === 1;", solution: "SELECT name, salary,\n  DENSE_RANK() OVER (ORDER BY salary DESC) AS salary_rank\nFROM employees;" },
       { id: "29-2", prompt: "Find the top 3 highest-paid employees using ROW_NUMBER (one per rank, no ties).", hint: "Subquery with ROW_NUMBER, outer query WHERE row_num <= 3.", expectedColumns: ["name","salary"], validateFn: "return rows.length === 3;", solution: "SELECT name, salary\nFROM (\n  SELECT name, salary, ROW_NUMBER() OVER (ORDER BY salary DESC) AS rn\n  FROM employees\n) t\nWHERE rn <= 3;" },
-      { id: "29-3", prompt: "Assign each employee a row number within their department (ordered by salary descending). Show name, department, salary, and rank within dept.", hint: "ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC).", expectedColumns: ["name","department","salary","dept_rank"], validateFn: "return rows.length > 0;", solution: "SELECT name, department, salary,\n  ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) AS dept_rank\nFROM employees\nORDER BY department, dept_rank;" }
+      { id: "29-3", prompt: "Assign each employee a row number within their department (ordered by salary descending). Show name, department, salary, and rank within dept.", hint: "ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC).", expectedColumns: ["name","department","salary","dept_rank"], validateFn: "return rows.length > 0;", solution: "SELECT name, department, salary,\n  ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) AS dept_rank\nFROM employees\nORDER BY department, dept_rank;" },
+      { id: "29-4", prompt: "Rank employees by salary so that ties share a rank AND the next rank is consecutive (no gaps after ties). Which of the three ranking functions does that? Show name, salary, and rank.", hint: "Of the three: ROW_NUMBER ignores ties, RANK leaves gaps after ties, DENSE_RANK closes gaps. Pick the gap-closing one.", expectedColumns: ["name","salary","rnk"], validateFn: "if (rows.length < 2) return false; const ranks = rows.map(r => Number(r.rnk)).filter(n => !isNaN(n)).sort((a,b) => a-b); for (let i = 1; i < ranks.length; i++) { if (ranks[i] - ranks[i-1] > 1) return false; } return ranks[0] === 1;", solution: "SELECT name, salary,\n  DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk\nFROM employees;" }
     ]
   },
 
