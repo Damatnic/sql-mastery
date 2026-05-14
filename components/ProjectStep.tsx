@@ -1,15 +1,6 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import {
-  Lightbulb,
-  CheckCircle2,
-  XCircle,
-  Eye,
-  ChevronDown,
-  ChevronUp,
-  Lock,
-} from 'lucide-react';
 import SQLEditor from './SQLEditor';
 import ResultsTable from './ResultsTable';
 import type { QueryResponse } from '@/lib/db';
@@ -121,80 +112,56 @@ export default function ProjectStep({
 
   if (isLocked) {
     return (
-      <div className="rounded-lg border border-slate-700/50 bg-slate-800/30 overflow-hidden opacity-60">
-        <div className="p-4 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center">
-            <Lock className="w-4 h-4 text-slate-500" />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500">
-                Step {stepIndex + 1} of {totalSteps}
-              </span>
-            </div>
-            <h3 className="text-lg font-medium text-slate-500">{step.title}</h3>
-          </div>
-        </div>
+      <div className="rounded border border-slate-800 bg-slate-900/30 opacity-60 p-4 font-mono text-sm">
+        <p className="text-xs text-slate-500">
+          <span className="text-slate-600">[locked]</span> step {String(stepIndex + 1).padStart(2, '0')}/{String(totalSteps).padStart(2, '0')}
+        </p>
+        <p className="mt-1 text-slate-500">{step.title}</p>
       </div>
     );
   }
 
+  const done = isCorrect || isCompleted;
+
   return (
     <div
-      className={`rounded-lg border overflow-hidden transition-all ${
-        isCorrect || isCompleted
-          ? 'border-emerald-700/50 bg-emerald-900/10'
-          : 'border-slate-700 bg-slate-800/50'
+      className={`rounded border transition-colors ${
+        done ? 'border-emerald-700/50 bg-emerald-900/5' : 'border-slate-800 bg-slate-900/40'
       }`}
     >
-      {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full p-4 flex items-center gap-3 hover:bg-slate-700/20 transition-colors"
+        className="w-full p-4 flex items-center gap-3 hover:bg-slate-800/40 transition-colors text-left font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
+        aria-expanded={isExpanded}
       >
-        <div
-          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-            isCorrect || isCompleted
-              ? 'bg-emerald-900/50 text-emerald-400'
-              : 'bg-indigo-900/50 text-indigo-400'
-          }`}
+        <span
+          aria-hidden="true"
+          className={`text-sm w-4 ${done ? 'text-emerald-400' : 'text-indigo-400'}`}
         >
-          {isCorrect || isCompleted ? (
-            <CheckCircle2 className="w-5 h-5" />
-          ) : (
-            <span className="text-sm font-bold">{stepIndex + 1}</span>
-          )}
+          {done ? '✓' : '>'}
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className="text-xs text-slate-500">
+            step {String(stepIndex + 1).padStart(2, '0')}/{String(totalSteps).padStart(2, '0')}
+            {done && <span className="ml-2 text-emerald-400">· done</span>}
+          </p>
+          <p className="text-sm text-slate-100 truncate">{step.title}</p>
         </div>
-        <div className="flex-1 text-left">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500">
-              Step {stepIndex + 1} of {totalSteps}
-            </span>
-            {(isCorrect || isCompleted) && (
-              <span className="text-xs text-emerald-400">Complete</span>
-            )}
-          </div>
-          <h3 className="text-lg font-semibold text-white">{step.title}</h3>
-        </div>
-        {isExpanded ? (
-          <ChevronUp className="w-5 h-5 text-slate-400" />
-        ) : (
-          <ChevronDown className="w-5 h-5 text-slate-400" />
-        )}
+        <span aria-hidden="true" className="text-xs text-slate-400">
+          {isExpanded ? '▼' : '▶'}
+        </span>
       </button>
 
-      {/* Content */}
       {isExpanded && (
-        <div className="border-t border-slate-700/50">
-          {/* Context */}
-          <div className="p-4 bg-slate-900/30 border-b border-slate-700/50">
+        <div className="border-t border-slate-800">
+          <div className="p-4 bg-slate-950/40 border-b border-slate-800">
             <p className="text-slate-300 text-sm leading-relaxed">{step.context}</p>
             <p className="text-slate-400 text-sm mt-3">
-              <strong className="text-slate-300">Task:</strong> {step.description}
+              <span className="font-mono text-xs text-indigo-400"># task: </span>
+              {step.description}
             </p>
           </div>
 
-          {/* Editor */}
           <div className="p-4 space-y-4">
             <SQLEditor
               value={query}
@@ -206,70 +173,55 @@ export default function ProjectStep({
             />
 
             {result && (
-              <div className="space-y-3">
-                {isCorrect || isCompleted ? (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-900/30 border border-emerald-700/50">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                    <span className="text-emerald-300 font-medium">
-                      Correct! Step completed.
-                    </span>
-                  </div>
+              <div className="space-y-3 font-mono text-xs">
+                {done ? (
+                  <p className="text-emerald-400">
+                    <span className="text-emerald-400">exit 0</span> · step validated
+                  </p>
                 ) : result.success ? (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-900/30 border border-amber-700/50">
-                    <XCircle className="w-5 h-5 text-amber-400" />
-                    <span className="text-amber-300">
-                      Not quite right. Check your query and try again.
-                    </span>
-                  </div>
+                  <p className="text-amber-400">
+                    # validation failed · check the query and try again
+                  </p>
                 ) : null}
 
                 <ResultsTable result={result} />
               </div>
             )}
 
-            {/* Hint and Solution buttons */}
-            {!isCorrect && !isCompleted && (
-              <div className="flex items-center gap-3 pt-2">
+            {!done && (
+              <div className="flex items-center gap-3 pt-1 font-mono text-xs">
                 {step.hint && !showHint && (
                   <button
                     onClick={() => setShowHint(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors"
+                    className="px-2 py-1 rounded border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                   >
-                    <Lightbulb className="w-4 h-4" />
-                    Show Hint
+                    show hint
                   </button>
                 )}
-
                 {attempts >= 3 && !showSolution && (
                   <button
                     onClick={handleUseSolution}
-                    className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 transition-colors"
+                    className="px-2 py-1 rounded border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                   >
-                    <Eye className="w-4 h-4" />
-                    Show Solution
+                    show solution
                   </button>
                 )}
-
                 {attempts > 0 && (
-                  <span className="ml-auto text-xs text-slate-500">
-                    Attempts: {attempts}
-                  </span>
+                  <span className="ml-auto text-slate-500">attempts: {attempts}</span>
                 )}
               </div>
             )}
 
-            {showHint && step.hint && !isCorrect && !isCompleted && (
-              <div className="p-3 rounded-lg bg-indigo-900/30 border border-indigo-700/50">
-                <p className="text-sm text-indigo-300">
-                  <span className="font-semibold">Hint:</span> {step.hint}
-                </p>
-              </div>
+            {showHint && step.hint && !done && (
+              <p className="font-mono text-xs text-slate-300 border-l-2 border-indigo-400/40 pl-3">
+                <span className="text-indigo-400">!</span> hint: {step.hint}
+              </p>
             )}
 
-            {showSolution && !isCorrect && !isCompleted && (
-              <div className="p-3 rounded-lg bg-slate-900 border border-slate-600">
-                <p className="text-xs text-slate-400 mb-2">Solution:</p>
-                <pre className="text-sm text-slate-200 font-mono whitespace-pre-wrap">
+            {showSolution && !done && (
+              <div className="rounded border border-slate-800 bg-slate-950 p-3">
+                <p className="font-mono text-[10px] uppercase tracking-widest text-slate-500 mb-2"># solution</p>
+                <pre className="text-xs text-slate-200 font-mono whitespace-pre-wrap">
                   {step.solution}
                 </pre>
               </div>

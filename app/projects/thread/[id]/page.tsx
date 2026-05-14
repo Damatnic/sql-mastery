@@ -2,15 +2,10 @@
 
 import { use, useMemo } from 'react';
 import Link from 'next/link';
-import {
-  Database, ArrowLeft, Hammer, CheckCircle2, Lock, ChevronRight,
-  BookOpen, Sparkles,
-} from 'lucide-react';
 import XPBadge from '@/components/XPBadge';
 import {
   projectThreads,
   getThreadChallenges,
-  getThreadColors,
   projectChallenges,
 } from '@/lib/project-threads';
 import { useThreadProgressStore } from '@/lib/thread-progress';
@@ -43,22 +38,22 @@ export default function ThreadPage({ params }: ThreadPageProps) {
 
   if (!thread) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Thread Not Found</h1>
-          <p className="text-slate-400 mb-6">This project thread does not exist.</p>
-          <Link
-            href="/projects"
-            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
-          >
-            Back to Projects
-          </Link>
-        </div>
+      <div className="min-h-screen bg-slate-950 text-slate-100 font-mono text-sm flex flex-col items-start justify-center px-6 max-w-2xl mx-auto">
+        <p>
+          <span className="text-indigo-400">damato@sql</span>
+          <span className="text-slate-500">:</span>
+          <span className="text-slate-500">~$</span> cat /projects/thread/{id}
+        </p>
+        <p className="mt-2 text-rose-400">cat: no such thread</p>
+        <Link
+          href="/projects"
+          className="mt-6 inline-flex items-center gap-2 px-3 py-2 rounded border border-slate-800 hover:border-indigo-400 hover:text-indigo-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+        >
+          <span className="text-indigo-400">→</span> back to ~/projects
+        </Link>
       </div>
     );
   }
-
-  const colors = getThreadColors(thread.color);
 
   // Find lesson for each challenge
   const challengesWithLessons = challenges.map((challenge) => {
@@ -80,186 +75,135 @@ export default function ThreadPage({ params }: ThreadPageProps) {
   });
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      {/* Header */}
-      <header className="border-b border-slate-800">
-        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+      <header className="border-b border-slate-800/60">
+        <div className="max-w-4xl mx-auto px-6 py-3 flex items-center justify-between text-xs font-mono">
           <Link
             href="/projects"
-            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+            className="text-slate-400 hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
           >
-            <ArrowLeft className="w-5 h-5" />
-            <Database className="w-6 h-6 text-indigo-500" />
-            <span className="font-bold text-white text-lg">SQL Mastery</span>
+            <span className="text-indigo-400">$</span> cd ../projects
           </Link>
           <XPBadge />
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-12">
-        {/* Thread Header */}
-        <div className={`rounded-xl ${colors.bg} border ${colors.border} p-6 mb-8`}>
-          <div className="flex items-start gap-4">
-            <div className={`p-3 rounded-xl ${colors.bg} border ${colors.border}`}>
-              <Hammer className={`w-8 h-8 ${colors.text}`} />
-            </div>
-            <div className="flex-1">
-              <p className={`text-xs font-bold ${colors.text} uppercase tracking-wider mb-1`}>
-                Project Thread
-              </p>
-              <h1 className="text-2xl font-bold text-white mb-2">{thread.title}</h1>
-              <p className="text-slate-400 mb-4">{thread.description}</p>
+      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-10">
+        <section className="font-mono text-sm">
+          <p>
+            <span className="text-indigo-400">damato@sql</span>
+            <span className="text-slate-500">:</span>
+            <span className="text-slate-500">~/projects/thread/{thread.id}$</span>{' '}
+            <span>cat brief.md</span>
+            <span className="ml-1 inline-block w-2 h-4 align-text-bottom bg-slate-100 terminal-cursor" aria-hidden="true" />
+          </p>
+        </section>
 
-              {/* Progress Bar */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-slate-400">
-                    {completedCount} of {challenges.length} steps complete
-                  </span>
-                  <span className={`font-semibold ${progress === 100 ? 'text-emerald-400' : colors.text}`}>
-                    {progress}%
-                  </span>
-                </div>
-                <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full ${progress === 100 ? 'bg-emerald-500' : colors.accent} rounded-full transition-all duration-500`}
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              </div>
+        <section className="mt-6">
+          <p className="font-mono text-[11px] uppercase tracking-widest text-slate-500"># thread</p>
+          <h1 className="mt-1 text-2xl font-semibold text-slate-100">{thread.title}</h1>
+          <p className="mt-2 text-sm text-slate-400 leading-relaxed">{thread.description}</p>
+          <p className="mt-3 font-mono text-[11px] text-slate-500">
+            [{thread.databaseLabel}] · modules {thread.modules[0]}-{thread.modules[thread.modules.length - 1]} · {thread.totalSteps} steps
+          </p>
+        </section>
 
-              {/* Tags */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="px-2 py-1 text-xs bg-slate-800 text-slate-300 rounded">
-                  {thread.databaseLabel}
-                </span>
-                <span className="px-2 py-1 text-xs bg-slate-800 text-slate-300 rounded">
-                  Modules {thread.modules[0]}-{thread.modules[thread.modules.length - 1]}
-                </span>
-                <span className="px-2 py-1 text-xs bg-slate-800 text-slate-300 rounded">
-                  {thread.totalSteps} steps
-                </span>
-              </div>
-            </div>
+        <section className="mt-6 font-mono text-xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-slate-400">
+              <span className="text-indigo-400">progress: </span>
+              {completedCount}/{challenges.length} steps
+              {progress === 100 && <span className="ml-2 text-emerald-400">· done</span>}
+            </span>
+            <span className={progress === 100 ? 'text-emerald-400' : 'text-indigo-400'}>{progress}%</span>
           </div>
-        </div>
+          <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all duration-300 ${progress === 100 ? 'bg-emerald-500' : 'bg-indigo-400'}`}
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </section>
 
-        {/* Scenario */}
-        <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-6 mb-8">
-          <h2 className="text-lg font-semibold text-white mb-3">The Scenario</h2>
-          <p className="text-slate-300 whitespace-pre-line leading-relaxed">
+        <section className="mt-8">
+          <p className="text-xs uppercase tracking-widest text-slate-500 font-mono mb-2"># scenario</p>
+          <p className="text-sm text-slate-300 whitespace-pre-line leading-relaxed">
             {thread.scenario}
           </p>
-        </div>
+        </section>
 
-        {/* Final Product Preview */}
-        <div className="bg-slate-900/50 border border-slate-700/50 rounded-lg p-6 mb-8">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            <h2 className="text-lg font-semibold text-white">What You&apos;ll Build</h2>
-          </div>
-          <p className="text-slate-400 text-sm">{thread.previewDescription}</p>
-        </div>
+        <section className="mt-8">
+          <p className="text-xs uppercase tracking-widest text-slate-500 font-mono mb-2"># build</p>
+          <p className="text-sm text-slate-400">{thread.previewDescription}</p>
+        </section>
 
-        {/* Challenge Steps */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-white mb-4">Project Steps</h2>
-          <div className="space-y-3">
+        <section className="mt-8">
+          <p className="text-xs uppercase tracking-widest text-slate-500 font-mono mb-3"># steps</p>
+          <ul className="space-y-2">
             {challengesWithLessons.map(({ challenge, lesson, isComplete }, index) => {
               const isLocked = index > 0 && !challengesWithLessons[index - 1].isComplete;
+              const marker = isComplete ? '✓' : isLocked ? '·' : '>';
+              const markerClass = isComplete
+                ? 'text-emerald-400'
+                : isLocked
+                ? 'text-slate-600'
+                : 'text-indigo-400';
 
               return (
-                <div
+                <li
                   key={challenge.id}
-                  className={`rounded-lg border ${
+                  className={`rounded border ${
                     isComplete
-                      ? 'bg-emerald-900/20 border-emerald-700/50'
+                      ? 'border-emerald-700/40 bg-emerald-900/5'
                       : isLocked
-                      ? 'bg-slate-900/50 border-slate-700/30 opacity-60'
-                      : 'bg-slate-800/50 border-slate-700'
-                  } overflow-hidden`}
+                      ? 'border-slate-800/40 bg-slate-900/20 opacity-60'
+                      : 'border-slate-800 bg-slate-900/40'
+                  } p-3 font-mono`}
                 >
-                  <div className="p-4">
-                    <div className="flex items-start gap-3">
-                      {/* Step Number / Status */}
-                      <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                          isComplete
-                            ? 'bg-emerald-500/20 text-emerald-400'
-                            : isLocked
-                            ? 'bg-slate-700/50 text-slate-500'
-                            : `${colors.bg} ${colors.text}`
-                        }`}
-                      >
-                        {isComplete ? (
-                          <CheckCircle2 className="w-5 h-5" />
-                        ) : isLocked ? (
-                          <Lock className="w-4 h-4" />
-                        ) : (
-                          <span className="text-sm font-bold">{challenge.stepNumber}</span>
-                        )}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3
-                            className={`font-semibold ${
-                              isComplete ? 'text-emerald-300' : isLocked ? 'text-slate-500' : 'text-white'
-                            }`}
-                          >
-                            {challenge.title}
-                          </h3>
-                        </div>
-                        {lesson && (
-                          <p className="text-xs text-slate-500 mb-2">
-                            From: {lesson.title}
-                          </p>
-                        )}
-                        <p className={`text-sm ${isLocked ? 'text-slate-600' : 'text-slate-400'}`}>
-                          {challenge.scenario.length > 80 ? `${challenge.scenario.substring(0, 77)}...` : challenge.scenario}
+                  <div className="flex items-start gap-3">
+                    <span aria-hidden="true" className={`text-sm w-4 ${markerClass}`}>{marker}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-slate-500">
+                        step {String(challenge.stepNumber).padStart(2, '0')}
+                        {isLocked && <span className="ml-2 text-slate-600">[locked]</span>}
+                      </p>
+                      <p className={`text-sm ${isLocked ? 'text-slate-600' : 'text-slate-100'} truncate`}>
+                        {challenge.title}
+                      </p>
+                      {lesson && (
+                        <p className="mt-1 text-[11px] text-slate-500 truncate">
+                          # from {lesson.moduleSlug}/{lesson.lessonSlug}
                         </p>
-                      </div>
-
-                      {/* Action */}
-                      {lesson && !isLocked && (
-                        <Link
-                          href={`/learn/${lesson.moduleSlug}/${lesson.lessonSlug}`}
-                          className={`flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg transition-colors shrink-0 ${
-                            isComplete
-                              ? 'bg-emerald-900/30 text-emerald-400 hover:bg-emerald-900/50'
-                              : `${colors.bg} ${colors.text} hover:bg-opacity-50`
-                          }`}
-                        >
-                          <BookOpen className="w-4 h-4" />
-                          <span>{isComplete ? 'Review' : 'Go to Lesson'}</span>
-                          <ChevronRight className="w-4 h-4" />
-                        </Link>
                       )}
                     </div>
+                    {lesson && !isLocked && (
+                      <Link
+                        href={`/learn/${lesson.moduleSlug}/${lesson.lessonSlug}`}
+                        className="shrink-0 px-2 py-1 rounded border border-slate-800 text-xs text-slate-300 hover:text-slate-100 hover:border-indigo-400/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                        aria-label={`Open lesson ${lesson.title}`}
+                      >
+                        open →
+                      </Link>
+                    )}
                   </div>
-                </div>
+                </li>
               );
             })}
-          </div>
-        </div>
+          </ul>
+        </section>
+      </main>
 
-        {/* Quick Links */}
-        <div className="flex items-center justify-center gap-4">
-          <Link
-            href="/learn"
-            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
-          >
-            Back to Lessons
-          </Link>
+      <footer className="border-t border-slate-800/60 py-5 font-mono text-xs">
+        <div className="max-w-4xl mx-auto px-6 flex flex-wrap items-center justify-between gap-3 text-slate-500">
+          <span><span className="text-emerald-400">exit 0</span> · personal use · next.js + sql.js</span>
           <Link
             href="/projects"
-            className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors"
+            className="hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
           >
-            All Projects
+            cd ../projects
           </Link>
         </div>
-      </main>
+      </footer>
     </div>
   );
 }

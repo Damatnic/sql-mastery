@@ -2,22 +2,13 @@
 
 import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
-import {
-  Database,
-  ChevronLeft,
-  Clock,
-  Layers,
-  CheckCircle2,
-  RotateCcw,
-  Trophy,
-} from 'lucide-react';
 import ProjectStep from '@/components/ProjectStep';
 import AITutor from '@/components/AITutor';
 import XPBadge from '@/components/XPBadge';
 import SchemaViewer from '@/components/SchemaViewer';
 import { createDatabase, runQuery } from '@/lib/db';
 import { COMPANY_DB, STORE_DB, SCHOOL_DB } from '@/lib/databases';
-import { getProjectBySlug, getDifficultyColors, getProjectColors } from '@/lib/projects';
+import { getProjectBySlug } from '@/lib/projects';
 import { useProjectProgressStore, PROJECT_XP_VALUES } from '@/lib/project-progress';
 import { useProgressStore } from '@/lib/progress';
 import type { Database as SqlJsDatabase } from 'sql.js';
@@ -96,184 +87,148 @@ export default function ProjectPage({ params }: ProjectPageProps) {
 
   const handleResetProject = useCallback(() => {
     if (!project) return;
-    if (confirm('Are you sure you want to reset your progress on this project?')) {
+    if (confirm('Reset progress on this project?')) {
       resetProject(project.slug);
     }
   }, [project, resetProject]);
 
   if (!project) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Project Not Found</h1>
-          <p className="text-slate-400 mb-6">
-            This project does not exist or the URL is incorrect.
-          </p>
-          <Link
-            href="/projects"
-            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors"
-          >
-            Back to Projects
-          </Link>
-        </div>
+      <div className="min-h-screen bg-slate-950 text-slate-100 font-mono text-sm flex flex-col items-start justify-center px-6 max-w-2xl mx-auto">
+        <p>
+          <span className="text-indigo-400">damato@sql</span>
+          <span className="text-slate-500">:</span>
+          <span className="text-slate-500">~$</span> cat /projects/{slug}
+        </p>
+        <p className="mt-2 text-rose-400">cat: no such project</p>
+        <Link
+          href="/projects"
+          className="mt-6 inline-flex items-center gap-2 px-3 py-2 rounded border border-slate-800 hover:border-indigo-400 hover:text-indigo-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+        >
+          <span className="text-indigo-400">→</span> back to ~/projects
+        </Link>
       </div>
     );
   }
 
-  const colors = getProjectColors(project.color);
-  const difficultyColors = getDifficultyColors(project.difficulty);
-
   return (
-    <div className="min-h-screen bg-slate-950">
-      {/* Header */}
+    <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="border-b border-slate-800 sticky top-0 z-40 bg-slate-950/95 backdrop-blur">
-        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between text-xs font-mono">
+          <div className="flex items-center gap-2 min-w-0">
             <Link
               href="/projects"
-              className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+              className="text-slate-400 hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
             >
-              <ChevronLeft className="w-5 h-5" />
-              <Database className="w-6 h-6 text-indigo-500" />
-              <span className="font-bold text-white">SQL Mastery</span>
+              <span className="text-indigo-400">$</span> cd ../projects
             </Link>
             <span className="text-slate-600">/</span>
-            <span className="text-slate-400">Projects</span>
-            <span className="text-slate-600">/</span>
-            <span className="text-white font-medium">{project.title}</span>
+            <span className="text-slate-100 truncate">{project.slug}</span>
           </div>
           <XPBadge />
         </div>
       </header>
 
       <main className="max-w-5xl mx-auto px-6 py-8">
-        {/* Project Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-3">
-            <span
-              className={`px-2.5 py-1 text-xs font-medium rounded-full ${difficultyColors.bg} ${difficultyColors.text} border ${difficultyColors.border}`}
-            >
-              {project.difficulty}
-            </span>
-            <span className="flex items-center gap-1 text-xs text-slate-500">
-              <Clock className="w-3.5 h-3.5" />
-              {project.estimatedTime}
-            </span>
-            <span className="flex items-center gap-1 text-xs text-slate-500">
-              <Database className="w-3.5 h-3.5" />
-              {project.databaseLabel}
-            </span>
-            <span className="flex items-center gap-1 text-xs text-slate-500">
-              <Layers className="w-3.5 h-3.5" />
-              {totalSteps} steps
-            </span>
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-2">{project.title}</h1>
-          <p className="text-slate-400">{project.description}</p>
-        </div>
+        <section className="font-mono text-sm">
+          <p>
+            <span className="text-indigo-400">damato@sql</span>
+            <span className="text-slate-500">:</span>
+            <span className="text-slate-500">~/projects/{project.slug}$</span>{' '}
+            <span>cat brief.md</span>
+            <span className="ml-1 inline-block w-2 h-4 align-text-bottom bg-slate-100 terminal-cursor" aria-hidden="true" />
+          </p>
+        </section>
 
-        {/* Progress Bar */}
-        <div className={`rounded-xl border ${colors.border} ${colors.bg} p-4 mb-8`}>
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              {isProjectComplete ? (
-                <div className="flex items-center gap-2 text-emerald-400">
-                  <Trophy className="w-5 h-5" />
-                  <span className="font-semibold">Project Complete!</span>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className={`w-5 h-5 ${colors.text}`} />
-                  <span className="text-white font-medium">
-                    {completedCount} of {totalSteps} steps completed
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              <span className={`text-2xl font-bold ${colors.text}`}>{progress}%</span>
-              {completedCount > 0 && (
-                <button
-                  onClick={handleResetProject}
-                  className="flex items-center gap-1 px-2 py-1 text-xs text-slate-500 hover:text-slate-300 transition-colors"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  Reset
-                </button>
-              )}
-            </div>
+        <section className="mt-6">
+          <h1 className="text-2xl font-semibold text-slate-100">{project.title}</h1>
+          <p className="mt-2 text-sm text-slate-400 leading-relaxed">{project.description}</p>
+          <p className="mt-3 font-mono text-[11px] text-slate-500">
+            [{project.difficulty}] · {project.estimatedTime} · {project.databaseLabel} · {totalSteps} steps
+          </p>
+        </section>
+
+        <section className="mt-8 font-mono text-xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-slate-400">
+              <span className="text-indigo-400">progress: </span>
+              {completedCount}/{totalSteps} steps
+              {isProjectComplete && <span className="ml-2 text-emerald-400">· done</span>}
+            </span>
+            {completedCount > 0 && (
+              <button
+                onClick={handleResetProject}
+                className="px-2 py-1 rounded border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              >
+                reset
+              </button>
+            )}
           </div>
-          <div className="h-2.5 bg-slate-800 rounded-full overflow-hidden">
+          <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
             <div
-              className={`h-full ${colors.progress} rounded-full transition-all duration-500`}
+              className={`h-full rounded-full transition-all duration-300 ${isProjectComplete ? 'bg-emerald-500' : 'bg-indigo-400'}`}
               style={{ width: `${progress}%` }}
             />
           </div>
-        </div>
+        </section>
 
-        {/* Steps */}
-        {isLoading ? (
-          <div className="h-64 flex items-center justify-center">
-            <div className="text-slate-400">Loading database...</div>
-          </div>
-        ) : database ? (
-          <div className="space-y-4">
-            {project.steps.map((step, idx) => {
-              // A step is unlocked if all previous steps are completed
-              const previousStepsCompleted = project.steps
-                .slice(0, idx)
-                .every((s) => isStepCompleted(project.slug, s.id));
-              const isLocked = idx > 0 && !previousStepsCompleted;
+        <section className="mt-8">
+          <p className="text-xs uppercase tracking-widest text-slate-500 font-mono mb-3"># steps</p>
+          {isLoading ? (
+            <p className="h-32 flex items-center justify-center font-mono text-xs text-slate-500">
+              loading sqlite database…
+            </p>
+          ) : database ? (
+            <div className="space-y-3">
+              {project.steps.map((step, idx) => {
+                const previousStepsCompleted = project.steps
+                  .slice(0, idx)
+                  .every((s) => isStepCompleted(project.slug, s.id));
+                const isLocked = idx > 0 && !previousStepsCompleted;
 
-              return (
-                <ProjectStep
-                  key={step.id}
-                  step={step}
-                  stepIndex={idx}
-                  totalSteps={totalSteps}
-                  database={database}
-                  runQuery={runQuery}
-                  isCompleted={isStepCompleted(project.slug, step.id)}
-                  isLocked={isLocked}
-                  onComplete={() => handleStepComplete(step.id)}
-                  onQueryChange={(q, err) => {
-                    setActiveQuery(q);
-                    setActiveError(err);
-                  }}
-                />
-              );
-            })}
-          </div>
-        ) : (
-          <div className="h-64 flex items-center justify-center">
-            <div className="text-red-400">Failed to load database</div>
-          </div>
-        )}
+                return (
+                  <ProjectStep
+                    key={step.id}
+                    step={step}
+                    stepIndex={idx}
+                    totalSteps={totalSteps}
+                    database={database}
+                    runQuery={runQuery}
+                    isCompleted={isStepCompleted(project.slug, step.id)}
+                    isLocked={isLocked}
+                    onComplete={() => handleStepComplete(step.id)}
+                    onQueryChange={(q, err) => {
+                      setActiveQuery(q);
+                      setActiveError(err);
+                    }}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <p className="h-32 flex items-center justify-center font-mono text-xs text-rose-400">
+              # db unavailable
+            </p>
+          )}
+        </section>
 
-        {/* Navigation Footer */}
-        <div className="mt-12 pt-8 border-t border-slate-800 flex items-center justify-between">
+        <section className="mt-12 pt-6 border-t border-slate-800 font-mono text-xs flex items-center justify-between">
           <Link
             href="/projects"
-            className="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-white transition-colors"
+            className="px-3 py-2 rounded border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
           >
-            <ChevronLeft className="w-5 h-5" />
-            <span>Back to Projects</span>
+            ← cd ../projects
           </Link>
 
           {isProjectComplete && (
-            <div className="flex items-center gap-3">
-              <span className="text-emerald-400 text-sm">
-                Great work completing this project!
-              </span>
-              <Link
-                href="/projects"
-                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
-              >
-                Choose Another Project
-              </Link>
-            </div>
+            <Link
+              href="/projects"
+              className="px-3 py-2 rounded border border-emerald-500 text-emerald-400 hover:bg-emerald-500/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+            >
+              exit 0 · pick another project →
+            </Link>
           )}
-        </div>
+        </section>
       </main>
 
       {/* Schema Viewer */}

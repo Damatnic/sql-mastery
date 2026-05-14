@@ -2,10 +2,6 @@
 
 import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
-import {
-  Database, ChevronLeft, ChevronRight,
-  BookOpen, Code2, Target, CheckCircle2, Hammer, Home
-} from 'lucide-react';
 import ExampleBlock from '@/components/ExampleBlock';
 import TheoryBlock from '@/components/TheoryBlock';
 import ChallengeBlock from '@/components/ChallengeBlock';
@@ -33,13 +29,6 @@ const databases = {
   store: STORE_DB,
   school: SCHOOL_DB,
 };
-
-const badgeColors = {
-  concept: { bg: 'bg-blue-900/50', text: 'text-blue-400', border: 'border-blue-700/50' },
-  practice: { bg: 'bg-green-900/50', text: 'text-green-400', border: 'border-green-700/50' },
-  challenge: { bg: 'bg-purple-900/50', text: 'text-purple-400', border: 'border-purple-700/50' },
-};
-
 
 interface LessonPageProps {
   params: Promise<{ moduleSlug: string; lessonSlug: string }>;
@@ -84,7 +73,6 @@ export default function LessonPage({ params }: LessonPageProps) {
         const db = await createDatabase(dbSchema);
         if (mounted) setDatabase(db);
       } catch (error) {
-        console.error('Failed to initialize database:', error);
         if (mounted) setDbError(error instanceof Error ? error.message : 'Unknown error');
       } finally {
         if (mounted) setIsLoading(false);
@@ -109,130 +97,110 @@ export default function LessonPage({ params }: LessonPageProps) {
 
   if (!lesson || !moduleInfo) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">Lesson Not Found</h1>
-          <p className="text-slate-400 mb-6">This lesson does not exist or the URL is incorrect.</p>
-          <Link href="/learn" className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors">
-            Back to Dashboard
-          </Link>
-        </div>
+      <div className="min-h-screen bg-slate-950 text-slate-100 font-mono text-sm flex flex-col items-start justify-center px-6 max-w-2xl mx-auto">
+        <p>
+          <span className="text-indigo-400">damato@sql</span>
+          <span className="text-slate-500">:</span>
+          <span className="text-slate-500">~$</span> cat /learn/{moduleSlug}/{lessonSlug}
+        </p>
+        <p className="mt-2 text-rose-400">cat: no such lesson</p>
+        <Link
+          href="/learn"
+          className="mt-6 inline-flex items-center gap-2 px-3 py-2 rounded border border-slate-800 hover:border-indigo-400 hover:text-indigo-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+        >
+          <span className="text-indigo-400">→</span> back to ~/lessons
+        </Link>
       </div>
     );
   }
 
-  const badge = badgeColors[lesson.badge];
   const hasChallenges = lesson.challenges.length > 0;
   const totalChallenges = lesson.challenges.length;
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      {/* Header */}
+    <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="border-b border-slate-800 sticky top-0 z-40 bg-slate-950/95 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/learn" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
-              <Database className="w-6 h-6 text-indigo-500" />
-              <span className="font-bold text-white">SQL Mastery</span>
-            </Link>
-          </div>
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between text-xs font-mono">
+          <Link
+            href="/learn"
+            className="text-slate-400 hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
+          >
+            <span className="text-indigo-400">$</span> cd ../lessons
+          </Link>
           <XPBadge />
         </div>
       </header>
 
-      {/* Breadcrumbs */}
-      <div className="border-b border-slate-800/50 bg-slate-900/30">
-        <div className="max-w-7xl mx-auto px-6 py-2">
-          <nav className="lesson-breadcrumbs">
-            <Link href="/" className="lesson-breadcrumb-link flex items-center gap-1">
-              <Home className="w-3.5 h-3.5" />
-              <span>Home</span>
+      <div className="border-b border-slate-800/60 bg-slate-900/20">
+        <div className="max-w-7xl mx-auto px-6 py-2 font-mono text-xs text-slate-400">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1 truncate">
+            <Link
+              href="/"
+              className="hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
+            >
+              ~
             </Link>
-            <ChevronRight className="lesson-breadcrumb-separator w-4 h-4" />
-            <Link href="/learn" className="lesson-breadcrumb-link">
-              Learn
+            <span>/</span>
+            <Link
+              href="/learn"
+              className="hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
+            >
+              lessons
             </Link>
-            <ChevronRight className="lesson-breadcrumb-separator w-4 h-4" />
-            <Link href={`/learn#module-${lesson.module}`} className="lesson-breadcrumb-link">
-              Module {lesson.module}: {moduleInfo.name}
-            </Link>
-            <ChevronRight className="lesson-breadcrumb-separator w-4 h-4" />
-            <span className="lesson-breadcrumb-current font-medium">
-              {lesson.title}
-            </span>
+            <span>/</span>
+            <span className="text-slate-300 truncate">{lesson.moduleSlug}</span>
+            <span>/</span>
+            <span className="text-slate-100 truncate">{lesson.lessonSlug}</span>
           </nav>
         </div>
       </div>
 
       <div className="flex">
-        {/* Sidebar */}
-        <aside className="hidden lg:block w-72 border-r border-slate-800 p-4 sticky top-28 h-[calc(100vh-112px)] overflow-y-auto">
+        <aside className="hidden lg:block w-72 border-r border-slate-800 p-4 sticky top-[88px] h-[calc(100vh-88px)] overflow-y-auto">
           <LessonNav currentLesson={lesson} moduleLessons={moduleLessons} moduleInfo={moduleInfo} />
         </aside>
 
-        {/* Main Content */}
         <main className="flex-1 max-w-4xl mx-auto px-6 py-8">
-          {/* Lesson Header */}
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-2">
-              <span className={`px-3 py-1 text-xs font-medium rounded-full ${badge.bg} ${badge.text} ${badge.border} border`}>
-                {lesson.badge.charAt(0).toUpperCase() + lesson.badge.slice(1)}
-              </span>
-              <span className="text-slate-500 text-sm">Lesson {lesson.lesson}</span>
-              {isAlreadyComplete && (
-                <span className="flex items-center gap-1 px-2 py-0.5 text-xs text-emerald-400 bg-emerald-900/30 border border-emerald-700/50 rounded-full">
-                  <CheckCircle2 className="w-3 h-3" />
-                  Complete
-                </span>
-              )}
-            </div>
-            <h1 className="text-3xl font-bold text-white">{lesson.title}</h1>
-          </div>
+          <section className="mb-6">
+            <p className="font-mono text-xs text-slate-400">
+              <span className="text-indigo-400">[{lesson.badge}]</span>
+              <span className="ml-2 text-slate-500">lesson {String(lesson.lesson).padStart(2, '0')}</span>
+              {isAlreadyComplete && <span className="ml-2 text-emerald-400">· done</span>}
+            </p>
+            <h1 className="mt-2 text-2xl font-semibold text-slate-100">{lesson.title}</h1>
+          </section>
 
           {isLoading ? (
-            <div className="h-64 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                <span className="text-slate-400">Loading database...</span>
-              </div>
-            </div>
+            <p className="h-32 flex items-center justify-center font-mono text-xs text-slate-500">
+              loading {lesson.database}.db…
+            </p>
           ) : dbError ? (
-            <div className="h-64 flex items-center justify-center p-8 text-center">
-              <div className="max-w-md p-6 rounded-2xl border-2 border-red-500/30 bg-red-500/10">
-                <div className="text-4xl mb-4">⚠️</div>
-                <h2 className="text-xl font-bold text-white mb-2">Engine Failed to Load</h2>
-                <p className="text-slate-400 text-sm mb-6">
-                  We couldn't initialize the SQL WebAssembly engine. This usually happens on slow or restricted networks.
-                </p>
-                <button 
-                  onClick={() => window.location.reload()}
-                  className="px-6 py-2.5 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors"
-                >
-                  Refresh & Retry
-                </button>
-              </div>
+            <div className="h-32 flex flex-col items-start justify-center font-mono text-sm">
+              <p>
+                <span className="text-indigo-400">damato@sql</span>
+                <span className="text-slate-500">:</span>
+                <span className="text-slate-500">~$</span> sqlite3 {lesson.database}.db
+              </p>
+              <p className="mt-2 text-rose-400">error: failed to load sql engine. likely a slow or restricted network.</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-3 py-2 rounded border border-rose-400 text-rose-400 hover:bg-rose-400/10 transition-colors text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              >
+                → refresh &amp; retry
+              </button>
             </div>
           ) : (
             <div className="space-y-10">
-              {/* Theory */}
               <section>
-                <div className="flex items-center gap-2 mb-4">
-                  <BookOpen className="w-5 h-5 text-blue-400" />
-                  <h2 className="text-xl font-semibold text-white">Theory</h2>
-                </div>
+                <p className="font-mono text-xs uppercase tracking-widest text-slate-500 mb-3"># theory</p>
                 <TheoryBlock content={lesson.theory.content} />
               </section>
 
-              {/* Examples */}
               {lesson.examples.length > 0 && database && (
                 <section>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Code2 className="w-5 h-5 text-green-400" />
-                    <h2 className="text-xl font-semibold text-white">Examples</h2>
-                    <span className="text-xs text-slate-500 ml-2">
-                      {lesson.examples.length} example{lesson.examples.length !== 1 ? 's' : ''}
-                    </span>
-                  </div>
+                  <p className="font-mono text-xs uppercase tracking-widest text-slate-500 mb-3">
+                    # examples <span className="text-slate-600">[{lesson.examples.length}]</span>
+                  </p>
                   <div className="space-y-6">
                     {lesson.examples.map((example, idx) => (
                       <ExampleBlock
@@ -247,16 +215,11 @@ export default function LessonPage({ params }: LessonPageProps) {
                 </section>
               )}
 
-              {/* Challenges */}
               {hasChallenges && database && (
                 <section>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Target className="w-5 h-5 text-purple-400" />
-                    <h2 className="text-xl font-semibold text-white">Challenges</h2>
-                    <span className="text-xs text-slate-500 ml-2">
-                      {totalChallenges} challenge{totalChallenges !== 1 ? 's' : ''}
-                    </span>
-                  </div>
+                  <p className="font-mono text-xs uppercase tracking-widest text-slate-500 mb-3">
+                    # challenges <span className="text-slate-600">[{totalChallenges}]</span>
+                  </p>
                   <div className="space-y-6">
                     {lesson.challenges.map((challenge, idx) => (
                       <ChallengeBlock
@@ -277,13 +240,8 @@ export default function LessonPage({ params }: LessonPageProps) {
                 </section>
               )}
 
-              {/* Project Challenge */}
               {projectChallenge && projectThread && database && (
-                <section className="pt-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Hammer className="w-5 h-5 text-amber-400" />
-                    <h2 className="text-xl font-semibold text-white">Project Challenge</h2>
-                  </div>
+                <section className="pt-2">
                   <ProjectChallengeBlock
                     challenge={projectChallenge}
                     thread={projectThread}
@@ -298,21 +256,18 @@ export default function LessonPage({ params }: LessonPageProps) {
                 </section>
               )}
 
-              {/* Mark as Learned */}
               {!hasChallenges && (
-                <div className="flex items-center justify-end pt-2">
+                <div className="flex items-center justify-end pt-2 font-mono text-xs">
                   {isAlreadyComplete ? (
-                    <div className="flex items-center gap-2 px-4 py-2 text-emerald-400 bg-emerald-900/20 border border-emerald-700/40 rounded-lg text-sm">
-                      <CheckCircle2 className="w-4 h-4" />
-                      Marked as complete
-                    </div>
+                    <span className="text-emerald-400">
+                      <span className="text-emerald-400">exit 0</span> · marked as complete
+                    </span>
                   ) : (
                     <button
                       onClick={handleMarkComplete}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white text-sm font-medium rounded-lg transition-colors"
+                      className="px-3 py-2 rounded border border-emerald-500 text-emerald-400 hover:bg-emerald-500/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                     >
-                      <CheckCircle2 className="w-4 h-4" />
-                      Mark as Learned
+                      mark as done
                     </button>
                   )}
                 </div>
@@ -320,42 +275,36 @@ export default function LessonPage({ params }: LessonPageProps) {
             </div>
           )}
 
-          {/* Navigation Footer */}
-          <nav className="lesson-nav">
+          <nav className="mt-12 pt-6 border-t border-slate-800 font-mono text-xs flex items-center justify-between gap-3" aria-label="Lesson navigation">
             {prevLesson ? (
               <Link
                 href={`/learn/${prevLesson.moduleSlug}/${prevLesson.lessonSlug}`}
-                className="lesson-nav-button lesson-nav-button-prev"
+                className="flex items-baseline gap-2 px-3 py-2 rounded border border-slate-800 hover:border-indigo-400/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 min-w-0"
               >
-                <ChevronLeft className="w-5 h-5 text-slate-400 flex-shrink-0" />
-                <div>
-                  <span className="lesson-nav-label">Previous</span>
-                  <span className="lesson-nav-title">{prevLesson.title}</span>
-                </div>
+                <span className="text-slate-500">← prev:</span>
+                <span className="text-slate-200 truncate max-w-[220px]">{prevLesson.title}</span>
               </Link>
-            ) : <div />}
+            ) : (
+              <div />
+            )}
 
             {nextLesson ? (
               <Link
                 href={`/learn/${nextLesson.moduleSlug}/${nextLesson.lessonSlug}`}
-                className="lesson-nav-button lesson-nav-button-next bg-indigo-600 hover:bg-indigo-700 border-indigo-500"
+                className="flex items-baseline gap-2 px-3 py-2 rounded border border-indigo-400 text-indigo-400 hover:bg-indigo-400/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 min-w-0"
               >
-                <div className="text-right">
-                  <span className="lesson-nav-label text-indigo-200">Next lesson</span>
-                  <span className="lesson-nav-title text-white">{nextLesson.title}</span>
-                </div>
-                <ChevronRight className="w-5 h-5 text-white flex-shrink-0" />
+                <span className="text-slate-500">next:</span>
+                <span className="truncate max-w-[220px]">{nextLesson.title}</span>
+                <span>→</span>
               </Link>
             ) : (
               <Link
                 href="/learn"
-                className="lesson-nav-button lesson-nav-button-next bg-emerald-600 hover:bg-emerald-700 border-emerald-500"
+                className="flex items-baseline gap-2 px-3 py-2 rounded border border-emerald-500 text-emerald-400 hover:bg-emerald-500/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
               >
-                <div className="text-right">
-                  <span className="lesson-nav-label text-emerald-200">Module complete</span>
-                  <span className="lesson-nav-title text-white">Back to Dashboard</span>
-                </div>
-                <CheckCircle2 className="w-5 h-5 text-white flex-shrink-0" />
+                <span>exit 0</span>
+                <span className="text-slate-500">·</span>
+                <span>back to ~/lessons</span>
               </Link>
             )}
           </nav>

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Database, ArrowLeft, Key, Hash, Type, Sparkles } from 'lucide-react';
 import SQLEditor from '@/components/SQLEditor';
 import ResultsTable from '@/components/ResultsTable';
 import { createDatabase, runQuery, getDatabaseSchema, type QueryResponse } from '@/lib/db';
@@ -16,9 +15,9 @@ const databases: Record<DatabaseName, string> = {
 };
 
 const databaseLabels: Record<DatabaseName, { name: string; description: string }> = {
-  company: { name: 'Company', description: 'Employees, Projects, Departments' },
-  store: { name: 'Store', description: 'Products, Orders, Customers' },
-  school: { name: 'School', description: 'Students, Courses, Teachers' },
+  company: { name: 'company', description: 'Employees, Projects, Departments' },
+  store: { name: 'store', description: 'Products, Orders, Customers' },
+  school: { name: 'school', description: 'Students, Courses, Teachers' },
 };
 
 export default function PlaygroundPage() {
@@ -31,7 +30,6 @@ export default function PlaygroundPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRunning, setIsRunning] = useState(false);
 
-  // Initialize database
   useEffect(() => {
     let mounted = true;
 
@@ -44,8 +42,8 @@ export default function PlaygroundPage() {
           setSchema(getDatabaseSchema(db));
           setResult(null);
         }
-      } catch (error) {
-        console.error('Failed to initialize database:', error);
+      } catch {
+        // db unavailable; handled by the schema panel showing nothing
       } finally {
         if (mounted) {
           setIsLoading(false);
@@ -86,54 +84,71 @@ export default function PlaygroundPage() {
     setExecutionTime(undefined);
   }, [selectedDb]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const getTypeIcon = (type: string, isPk?: boolean) => {
-    if (isPk) return <Key className="w-3 h-3 text-amber-400" />;
-    const upperType = type.toUpperCase();
-    if (upperType.includes('INT')) return <Hash className="w-3 h-3 text-blue-400" />;
-    if (upperType.includes('TEXT') || upperType.includes('VARCHAR')) return <Type className="w-3 h-3 text-green-400" />;
-    if (upperType.includes('REAL') || upperType.includes('FLOAT')) return <Hash className="w-3 h-3 text-amber-400" />;
-    return <Type className="w-3 h-3 text-slate-400" />;
-  };
-
   return (
-    <div className="min-h-screen bg-slate-950">
-      {/* Header */}
-      <header className="border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
+      <header className="border-b border-slate-800/60">
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between text-xs font-mono">
           <Link
-            href="/learn"
-            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors"
+            href="/"
+            className="text-slate-400 hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
           >
-            <ArrowLeft className="w-5 h-5" />
-            <Database className="w-6 h-6 text-indigo-500" />
-            <span className="font-bold text-white text-lg">SQL Playground</span>
+            <span className="text-indigo-400">$</span> cd ~
           </Link>
-
-          <div className="flex items-center gap-3">
-            {(Object.entries(databaseLabels) as [DatabaseName, { name: string; description: string }][]).map(([key, { name }]) => (
-              <button
-                key={key}
-                onClick={() => setSelectedDb(key)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  selectedDb === key
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }`}
-              >
-                {name}
-              </button>
-            ))}
+          <div className="flex items-center gap-5">
+            <Link
+              href="/learn"
+              className="text-slate-400 hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
+            >
+              lessons
+            </Link>
+            <Link
+              href="/projects"
+              className="text-slate-400 hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
+            >
+              projects
+            </Link>
+            <span className="text-slate-100">&gt; playground</span>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid lg:grid-cols-[1fr,300px] gap-8">
-          {/* Main Editor Area */}
-          <div className="space-y-6">
+      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
+        <section className="font-mono text-sm mb-6">
+          <p>
+            <span className="text-indigo-400">damato@sql</span>
+            <span className="text-slate-500">:</span>
+            <span className="text-slate-500">~/playground$</span>{' '}
+            <span>sqlite3 {selectedDb}.db</span>
+            <span className="ml-1 inline-block w-2 h-4 align-text-bottom bg-slate-100 terminal-cursor" aria-hidden="true" />
+          </p>
+        </section>
+
+        <section className="mb-6 font-mono text-xs">
+          <p className="text-slate-500 mb-2"># database</p>
+          <div className="flex flex-wrap items-center gap-2">
+            {(Object.entries(databaseLabels) as [DatabaseName, { name: string; description: string }][]).map(([key, { name }]) => (
+              <button
+                key={key}
+                onClick={() => setSelectedDb(key)}
+                className={`px-2 py-1 rounded border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
+                  selectedDb === key
+                    ? 'border-indigo-400 text-indigo-400 bg-indigo-400/10'
+                    : 'border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-600'
+                }`}
+                aria-pressed={selectedDb === key}
+              >
+                {selectedDb === key && '> '}{name}
+              </button>
+            ))}
+            <span className="text-slate-500 ml-2">{databaseLabels[selectedDb].description}</span>
+          </div>
+        </section>
+
+        <div className="grid lg:grid-cols-[1fr,300px] gap-6">
+          <div className="space-y-4">
             {isLoading ? (
-              <div className="h-[300px] bg-slate-900 rounded-lg flex items-center justify-center">
-                <div className="text-slate-400">Loading database...</div>
+              <div className="h-[300px] bg-slate-900 rounded border border-slate-800 flex items-center justify-center font-mono text-xs text-slate-500">
+                loading {selectedDb}.db…
               </div>
             ) : (
               <>
@@ -150,32 +165,23 @@ export default function PlaygroundPage() {
             )}
           </div>
 
-          {/* Schema Reference */}
-          <div className="lg:sticky lg:top-8 lg:self-start space-y-4">
-            <div className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
-              <div className="flex items-center gap-2 px-4 py-3 bg-slate-800 border-b border-slate-700">
-                <Database className="w-4 h-4 text-indigo-400" />
-                <h2 className="font-semibold text-white text-sm">
-                  {databaseLabels[selectedDb].name} Database
-                </h2>
+          <aside className="lg:sticky lg:top-8 lg:self-start space-y-4 font-mono">
+            <div className="rounded border border-slate-800 bg-slate-900/40">
+              <div className="px-3 py-2 border-b border-slate-800 text-xs text-slate-400">
+                # schema · {databaseLabels[selectedDb].name}.db
               </div>
-              <p className="px-4 py-2 text-xs text-slate-400 border-b border-slate-700/50">
-                {databaseLabels[selectedDb].description}
-              </p>
-
-              <div className="p-3 space-y-3 max-h-[55vh] overflow-y-auto">
+              <div className="p-3 space-y-3 max-h-[55vh] overflow-y-auto text-xs">
                 {Object.entries(schema).map(([tableName, columns]) => (
-                  <div key={tableName} className="bg-slate-900/50 rounded-lg p-3">
-                    <h3 className="text-sm font-semibold text-amber-400 mb-2 flex items-center gap-2">
-                      <span className="w-5 h-5 bg-amber-500/20 rounded flex items-center justify-center text-xs">T</span>
-                      {tableName}
-                    </h3>
-                    <ul className="space-y-1">
+                  <div key={tableName}>
+                    <p className="text-indigo-400 mb-1">.tables: {tableName}</p>
+                    <ul className="space-y-0.5 pl-3 border-l border-slate-800">
                       {columns.map((col) => (
-                        <li key={col.name} className="text-xs flex items-center gap-2 py-0.5">
-                          {getTypeIcon(col.type, col.pk)}
-                          <span className={col.pk ? 'text-amber-300 font-medium' : 'text-slate-200'}>{col.name}</span>
-                          <span className="ml-auto text-slate-600 font-mono text-[10px]">{col.type}</span>
+                        <li key={col.name} className="grid grid-cols-[1fr_auto] gap-2 items-baseline">
+                          <span className={col.pk ? 'text-amber-300' : 'text-slate-200'}>
+                            {col.pk && <span aria-label="primary key" className="text-amber-400">*</span>}
+                            {col.name}
+                          </span>
+                          <span className="text-[10px] text-slate-600">{col.type.toLowerCase()}</span>
                         </li>
                       ))}
                     </ul>
@@ -184,18 +190,24 @@ export default function PlaygroundPage() {
               </div>
             </div>
 
-            <div className="p-4 bg-indigo-900/20 border border-indigo-700/30 rounded-lg">
-              <div className="flex items-start gap-2">
-                <Sparkles className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" />
-                <div className="text-xs text-slate-400">
-                  <p className="font-medium text-indigo-300 mb-1">Pro Tip</p>
-                  <p>Press <kbd className="px-1.5 py-0.5 bg-slate-800 rounded text-slate-300">Ctrl</kbd>+<kbd className="px-1.5 py-0.5 bg-slate-800 rounded text-slate-300">Enter</kbd> to run your query. All queries run locally in your browser using SQLite.</p>
-                </div>
-              </div>
-            </div>
-          </div>
+            <p className="text-xs text-slate-500">
+              # <kbd className="text-slate-400">⌘↵</kbd> to run · queries run locally via sql.js
+            </p>
+          </aside>
         </div>
       </main>
+
+      <footer className="border-t border-slate-800/60 py-5 font-mono text-xs">
+        <div className="max-w-6xl mx-auto px-6 flex flex-wrap items-center justify-between gap-3 text-slate-500">
+          <span><span className="text-emerald-400">exit 0</span> · personal use · next.js + sql.js</span>
+          <Link
+            href="/"
+            className="hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
+          >
+            ~ home
+          </Link>
+        </div>
+      </footer>
     </div>
   );
 }

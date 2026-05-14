@@ -2,7 +2,6 @@
 
 import { useCallback } from 'react';
 import dynamic from 'next/dynamic';
-import { Play, RotateCcw, Loader2 } from 'lucide-react';
 
 // Dynamic import Monaco to prevent SSR issues
 const MonacoEditor = dynamic(
@@ -10,8 +9,8 @@ const MonacoEditor = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[200px] bg-slate-900 rounded-lg flex items-center justify-center">
-        <Loader2 className="w-6 h-6 text-slate-400 animate-spin" />
+      <div className="h-[200px] bg-slate-900 rounded flex items-center justify-center font-mono text-xs text-slate-500">
+        loading editor…
       </div>
     ),
   }
@@ -99,38 +98,27 @@ export default function SQLEditor({
         />
       </div>
 
-      <div className="flex items-center gap-2 px-3 py-2 bg-slate-800 border-t border-slate-700">
+      <div className="flex items-center gap-2 px-3 py-2 bg-slate-900 border-t border-slate-800 font-mono text-xs">
         <button
           onClick={onRun}
           disabled={isRunning || readOnly}
-          className="flex items-center gap-2 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-600 disabled:cursor-not-allowed text-white text-sm font-medium rounded-md transition-colors"
+          className="px-2 py-1 rounded border border-indigo-400 text-indigo-400 hover:bg-indigo-400/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
         >
-          {isRunning ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Running...
-            </>
-          ) : (
-            <>
-              <Play className="w-4 h-4" />
-              Run
-            </>
-          )}
+          {isRunning ? 'running…' : 'run'}
         </button>
 
         {(onReset || initialValue !== undefined) && (
           <button
             onClick={handleReset}
             disabled={readOnly}
-            className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 disabled:bg-slate-800 disabled:cursor-not-allowed text-slate-300 text-sm font-medium rounded-md transition-colors"
+            className="px-2 py-1 rounded border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
           >
-            <RotateCcw className="w-4 h-4" />
-            Reset
+            reset
           </button>
         )}
 
-        <span className="ml-auto text-xs text-slate-500">
-          Ctrl+Enter to run
+        <span className="ml-auto text-slate-500">
+          <kbd className="opacity-70">⌘↵</kbd> to run
         </span>
       </div>
     </div>

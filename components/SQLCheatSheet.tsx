@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { BookOpen, X, ChevronDown, ChevronRight, Code2 } from 'lucide-react';
 
 interface CheatSheetSection {
   title: string;
@@ -105,68 +104,63 @@ export default function SQLCheatSheet({ className = '' }: SQLCheatSheetProps) {
 
   return (
     <>
-      {/* Toggle Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-36 right-6 z-30 flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 rounded-full text-slate-300 text-sm font-medium shadow-lg transition-all duration-200 ${className}`}
+        className={`fixed bottom-36 right-6 z-30 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-indigo-400/50 rounded text-slate-300 hover:text-slate-100 font-mono text-xs shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${className}`}
+        aria-label="Open cheat sheet"
       >
-        <BookOpen className="w-4 h-4 text-emerald-400" />
-        <span>Cheat Sheet</span>
+        $ cat cheatsheet.sql
       </button>
 
-      {/* Cheat Sheet Panel */}
       {isOpen && (
-        <div className="fixed inset-y-0 right-0 z-50 w-96 bg-slate-900 border-l border-slate-700 shadow-2xl flex flex-col animate-slide-down">
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 bg-gradient-to-b from-slate-800/80 to-slate-900">
-            <div className="flex items-center gap-2">
-              <Code2 className="w-5 h-5 text-emerald-400" />
-              <span className="font-semibold text-white">SQL Cheat Sheet</span>
-            </div>
+        <div
+          className="fixed inset-y-0 right-0 z-50 w-96 bg-slate-950 border-l border-slate-800 shadow-2xl flex flex-col animate-slide-down font-mono text-sm"
+          role="dialog"
+          aria-label="SQL cheat sheet"
+        >
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
+            <span className="text-slate-100">
+              <span className="text-indigo-400">&gt; </span>cheatsheet
+            </span>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1.5 hover:bg-slate-700 rounded-lg transition-colors"
+              className="px-2 py-1 rounded border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-600 transition-colors text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              aria-label="Close cheat sheet"
             >
-              <X className="w-4 h-4 text-slate-400" />
+              close
             </button>
           </div>
 
-          {/* Content */}
           <div className="flex-1 overflow-y-auto">
             {CHEAT_SHEET_DATA.map(section => (
-              <div key={section.title} className="border-b border-slate-800">
+              <div key={section.title} className="border-b border-slate-800/60">
                 <button
                   onClick={() => toggleSection(section.title)}
-                  className="w-full flex items-center gap-2 px-4 py-3 hover:bg-slate-800/50 transition-colors text-left"
+                  className="w-full flex items-center gap-2 px-4 py-2.5 hover:bg-slate-900 transition-colors text-left text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
                 >
-                  {expandedSections.has(section.title) ? (
-                    <ChevronDown className="w-4 h-4 text-slate-500" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-slate-500" />
-                  )}
-                  <span className="font-medium text-slate-200">{section.title}</span>
-                  <span className="ml-auto text-xs text-slate-500">{section.items.length}</span>
+                  <span aria-hidden="true" className="text-slate-500 w-3">
+                    {expandedSections.has(section.title) ? '▼' : '▶'}
+                  </span>
+                  <span className="text-slate-200"># {section.title.toLowerCase()}</span>
+                  <span className="ml-auto text-slate-600">{section.items.length}</span>
                 </button>
 
                 {expandedSections.has(section.title) && (
-                  <div className="px-4 pb-3 space-y-2">
+                  <ul className="px-4 pb-3 space-y-2 text-xs">
                     {section.items.map((item, idx) => (
-                      <div key={idx} className="cheat-sheet-item">
-                        <code className="cheat-sheet-syntax">{item.syntax}</code>
-                        <span className="cheat-sheet-desc">{item.description}</span>
-                      </div>
+                      <li key={idx} className="grid grid-cols-[auto_1fr] gap-3 items-start">
+                        <code className="text-indigo-300 whitespace-nowrap">{item.syntax}</code>
+                        <span className="text-slate-400">{item.description}</span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 )}
               </div>
             ))}
           </div>
 
-          {/* Footer */}
-          <div className="px-4 py-3 border-t border-slate-700 bg-slate-800/30">
-            <p className="text-xs text-slate-500">
-              Quick reference for common SQL syntax
-            </p>
+          <div className="px-4 py-2.5 border-t border-slate-800 text-xs text-slate-500">
+            # quick reference
           </div>
         </div>
       )}

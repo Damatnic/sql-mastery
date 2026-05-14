@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { Target, Lightbulb, CheckCircle2, XCircle, Eye, Copy, Check, Columns, MessageCircle } from 'lucide-react';
 import SQLEditor from './SQLEditor';
 import ResultsTable from './ResultsTable';
 import type { QueryResponse } from '@/lib/db';
@@ -158,57 +157,38 @@ export default function ChallengeBlock({
     setShowSolution(true);
   }, [challenge.solution]);
 
+  const status = isCorrect
+    ? '✓ done'
+    : attempts > 0
+    ? `${attempts} attempt${attempts !== 1 ? 's' : ''}`
+    : 'todo';
+  const statusClass = isCorrect
+    ? 'text-emerald-400'
+    : attempts > 0
+    ? 'text-amber-400'
+    : 'text-slate-500';
+
   return (
-    <div className={`challenge-block ${className}`}>
-      {/* Challenge header */}
-      <div className="challenge-header">
-        <div className="flex items-center gap-3">
-          {challengeNumber && (
-            <div className="challenge-number">{challengeNumber}</div>
+    <div className={`rounded border border-slate-800 bg-slate-900/40 ${className}`}>
+      <div className="px-4 py-3 border-b border-slate-800 font-mono text-xs flex items-center justify-between">
+        <span className="text-slate-400">
+          <span className="text-indigo-400"># challenge</span>
+          {totalChallenges && challengeNumber && (
+            <span className="text-slate-500"> {String(challengeNumber).padStart(2, '0')}/{String(totalChallenges).padStart(2, '0')}</span>
           )}
-          <div className="flex-1">
-            <span className="challenge-title">Challenge</span>
-            {totalChallenges && challengeNumber && (
-              <span className="text-xs text-slate-500 ml-2">
-                {challengeNumber} of {totalChallenges}
-              </span>
-            )}
-          </div>
-        </div>
-        {isCorrect ? (
-          <div className="challenge-status challenge-status-success">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Completed</span>
-          </div>
-        ) : attempts > 0 ? (
-          <div className="challenge-status challenge-status-error">
-            <span>{attempts} attempt{attempts !== 1 ? 's' : ''}</span>
-          </div>
-        ) : (
-          <div className="challenge-status challenge-status-pending">
-            <Target className="w-3.5 h-3.5" />
-            <span>Todo</span>
-          </div>
-        )}
+        </span>
+        <span className={statusClass}>{status}</span>
       </div>
 
-      {/* Challenge prompt */}
-      <div className="challenge-prompt">
+      <div className="px-4 py-4 text-sm text-slate-200 leading-relaxed border-b border-slate-800/60">
         {challenge.prompt}
       </div>
 
-      {/* Expected output shape */}
-      <div className="challenge-expected">
-        <Columns className="w-4 h-4 text-indigo-400 flex-shrink-0 mt-0.5" />
-        <div>
-          <span className="challenge-expected-label">Expected columns: </span>
-          <span className="font-mono text-slate-300">
-            {challenge.expectedColumns.join(', ')}
-          </span>
-        </div>
+      <div className="px-4 py-2 border-b border-slate-800/60 font-mono text-xs text-slate-400">
+        <span className="text-indigo-400">columns: </span>
+        <span className="text-slate-200">{challenge.expectedColumns.join(', ')}</span>
       </div>
 
-      {/* SQL Editor */}
       <div className="p-4 space-y-4">
         <SQLEditor
           value={query}
@@ -219,119 +199,73 @@ export default function ChallengeBlock({
           height="150px"
         />
 
-        {/* Results area */}
         {result && (
-          <div className="space-y-3">
+          <div className="space-y-3 font-mono text-xs">
             {isCorrect ? (
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-emerald-900/20 border border-emerald-700/50">
-                <CheckCircle2 className="w-6 h-6 text-emerald-400 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-emerald-300">Correct! Great job!</p>
-                  <p className="text-sm text-emerald-400/70 mt-0.5">Your query returns the expected results.</p>
-                </div>
-              </div>
+              <p className="text-emerald-400">
+                <span className="text-emerald-400">exit 0</span> · query matches expected columns
+              </p>
             ) : result.success ? (
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-amber-900/20 border border-amber-700/50">
-                <XCircle className="w-6 h-6 text-amber-400 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-amber-300">Not quite right</p>
-                  <p className="text-sm text-amber-400/70 mt-0.5">
-                    Check your query against the expected columns and try again.
-                  </p>
-                </div>
-              </div>
+              <p className="text-amber-400">
+                # validation failed · check your columns and try again
+              </p>
             ) : null}
 
             <ResultsTable result={result} executionTime={executionTime} />
           </div>
         )}
 
-        {/* Hint/Solution buttons */}
-        <div className="flex items-center gap-3 pt-2 border-t border-slate-700/50">
+        <div className="flex items-center gap-3 pt-2 border-t border-slate-800/60 font-mono text-xs">
           {challenge.hint && !showHint && !isCorrect && (
             <button
               onClick={() => setShowHint(true)}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm text-amber-400/80 hover:text-amber-300 bg-amber-400/5 hover:bg-amber-400/10 rounded-lg transition-colors"
+              className="px-2 py-1 rounded border border-slate-800 text-amber-400 hover:bg-amber-400/10 hover:border-amber-400/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
-              <Lightbulb className="w-4 h-4" />
-              Need a hint?
+              show hint
             </button>
           )}
-
           {attempts >= 3 && !isCorrect && !showSolution && (
             <button
               onClick={handleUseSolution}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 bg-slate-700/30 hover:bg-slate-700/50 rounded-lg transition-colors"
+              className="px-2 py-1 rounded border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
-              <Eye className="w-4 h-4" />
-              Show Solution
+              show solution
             </button>
           )}
-
           {attempts > 0 && attempts < 3 && !isCorrect && (
-            <span className="ml-auto text-xs text-slate-500">
+            <span className="ml-auto text-slate-500">
               {3 - attempts} more attempt{3 - attempts !== 1 ? 's' : ''} until solution unlocks
             </span>
           )}
         </div>
 
-        {/* Hint display */}
         {showHint && challenge.hint && (
-          <div className="challenge-hint">
-            <MessageCircle className="challenge-hint-icon w-5 h-5" />
-            <p className="text-sm text-amber-200/80">{challenge.hint}</p>
-          </div>
+          <p className="font-mono text-xs text-slate-300 border-l-2 border-amber-400/40 pl-3">
+            <span className="text-amber-400">!</span> hint: {challenge.hint}
+          </p>
         )}
 
-        {/* Solution display */}
         {showSolution && (
-          <div className="challenge-solution">
-            <div className="challenge-solution-header">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Solution</span>
+          <div className="rounded border border-slate-800 bg-slate-950">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-slate-800 font-mono text-xs">
+              <span className="text-slate-400"># solution</span>
               <button
                 onClick={handleCopySolution}
-                className="ml-auto flex items-center gap-1.5 px-2 py-0.5 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 rounded transition-colors"
+                className="px-2 py-1 rounded border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
               >
                 {copiedSolution ? (
-                  <>
-                    <Check className="w-3 h-3 text-emerald-400" />
-                    <span className="text-emerald-400">Copied</span>
-                  </>
+                  <span className="text-emerald-400">copied</span>
                 ) : (
-                  <>
-                    <Copy className="w-3 h-3" />
-                    <span>Copy</span>
-                  </>
+                  <span>copy</span>
                 )}
               </button>
             </div>
-
-            {/* Solution code */}
-            <pre className="p-3 bg-slate-900 rounded-lg text-sm text-slate-200 font-mono overflow-x-auto border border-slate-700">
+            <pre className="p-3 text-xs text-slate-200 font-mono overflow-x-auto">
               {challenge.solution}
             </pre>
-
           </div>
         )}
       </div>
-
-      {/* Progress bar at bottom */}
-      {totalChallenges && challengeNumber && (
-        <div className="px-4 py-2 border-t border-slate-700/50 bg-slate-800/30">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300"
-                style={{ width: `${((challengeNumber - 1) / totalChallenges) * 100 + (isCorrect ? 100 / totalChallenges : 0)}%` }}
-              />
-            </div>
-            <span className="text-xs text-slate-500">
-              {challengeNumber}/{totalChallenges}
-            </span>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

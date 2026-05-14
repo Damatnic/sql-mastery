@@ -2,10 +2,6 @@
 
 import { useState, useCallback } from 'react';
 import Link from 'next/link';
-import {
-  Hammer, Lightbulb, CheckCircle2, XCircle, Eye, Copy, Check,
-  ChevronRight, Sparkles, User, MessageCircle, Columns, Briefcase
-} from 'lucide-react';
 import SQLEditor from './SQLEditor';
 import ResultsTable from './ResultsTable';
 import type { QueryResponse } from '@/lib/db';
@@ -21,33 +17,6 @@ interface ProjectChallengeBlockProps {
   database: SqlJsDatabase;
   runQuery: (db: SqlJsDatabase, sql: string) => QueryResponse;
   onQueryChange?: (query: string, error?: string) => void;
-}
-
-// Generate a business impact summary based on the challenge
-function generateBusinessImpact(challenge: ProjectChallenge, thread: ProjectThread): string {
-  const title = challenge.title.toLowerCase();
-  const scenario = challenge.scenario.toLowerCase();
-
-  if (title.includes('dashboard') || title.includes('overview') || title.includes('summary')) {
-    return 'This query powers the main dashboard view, giving stakeholders a quick snapshot of key metrics.';
-  }
-  if (title.includes('report') || title.includes('analysis')) {
-    return 'This report will be used by management to make data-driven decisions about resource allocation.';
-  }
-  if (scenario.includes('manager') || scenario.includes('stakeholder') || scenario.includes('executive')) {
-    return 'Leadership relies on this data to track performance and identify opportunities for improvement.';
-  }
-  if (title.includes('top') || title.includes('best') || title.includes('performance')) {
-    return 'Identifying top performers helps the team recognize success and replicate winning strategies.';
-  }
-  if (title.includes('trend') || scenario.includes('over time')) {
-    return 'Trend analysis reveals patterns that inform strategic planning and forecasting.';
-  }
-  if (scenario.includes('customer') || scenario.includes('user')) {
-    return 'Understanding customer data helps improve user experience and drive engagement.';
-  }
-
-  return `This query is part of the ${thread.title} project, contributing to a complete business solution.`;
 }
 
 export default function ProjectChallengeBlock({
@@ -157,72 +126,32 @@ export default function ProjectChallengeBlock({
     setShowSolution(true);
   }, [challenge.solution]);
 
-  const progressPercent = Math.round((challenge.stepNumber / thread.totalSteps) * 100);
-  const businessImpact = generateBusinessImpact(challenge, thread);
+  const done = isCorrect || isAlreadyComplete;
 
   return (
-    <div className="rounded-xl border-2 border-amber-700/50 bg-gradient-to-b from-amber-900/20 to-slate-900/50 overflow-hidden">
-      {/* Project Progress Mini-Dashboard */}
-      <div className="project-progress">
-        <div className="flex items-center gap-2">
-          <Briefcase className="w-4 h-4 text-amber-400" />
-          <span className="text-sm font-medium text-amber-300">{thread.title}</span>
-        </div>
-        <div className="project-progress-bar">
-          <div
-            className="project-progress-fill"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-        <span className="project-progress-text">
-          Step {challenge.stepNumber} of {thread.totalSteps} · {progressPercent}%
+    <div className="rounded border border-amber-700/40 bg-amber-900/5">
+      <div className="px-4 py-3 border-b border-amber-700/20 font-mono text-xs flex items-center justify-between">
+        <span className="text-amber-400"># project-challenge · {thread.title}</span>
+        <span className="text-slate-500">
+          step {String(challenge.stepNumber).padStart(2, '0')}/{String(thread.totalSteps).padStart(2, '0')}
+          {done && <span className="ml-2 text-emerald-400">· done</span>}
         </span>
       </div>
 
-      {/* Manager Message Card */}
-      <div className="project-context">
-        <div className="project-context-header">
-          <div className="project-context-avatar">
-            <User className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="project-context-sender">Project Manager</span>
-            <span className="project-context-label">Task Assignment</span>
-          </div>
-        </div>
-        <div className="project-context-message">
-          <p>{challenge.scenario}</p>
-        </div>
+      <div className="px-4 py-3 border-b border-slate-800/60">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-slate-500 mb-1"># brief</p>
+        <p className="text-sm text-slate-200 leading-relaxed">{challenge.scenario}</p>
       </div>
 
-      {/* Challenge Header */}
-      <div className="p-4 border-b border-amber-700/30">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-amber-500/20">
-              <Hammer className="w-4 h-4 text-amber-400" />
-            </div>
-            <h3 className="text-lg font-bold text-white">{challenge.title}</h3>
-          </div>
-          {(isCorrect || isAlreadyComplete) && (
-            <span className="flex items-center gap-1 px-2 py-0.5 text-xs text-emerald-400 bg-emerald-900/30 border border-emerald-700/50 rounded-full">
-              <CheckCircle2 className="w-3 h-3" />
-              Complete
-            </span>
-          )}
-        </div>
-
-        {/* Expected output */}
-        <div className="flex items-center gap-2 mt-3 text-sm">
-          <Columns className="w-4 h-4 text-slate-400" />
-          <span className="text-slate-500">Expected columns:</span>
-          <span className="font-mono text-slate-300">
-            {challenge.expectedColumns.join(', ')}
-          </span>
-        </div>
+      <div className="px-4 py-3 border-b border-slate-800/60">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-slate-500 mb-1"># task</p>
+        <p className="text-sm text-slate-100">{challenge.title}</p>
+        <p className="mt-2 font-mono text-xs text-slate-400">
+          <span className="text-indigo-400">columns: </span>
+          <span className="text-slate-200">{challenge.expectedColumns.join(', ')}</span>
+        </p>
       </div>
 
-      {/* Editor and Results */}
       <div className="p-4 space-y-4">
         <SQLEditor
           value={query}
@@ -234,122 +163,76 @@ export default function ProjectChallengeBlock({
         />
 
         {result && (
-          <div className="space-y-3">
-            {isCorrect || isAlreadyComplete ? (
-              <div className="p-4 rounded-lg bg-emerald-900/30 border border-emerald-700/50">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                    <span className="text-emerald-300 font-medium">
-                      {isAlreadyComplete && !isCorrect ? 'Already completed!' : 'Perfect! You nailed this project task.'}
-                    </span>
-                  </div>
-                  {!isAlreadyComplete && (
-                    <div className="flex items-center gap-1 text-amber-400">
-                      <Sparkles className="w-4 h-4" />
-                      <span className="text-sm font-semibold">+{challenge.xpReward} XP</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Business Impact Summary */}
-                <div className="mt-3 p-3 bg-emerald-950/30 rounded-lg border border-emerald-800/30">
-                  <p className="text-xs font-medium text-emerald-400/80 mb-1 uppercase tracking-wider flex items-center gap-1.5">
-                    <Briefcase className="w-3 h-3" />
-                    What this does for your project
-                  </p>
-                  <p className="text-sm text-emerald-200/80">{businessImpact}</p>
-                </div>
-              </div>
+          <div className="space-y-3 font-mono text-xs">
+            {done ? (
+              <p className="text-emerald-400">
+                <span className="text-emerald-400">exit 0</span> · project task validated
+                {!isAlreadyComplete && <span className="text-amber-400"> · +{challenge.xpReward} xp</span>}
+              </p>
             ) : result.success ? (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-900/30 border border-amber-700/50">
-                <XCircle className="w-5 h-5 text-amber-400" />
-                <span className="text-amber-300">Not quite. Review the task requirements and try again.</span>
-              </div>
+              <p className="text-amber-400">
+                # validation failed · check the task requirements and try again
+              </p>
             ) : null}
 
             <ResultsTable result={result} executionTime={executionTime} />
           </div>
         )}
 
-        {/* Hint and Solution Controls */}
-        <div className="flex items-center gap-3 pt-2 border-t border-slate-700/50">
-          {challenge.hint && !showHint && !isCorrect && !isAlreadyComplete && (
+        <div className="flex items-center gap-3 pt-2 border-t border-slate-800/60 font-mono text-xs">
+          {challenge.hint && !showHint && !done && (
             <button
               onClick={() => setShowHint(true)}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm text-amber-400/80 hover:text-amber-300 bg-amber-400/5 hover:bg-amber-400/10 rounded-lg transition-colors"
+              className="px-2 py-1 rounded border border-slate-800 text-amber-400 hover:bg-amber-400/10 hover:border-amber-400/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
-              <Lightbulb className="w-4 h-4" />
-              Need a hint?
+              show hint
             </button>
           )}
-
-          {attempts >= 3 && !isCorrect && !isAlreadyComplete && !showSolution && (
+          {attempts >= 3 && !done && !showSolution && (
             <button
               onClick={handleUseSolution}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 bg-slate-700/30 hover:bg-slate-700/50 rounded-lg transition-colors"
+              className="px-2 py-1 rounded border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
-              <Eye className="w-4 h-4" />
-              Show Solution
+              show solution
             </button>
           )}
-
-          {attempts > 0 && attempts < 3 && !isCorrect && !isAlreadyComplete && (
-            <span className="ml-auto text-xs text-slate-500">
+          {attempts > 0 && attempts < 3 && !done && (
+            <span className="ml-auto text-slate-500">
               {3 - attempts} more attempt{3 - attempts !== 1 ? 's' : ''} until solution unlocks
             </span>
           )}
         </div>
 
-        {/* Hint Display */}
         {showHint && challenge.hint && (
-          <div className="challenge-hint">
-            <MessageCircle className="challenge-hint-icon w-5 h-5" />
-            <div>
-              <p className="text-sm font-medium text-amber-300 mb-1">Project Manager says:</p>
-              <p className="text-sm text-amber-200/80">{challenge.hint}</p>
-            </div>
-          </div>
+          <p className="font-mono text-xs text-slate-300 border-l-2 border-amber-400/40 pl-3">
+            <span className="text-amber-400">!</span> hint: {challenge.hint}
+          </p>
         )}
 
-        {/* Solution Display */}
         {showSolution && (
-          <div className="challenge-solution">
-            <div className="challenge-solution-header">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Solution</span>
+          <div className="rounded border border-slate-800 bg-slate-950">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-slate-800 font-mono text-xs">
+              <span className="text-slate-400"># solution</span>
               <button
                 onClick={handleCopySolution}
-                className="ml-auto flex items-center gap-1.5 px-2 py-0.5 text-xs text-slate-400 hover:text-slate-200 hover:bg-slate-700/50 rounded transition-colors"
+                className="px-2 py-1 rounded border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
               >
-                {copiedSolution ? (
-                  <>
-                    <Check className="w-3 h-3 text-emerald-400" />
-                    <span className="text-emerald-400">Copied</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3 h-3" />
-                    <span>Copy</span>
-                  </>
-                )}
+                {copiedSolution ? <span className="text-emerald-400">copied</span> : <span>copy</span>}
               </button>
             </div>
-            <pre className="p-3 bg-slate-900 rounded-lg text-sm text-slate-200 font-mono overflow-x-auto border border-slate-700">
+            <pre className="p-3 text-xs text-slate-200 font-mono overflow-x-auto">
               {challenge.solution}
             </pre>
           </div>
         )}
       </div>
 
-      {/* View Full Project Link */}
-      <div className="px-4 py-3 border-t border-amber-700/30 bg-amber-900/10">
+      <div className="px-4 py-2.5 border-t border-amber-700/20 bg-amber-900/5 font-mono text-xs">
         <Link
           href={`/projects/thread/${thread.id}`}
-          className="flex items-center justify-center gap-2 text-sm text-amber-400/80 hover:text-amber-300 transition-colors"
+          className="text-amber-400 hover:text-amber-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
         >
-          <span>View full {thread.title} project</span>
-          <ChevronRight className="w-4 h-4" />
+          cd /projects/thread/{thread.id} →
         </Link>
       </div>
     </div>

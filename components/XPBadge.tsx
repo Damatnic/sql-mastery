@@ -1,6 +1,5 @@
 'use client';
 
-import { Zap, Flame } from 'lucide-react';
 import { useProgressStore } from '@/lib/progress';
 
 interface XPBadgeProps {
@@ -13,18 +12,14 @@ export default function XPBadge({ showStreak = true, className = '' }: XPBadgePr
   const streak = useProgressStore((state) => state.streak);
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-900/50 border border-indigo-700/50 rounded-full">
-        <Zap className="w-4 h-4 text-indigo-400" />
-        <span className="text-sm font-semibold text-indigo-300">{xp.toLocaleString()} XP</span>
-      </div>
-
+    <span className={`font-mono text-xs text-slate-400 ${className}`}>
+      <span className="text-indigo-400">xp</span> {xp.toLocaleString()}
       {showStreak && streak > 0 && (
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-900/50 border border-orange-700/50 rounded-full">
-          <Flame className="w-4 h-4 text-orange-400" />
-          <span className="text-sm font-semibold text-orange-300">{streak} day{streak !== 1 ? 's' : ''}</span>
-        </div>
+        <>
+          {' · '}
+          <span className="text-amber-400">{streak}d streak</span>
+        </>
       )}
-    </div>
+    </span>
   );
 }
