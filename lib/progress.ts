@@ -1,4 +1,3 @@
-// Progress tracking store with localStorage persistence
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
@@ -6,9 +5,9 @@ interface ProgressState {
   completedLessons: string[];
   xp: number;
   streak: number;
+  maxStreak: number;
   lastActivity: string;
 
-  // Actions
   completeLesson: (slug: string) => void;
   addXP: (amount: number) => void;
   isLessonCompleted: (slug: string) => boolean;
@@ -27,16 +26,12 @@ const calculateStreak = (lastActivity: string, currentStreak: number): number =>
   const yesterdayStr = yesterday.toISOString().split('T')[0];
 
   if (lastActivity === today) {
-    // Already active today, keep streak
     return currentStreak;
   } else if (lastActivity === yesterdayStr) {
-    // Active yesterday, increment streak
     return currentStreak + 1;
   } else if (!lastActivity) {
-    // First activity
     return 1;
   } else {
-    // Streak broken, start fresh
     return 1;
   }
 };
@@ -47,12 +42,12 @@ export const useProgressStore = create<ProgressState>()(
       completedLessons: [],
       xp: 0,
       streak: 0,
+      maxStreak: 0,
       lastActivity: '',
 
       completeLesson: (slug: string) => {
         const state = get();
 
-        // Don't add duplicate completions
         if (state.completedLessons.includes(slug)) {
           return;
         }
@@ -61,8 +56,9 @@ export const useProgressStore = create<ProgressState>()(
 
         set({
           completedLessons: [...state.completedLessons, slug],
-          xp: state.xp + 10, // Base XP for completing a lesson
+          xp: state.xp + 10,
           streak: newStreak,
+          maxStreak: Math.max(state.maxStreak, newStreak),
           lastActivity: getToday(),
         });
       },
@@ -74,6 +70,7 @@ export const useProgressStore = create<ProgressState>()(
         set({
           xp: state.xp + amount,
           streak: newStreak,
+          maxStreak: Math.max(state.maxStreak, newStreak),
           lastActivity: getToday(),
         });
       },
@@ -96,6 +93,7 @@ export const useProgressStore = create<ProgressState>()(
           completedLessons: [],
           xp: 0,
           streak: 0,
+          maxStreak: 0,
           lastActivity: '',
         });
       },
@@ -107,10 +105,35 @@ export const useProgressStore = create<ProgressState>()(
   )
 );
 
-// XP amounts for different achievements
 export const XP_VALUES = {
   LESSON_COMPLETE: 10,
   CHALLENGE_COMPLETE: 25,
-  FIRST_TRY_CHALLENGE: 40, // Bonus for getting challenge right first try
-  STREAK_BONUS: 5, // Per day of streak
+  FIRST_TRY_CHALLENGE: 40,
+  STREAK_BONUS: 5,
 } as const;
+
+export interface Rank {
+  name: string;
+  threshold: number;
+  next: number | null;
+}
+
+const RANKS: Rank[] = [
+  { name: 'user', threshold: 0, next: 100 },
+  { name: 'apprentice', threshold: 100, next: 500 },
+  { name: 'contributor', threshold: 500, next: 1500 },
+  { name: 'engineer', threshold: 1500, next: 4000 },
+  { name: 'architect', threshold: 4000, next: null },
+];
+
+export function getRank(xp: number): Rank {
+  let current = RANKS[0];
+  for (const r of RANKS) {
+    if (xp >= r.threshold) current = r;
+  }
+  return current;
+}
+
+export function getRankLadder(): Rank[] {
+  return RANKS;
+}

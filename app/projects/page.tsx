@@ -51,6 +51,12 @@ export default function ProjectsPage() {
             >
               playground
             </Link>
+            <Link
+              href="/stats"
+              className="text-slate-400 hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
+            >
+              stats
+            </Link>
             <XPBadge />
           </div>
         </div>

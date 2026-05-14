@@ -24,6 +24,7 @@ export default function LearnPage() {
             <span className="text-slate-100">&gt; lessons</span>
             <Link href="/projects" className="text-slate-400 hover:text-slate-100 transition-colors">projects</Link>
             <Link href="/playground" className="text-slate-400 hover:text-slate-100 transition-colors">playground</Link>
+            <Link href="/stats" className="text-slate-400 hover:text-slate-100 transition-colors">stats</Link>
             <XPBadge />
           </div>
         </div>

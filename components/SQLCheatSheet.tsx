@@ -84,10 +84,23 @@ const CHEAT_SHEET_DATA: CheatSheetSection[] = [
 
 interface SQLCheatSheetProps {
   className?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 }
 
-export default function SQLCheatSheet({ className = '' }: SQLCheatSheetProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function SQLCheatSheet({
+  className = '',
+  open: controlledOpen,
+  onOpenChange,
+  hideTrigger,
+}: SQLCheatSheetProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = controlledOpen ?? internalOpen;
+  const setIsOpen = (v: boolean) => {
+    if (onOpenChange) onOpenChange(v);
+    else setInternalOpen(v);
+  };
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['Basic Queries', 'Filtering']));
 
   const toggleSection = (title: string) => {
@@ -104,13 +117,15 @@ export default function SQLCheatSheet({ className = '' }: SQLCheatSheetProps) {
 
   return (
     <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className={`fixed bottom-36 right-6 z-30 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-indigo-400/50 rounded text-slate-300 hover:text-slate-100 font-mono text-xs shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${className}`}
-        aria-label="Open cheat sheet"
-      >
-        $ cat cheatsheet.sql
-      </button>
+      {!hideTrigger && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className={`fixed bottom-36 right-6 z-30 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-indigo-400/50 rounded text-slate-300 hover:text-slate-100 font-mono text-xs shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${className}`}
+          aria-label="Open cheat sheet"
+        >
+          $ cat cheatsheet.sql
+        </button>
+      )}
 
       {isOpen && (
         <div

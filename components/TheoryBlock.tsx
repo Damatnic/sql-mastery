@@ -34,48 +34,31 @@ export default function TheoryBlock({ content, className = '' }: TheoryBlockProp
 function parseMarkdown(markdown: string): string {
   let html = markdown;
 
-  // First, handle special callout blocks before other processing
-  // Key Concept callouts
   html = html.replace(
     /(?:^|\n)>\s*💡\s*\*\*Key Concept[:\s]*\*\*\s*(.+?)(?=\n[^>]|\n\n|$)/gi,
     (_, content) => `
-    <div class="callout callout-key-concept">
-      <div class="callout-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg></div>
-      <div class="callout-content"><span class="callout-title">Key Concept</span>${escapeHtml(content.trim())}</div>
-    </div>`
+    <div class="callout callout-key-concept"><span class="callout-bang">!</span><span class="callout-title">key concept</span><span class="callout-content">${escapeHtml(content.trim())}</span></div>`
   );
 
-  // Why This Matters callouts
   html = html.replace(
     /(?:^|\n)>\s*🎯\s*\*\*Why This Matters[:\s]*\*\*\s*(.+?)(?=\n[^>]|\n\n|$)/gi,
     (_, content) => `
-    <div class="callout callout-why-matters">
-      <div class="callout-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg></div>
-      <div class="callout-content"><span class="callout-title">Why This Matters</span>${escapeHtml(content.trim())}</div>
-    </div>`
+    <div class="callout callout-why-matters"><span class="callout-bang">!</span><span class="callout-title">why this matters</span><span class="callout-content">${escapeHtml(content.trim())}</span></div>`
   );
 
-  // Common Mistake callouts
   html = html.replace(
     /(?:^|\n)>\s*⚠️\s*\*\*Common Mistake[:\s]*\*\*\s*(.+?)(?=\n[^>]|\n\n|$)/gi,
     (_, content) => `
-    <div class="callout callout-warning">
-      <div class="callout-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg></div>
-      <div class="callout-content"><span class="callout-title">Common Mistake</span>${escapeHtml(content.trim())}</div>
-    </div>`
+    <div class="callout callout-warning"><span class="callout-bang">!</span><span class="callout-title">common mistake</span><span class="callout-content">${escapeHtml(content.trim())}</span></div>`
   );
 
-  // Pro Tip callouts
   html = html.replace(
     /(?:^|\n)>\s*⚡\s*\*\*Pro Tip[:\s]*\*\*\s*(.+?)(?=\n[^>]|\n\n|$)/gi,
     (_, content) => `
-    <div class="callout callout-pro-tip">
-      <div class="callout-icon"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg></div>
-      <div class="callout-content"><span class="callout-title">Pro Tip</span>${escapeHtml(content.trim())}</div>
-    </div>`
+    <div class="callout callout-pro-tip"><span class="callout-bang">!</span><span class="callout-title">pro tip</span><span class="callout-content">${escapeHtml(content.trim())}</span></div>`
   );
 
-  // Code blocks with language — apply syntax highlighting for SQL
+  // Code blocks with language; apply syntax highlighting for SQL
   html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) => {
     const language = lang || 'sql';
     const trimmedCode = code.trim();
@@ -125,7 +108,7 @@ function parseMarkdown(markdown: string): string {
   // Ordered lists
   html = html.replace(/^\d+\. (.+)$/gm, '<li class="theory-list-item theory-list-ordered">$1</li>');
 
-  // Tables — enhanced styling with zebra stripes
+  // Tables, enhanced styling with zebra stripes
   html = html.replace(
     /^\|(.+)\|\s*\n\|[-| :]+\|\s*\n((?:\|.+\|\s*\n?)*)/gm,
     (_, headerRow, bodyRows) => {
@@ -155,7 +138,7 @@ function parseMarkdown(markdown: string): string {
     }
   );
 
-  // Paragraphs — exclude already-processed elements
+  // Paragraphs, exclude already-processed elements
   html = html.replace(/^(?!<[hupltd]|<code|<pre|<div|<ul|<ol|<li)(.+)$/gm, '<p class="theory-paragraph">$1</p>');
 
   // Clean up empty paragraphs

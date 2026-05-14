@@ -9,6 +9,9 @@ interface SchemaViewerProps {
   database: SqlJsDatabase | null;
   databaseName: string;
   className?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 }
 
 interface ColumnInfo {
@@ -30,8 +33,20 @@ const FK_PATTERNS = [
   { pattern: /^(\w+)Id$/i, extractor: (match: RegExpMatchArray) => match[1].toLowerCase() },
 ];
 
-export default function SchemaViewer({ database, databaseName, className = '' }: SchemaViewerProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function SchemaViewer({
+  database,
+  databaseName,
+  className = '',
+  open: controlledOpen,
+  onOpenChange,
+  hideTrigger,
+}: SchemaViewerProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = controlledOpen ?? internalOpen;
+  const setIsOpen = (v: boolean) => {
+    if (onOpenChange) onOpenChange(v);
+    else setInternalOpen(v);
+  };
   const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set());
   const [previewTable, setPreviewTable] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -137,14 +152,15 @@ export default function SchemaViewer({ database, databaseName, className = '' }:
 
   return (
     <>
-      {/* Toggle Button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className={`fixed bottom-20 right-6 z-30 flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 rounded-full text-slate-300 text-sm font-medium shadow-lg transition-all duration-200 ${className}`}
-      >
-        <Database className="w-4 h-4 text-indigo-400" />
-        <span>Schema</span>
-      </button>
+      {!hideTrigger && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className={`fixed bottom-20 right-6 z-30 flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 rounded-full text-slate-300 text-sm font-medium shadow-lg transition-all duration-200 ${className}`}
+        >
+          <Database className="w-4 h-4 text-indigo-400" />
+          <span>Schema</span>
+        </button>
+      )}
 
       {/* Schema Panel */}
       {isOpen && (

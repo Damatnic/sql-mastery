@@ -11,6 +11,7 @@ import AITutor from '@/components/AITutor';
 import XPBadge from '@/components/XPBadge';
 import SchemaViewer from '@/components/SchemaViewer';
 import SQLCheatSheet from '@/components/SQLCheatSheet';
+import LessonToolDock, { type DockTool } from '@/components/LessonToolDock';
 import { createDatabase, runQuery } from '@/lib/db';
 import { COMPANY_DB, STORE_DB, SCHOOL_DB } from '@/lib/databases';
 import {
@@ -43,6 +44,7 @@ export default function LessonPage({ params }: LessonPageProps) {
   const [dbError, setDbError] = useState<string | null>(null);
   const [activeQuery, setActiveQuery] = useState('');
   const [activeError, setActiveError] = useState<string | undefined>();
+  const [dockOpen, setDockOpen] = useState<DockTool | null>(null);
 
   const lesson = getLessonBySlug(moduleSlug, lessonSlug);
   const moduleInfo = getModuleBySlug(moduleSlug);
@@ -311,19 +313,33 @@ export default function LessonPage({ params }: LessonPageProps) {
         </main>
       </div>
 
-      {/* Schema Viewer */}
-      <SchemaViewer database={database} databaseName={lesson.database} />
-
-      {/* SQL Cheat Sheet */}
-      <SQLCheatSheet />
-
-      {/* AI Tutor */}
-      <AITutor
-        lessonTitle={lesson.title}
-        database={lesson.database}
-        currentQuery={activeQuery}
-        errorMessage={activeError}
-      />
+      <LessonToolDock
+        tools={['schema', 'cheatsheet', 'tutor']}
+        open={dockOpen}
+        onOpen={setDockOpen}
+      >
+        <SchemaViewer
+          database={database}
+          databaseName={lesson.database}
+          hideTrigger
+          open={dockOpen === 'schema'}
+          onOpenChange={(v) => setDockOpen(v ? 'schema' : null)}
+        />
+        <SQLCheatSheet
+          hideTrigger
+          open={dockOpen === 'cheatsheet'}
+          onOpenChange={(v) => setDockOpen(v ? 'cheatsheet' : null)}
+        />
+        <AITutor
+          lessonTitle={lesson.title}
+          database={lesson.database}
+          currentQuery={activeQuery}
+          errorMessage={activeError}
+          hideTrigger
+          open={dockOpen === 'tutor'}
+          onOpenChange={(v) => setDockOpen(v ? 'tutor' : null)}
+        />
+      </LessonToolDock>
     </div>
   );
 }

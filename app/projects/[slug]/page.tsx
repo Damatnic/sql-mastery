@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, use } from 'react';
 import Link from 'next/link';
 import ProjectStep from '@/components/ProjectStep';
 import AITutor from '@/components/AITutor';
+import LessonToolDock, { type DockTool } from '@/components/LessonToolDock';
 import XPBadge from '@/components/XPBadge';
 import SchemaViewer from '@/components/SchemaViewer';
 import { createDatabase, runQuery } from '@/lib/db';
@@ -31,6 +32,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [activeQuery, setActiveQuery] = useState('');
   const [activeError, setActiveError] = useState<string | undefined>();
+  const [dockOpen, setDockOpen] = useState<DockTool | null>(null);
 
   const project = getProjectBySlug(slug);
 
@@ -231,19 +233,28 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         </section>
       </main>
 
-      {/* Schema Viewer */}
-      <SchemaViewer
-        database={database}
-        databaseName={project.database}
-      />
-
-      {/* AI Tutor */}
-      <AITutor
-        lessonTitle={project.title}
-        database={project.database}
-        currentQuery={activeQuery}
-        errorMessage={activeError}
-      />
+      <LessonToolDock
+        tools={['schema', 'tutor']}
+        open={dockOpen}
+        onOpen={setDockOpen}
+      >
+        <SchemaViewer
+          database={database}
+          databaseName={project.database}
+          hideTrigger
+          open={dockOpen === 'schema'}
+          onOpenChange={(v) => setDockOpen(v ? 'schema' : null)}
+        />
+        <AITutor
+          lessonTitle={project.title}
+          database={project.database}
+          currentQuery={activeQuery}
+          errorMessage={activeError}
+          hideTrigger
+          open={dockOpen === 'tutor'}
+          onOpenChange={(v) => setDockOpen(v ? 'tutor' : null)}
+        />
+      </LessonToolDock>
     </div>
   );
 }

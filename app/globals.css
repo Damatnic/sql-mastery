@@ -342,99 +342,56 @@ button, a, input, textarea {
   background: rgba(15, 23, 42, 0.5);
 }
 
-/* Callout Boxes */
+/* Terminal-style callouts */
 .callout {
-  display: flex;
-  gap: 1rem;
-  padding: 1rem 1.25rem;
-  margin: 1.5rem 0;
-  border-radius: 0.75rem;
-  border-left: 4px solid;
+  display: block;
+  padding: 0.75rem 0 0.75rem 0.875rem;
+  margin: 1.25rem 0;
+  border-left: 2px solid;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.55;
 }
 
-.callout-icon {
-  flex-shrink: 0;
-  padding-top: 0.125rem;
-}
-
-.callout-content {
-  flex: 1;
+.callout-bang {
+  display: inline;
+  font-weight: 700;
+  margin-right: 0.5rem;
 }
 
 .callout-title {
-  display: block;
+  display: inline;
+  text-transform: lowercase;
+  letter-spacing: 0.05em;
   font-weight: 600;
-  font-size: 0.875rem;
-  margin-bottom: 0.25rem;
+  margin-right: 0.5rem;
 }
 
-.callout-key-concept {
-  background: rgba(251, 191, 36, 0.1);
-  border-color: #fbbf24;
+.callout-title::after {
+  content: ' ·';
+  color: #475569;
 }
 
-.callout-key-concept .callout-icon {
-  color: #fbbf24;
+.callout-content {
+  display: inline;
+  color: #cbd5e1;
 }
 
-.callout-key-concept .callout-title {
-  color: #fcd34d;
-}
+.callout-key-concept { border-color: #fbbf24; }
+.callout-key-concept .callout-bang,
+.callout-key-concept .callout-title { color: #fcd34d; }
 
-.callout-key-concept .callout-content {
-  color: #fef3c7;
-}
+.callout-why-matters { border-color: #818cf8; }
+.callout-why-matters .callout-bang,
+.callout-why-matters .callout-title { color: #a5b4fc; }
 
-.callout-why-matters {
-  background: rgba(99, 102, 241, 0.1);
-  border-color: #6366f1;
-}
+.callout-warning { border-color: #f87171; }
+.callout-warning .callout-bang,
+.callout-warning .callout-title { color: #fca5a5; }
 
-.callout-why-matters .callout-icon {
-  color: #818cf8;
-}
-
-.callout-why-matters .callout-title {
-  color: #a5b4fc;
-}
-
-.callout-why-matters .callout-content {
-  color: #c7d2fe;
-}
-
-.callout-warning {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: #ef4444;
-}
-
-.callout-warning .callout-icon {
-  color: #ef4444;
-}
-
-.callout-warning .callout-title {
-  color: #fca5a5;
-}
-
-.callout-warning .callout-content {
-  color: #fecaca;
-}
-
-.callout-pro-tip {
-  background: rgba(34, 197, 94, 0.1);
-  border-color: #22c55e;
-}
-
-.callout-pro-tip .callout-icon {
-  color: #22c55e;
-}
-
-.callout-pro-tip .callout-title {
-  color: #86efac;
-}
-
-.callout-pro-tip .callout-content {
-  color: #bbf7d0;
-}
+.callout-pro-tip { border-color: #34d399; }
+.callout-pro-tip .callout-bang,
+.callout-pro-tip .callout-title { color: #6ee7b7; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    RESULTS TABLE STYLES

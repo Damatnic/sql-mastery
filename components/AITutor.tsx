@@ -13,6 +13,9 @@ interface AITutorProps {
   currentQuery: string;
   errorMessage?: string;
   className?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideTrigger?: boolean;
 }
 
 export default function AITutor({
@@ -21,8 +24,16 @@ export default function AITutor({
   currentQuery,
   errorMessage,
   className = '',
+  open: controlledOpen,
+  onOpenChange,
+  hideTrigger,
 }: AITutorProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = controlledOpen ?? internalOpen;
+  const setIsOpen = (v: boolean) => {
+    if (onOpenChange) onOpenChange(v);
+    else setInternalOpen(v);
+  };
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -107,17 +118,19 @@ export default function AITutor({
 
   return (
     <div className={className}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`fixed right-4 bottom-4 z-50 px-3 py-1.5 rounded border font-mono text-xs shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
-          isOpen
-            ? 'border-slate-700 bg-slate-900 text-slate-300 hover:text-slate-100'
-            : 'border-indigo-400 bg-slate-900 text-indigo-400 hover:bg-indigo-400/10'
-        }`}
-        aria-label={isOpen ? 'Close AI tutor' : 'Open AI tutor'}
-      >
-        {isOpen ? 'close' : '$ ./ai-tutor'}
-      </button>
+      {!hideTrigger && (
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`fixed right-4 bottom-4 z-50 px-3 py-1.5 rounded border font-mono text-xs shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
+            isOpen
+              ? 'border-slate-700 bg-slate-900 text-slate-300 hover:text-slate-100'
+              : 'border-indigo-400 bg-slate-900 text-indigo-400 hover:bg-indigo-400/10'
+          }`}
+          aria-label={isOpen ? 'Close AI tutor' : 'Open AI tutor'}
+        >
+          {isOpen ? 'close' : '$ ./ai-tutor'}
+        </button>
+      )}
 
       {isOpen && (
         <div

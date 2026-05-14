@@ -108,6 +108,12 @@ export default function PlaygroundPage() {
               projects
             </Link>
             <span className="text-slate-100">&gt; playground</span>
+            <Link
+              href="/stats"
+              className="text-slate-400 hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
+            >
+              stats
+            </Link>
           </div>
         </div>
       </header>

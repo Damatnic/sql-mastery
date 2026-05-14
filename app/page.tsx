@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import HomeTerminal from "@/components/HomeTerminal";
 
 const modules = [
   { num: "01", slug: "getting-started", firstLesson: "select-basics", title: "getting-started", desc: "SELECT, WHERE, ORDER BY.", lessons: 5 },
@@ -38,15 +39,11 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-mono text-sm">
       <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12 sm:py-16">
         <section className="flex flex-wrap items-baseline justify-between gap-3">
-          <p>
-            <span className="text-indigo-400">damato@sql</span>
-            <span className="text-slate-500">:</span>
-            <span className="text-slate-500">~/lessons$</span>{" "}
-            <span>ls</span>
-            <span className="ml-1 inline-block w-2 h-4 align-text-bottom bg-slate-100 terminal-cursor" aria-hidden="true" />
-          </p>
+          <div className="flex-1 min-w-0">
+            <HomeTerminal modules={modules} />
+          </div>
           <p className="text-xs text-slate-500">
-            // personal practice. wctc advanced sql.
+            // type <span className="text-slate-300">help</span> · ↑↓ history · tab completes
           </p>
         </section>
 
@@ -89,7 +86,7 @@ export default function HomePage() {
           </ul>
         </section>
 
-        <section className="mt-10 grid sm:grid-cols-2 gap-4">
+        <section className="mt-10 grid sm:grid-cols-3 gap-4">
           <div>
             <p className="text-xs uppercase tracking-widest text-slate-500"># playground</p>
             <Link
@@ -97,7 +94,6 @@ export default function HomePage() {
               className="mt-3 block py-2 px-2 -mx-2 rounded hover:bg-slate-900/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
               <span className="text-slate-100">playground/</span>
-              <span className="text-slate-500">  same sqlite engine, no scaffolding</span>
               <span className="ml-3 text-slate-500">→</span>
             </Link>
           </div>
@@ -108,7 +104,16 @@ export default function HomePage() {
               className="mt-3 block py-2 px-2 -mx-2 rounded hover:bg-slate-900/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
               <span className="text-slate-100">projects/</span>
-              <span className="text-slate-500">  longer-form guided practice</span>
+              <span className="ml-3 text-slate-500">→</span>
+            </Link>
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-widest text-slate-500"># stats</p>
+            <Link
+              href="/stats"
+              className="mt-3 block py-2 px-2 -mx-2 rounded hover:bg-slate-900/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+            >
+              <span className="text-slate-100">stats/</span>
               <span className="ml-3 text-slate-500">→</span>
             </Link>
           </div>
