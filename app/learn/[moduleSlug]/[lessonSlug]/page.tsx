@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, use } from 'react';
+import { useState, useEffect, useCallback, useRef, use } from 'react';
 import Link from 'next/link';
 import ExampleBlock from '@/components/ExampleBlock';
 import TheoryBlock from '@/components/TheoryBlock';
@@ -85,14 +85,20 @@ export default function LessonPage({ params }: LessonPageProps) {
     return () => { mounted = false; };
   }, [lesson]);
 
+  const markCompleteFiredRef = useRef(false);
+
   const handleChallengeComplete = useCallback(() => {
     if (!lesson) return;
+    // Per-challenge idempotency lives in ChallengeBlock via hasFiredCompleteRef.
+    // Page-level handler runs once per distinct challenge, which is correct.
     completeLesson(lessonKey);
     addXP(XP_VALUES.CHALLENGE_COMPLETE);
   }, [lesson, lessonKey, completeLesson, addXP]);
 
   const handleMarkComplete = useCallback(() => {
     if (!lesson || isAlreadyComplete) return;
+    if (markCompleteFiredRef.current) return;
+    markCompleteFiredRef.current = true;
     completeLesson(lessonKey);
     addXP(XP_VALUES.LESSON_COMPLETE ?? 10);
   }, [lesson, lessonKey, isAlreadyComplete, completeLesson, addXP]);

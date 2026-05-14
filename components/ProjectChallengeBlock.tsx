@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import SQLEditor from './SQLEditor';
 import ResultsTable from './ResultsTable';
@@ -35,6 +35,8 @@ export default function ProjectChallengeBlock({
   const [showSolution, setShowSolution] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [copiedSolution, setCopiedSolution] = useState(false);
+  const [validatorBroken, setValidatorBroken] = useState(false);
+  const xpAwardedRef = useRef(false);
 
   const { completeChallenge, incrementAttempts, isChallengeCompleted, getAttemptCount } = useThreadProgressStore();
   const addXP = useProgressStore((state) => state.addXP);
@@ -62,14 +64,16 @@ export default function ProjectChallengeBlock({
             Object.fromEntries(resultSet.columns.map((col, i) => [col.toLowerCase(), row[i]]))
           );
           return validateFn(queryResult.results, resultSet.columns, resultSet.values, rows);
-        } catch {
+        } catch (err) {
+          console.warn(`[ProjectChallengeBlock] validateFn threw for challenge ${challenge.id}:`, err);
+          setValidatorBroken(true);
           return false;
         }
       }
 
       return true;
     },
-    [challenge.expectedColumns, challenge.validateFn]
+    [challenge.expectedColumns, challenge.validateFn, challenge.id]
   );
 
   const handleRun = useCallback(() => {
@@ -92,7 +96,8 @@ export default function ProjectChallengeBlock({
         onQueryChange?.(query, queryResult.error);
       }
 
-      if (correct && !isAlreadyComplete) {
+      if (correct && !isAlreadyComplete && !xpAwardedRef.current) {
+        xpAwardedRef.current = true;
         completeChallenge(lessonKey);
         const xp = attempts === 0 ? THREAD_XP_VALUES.CHALLENGE_COMPLETE + THREAD_XP_VALUES.FIRST_TRY_BONUS : THREAD_XP_VALUES.CHALLENGE_COMPLETE;
         addXP(xp);
@@ -176,6 +181,12 @@ export default function ProjectChallengeBlock({
             ) : null}
 
             <ResultsTable result={result} executionTime={executionTime} />
+
+            {validatorBroken && (
+              <p className="font-mono text-xs text-rose-400 border-l-2 border-rose-400 pl-3">
+                <span className="font-semibold">!</span> validator error in this challenge. open devtools to see the cause and please report.
+              </p>
+            )}
           </div>
         )}
 

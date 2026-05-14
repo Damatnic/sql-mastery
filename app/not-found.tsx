@@ -32,7 +32,7 @@ export default function NotFound() {
           href="/"
           className="mt-8 inline-flex items-center gap-2 px-3 py-2 rounded border border-slate-800 hover:border-indigo-400 hover:text-indigo-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
         >
-          <span className="text-indigo-400">→</span> back to ~/lessons
+          <span className="text-indigo-400">→</span> back to ~
         </Link>
       </section>
 

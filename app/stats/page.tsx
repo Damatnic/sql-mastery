@@ -64,6 +64,10 @@ export default function StatsPage() {
     0,
   );
 
+  // Filter stale slugs from localStorage that no longer match current lesson data
+  const validLessonKeys = new Set(lessons.map((l) => `${l.moduleSlug}/${l.lessonSlug}`));
+  const liveCompletedLessonCount = completedLessons.filter((k) => validLessonKeys.has(k)).length;
+
   const moduleRows = modules.map((m) => {
     const moduleLessons = lessons.filter((l) => l.moduleSlug === m.slug);
     const done = moduleLessons.filter((l) =>
@@ -193,7 +197,7 @@ export default function StatsPage() {
               <div className="mt-2 text-sm text-slate-300 space-y-1">
                 <p>
                   lessons{'    '}
-                  <span className="text-slate-100">{completedLessons.length}</span>
+                  <span className="text-slate-100">{liveCompletedLessonCount}</span>
                   <span className="text-slate-500"> / {totalLessons}</span>
                 </p>
                 <p>

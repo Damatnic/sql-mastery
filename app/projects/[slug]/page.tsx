@@ -59,8 +59,8 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         const dbSchema = databases[currentProject.database];
         const db = await createDatabase(dbSchema);
         if (mounted) setDatabase(db);
-      } catch (error) {
-        console.error('Failed to initialize database:', error);
+      } catch {
+        // database failed to init; UI falls back to "db unavailable" panel
       } finally {
         if (mounted) setIsLoading(false);
       }

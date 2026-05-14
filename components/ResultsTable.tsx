@@ -50,7 +50,7 @@ const ERROR_PATTERNS: Array<{
     getInfo: (match) => ({
       title: 'Column Not Found',
       description: `The column "${match[1]}" doesn't exist.`,
-      suggestion: 'Check your column name — did you forget to alias your table? Open the Schema panel to see available columns.',
+      suggestion: 'Check your column name. Did you forget to alias your table? Open the Schema panel to see available columns.',
       highlight: match[1],
     }),
   },

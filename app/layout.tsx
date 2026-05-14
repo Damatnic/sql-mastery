@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import { ClickTracker } from '@/components/ClickTracker';
 import './globals.css';
 
 const geistSans = Geist({
@@ -43,7 +42,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-950 text-white`}
       >
-        <ClickTracker />
         {children}
       </body>
     </html>

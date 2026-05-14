@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import SQLEditor from './SQLEditor';
 import ResultsTable from './ResultsTable';
 import type { QueryResponse } from '@/lib/db';
@@ -46,6 +46,8 @@ export default function ChallengeBlock({
   const [showSolution, setShowSolution] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [copiedSolution, setCopiedSolution] = useState(false);
+  const [validatorBroken, setValidatorBroken] = useState(false);
+  const hasFiredCompleteRef = useRef(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(`sql-mastery-code-${challenge.id}`);
@@ -95,14 +97,16 @@ export default function ChallengeBlock({
         try {
           const validateFn = new Function('rows', 'columns', 'values', challenge.validateFn);
           return validateFn(rows, resultSet.columns, resultSet.values);
-        } catch {
+        } catch (err) {
+          console.warn(`[ChallengeBlock] validateFn threw for challenge ${challenge.id}:`, err);
+          setValidatorBroken(true);
           return false;
         }
       }
 
       return true;
     },
-    [challenge.expectedColumns, challenge.validateFn]
+    [challenge.expectedColumns, challenge.validateFn, challenge.id]
   );
 
   const handleRun = useCallback(() => {
@@ -126,7 +130,10 @@ export default function ChallengeBlock({
       }
 
       if (correct) {
-        onComplete();
+        if (!hasFiredCompleteRef.current) {
+          hasFiredCompleteRef.current = true;
+          onComplete();
+        }
       } else {
         setAttempts((prev) => prev + 1);
       }
@@ -140,6 +147,7 @@ export default function ChallengeBlock({
     setResult(null);
     setExecutionTime(undefined);
     setIsCorrect(false);
+    hasFiredCompleteRef.current = false;
   }, []);
 
   const handleCopySolution = useCallback(async () => {
@@ -212,6 +220,12 @@ export default function ChallengeBlock({
             ) : null}
 
             <ResultsTable result={result} executionTime={executionTime} />
+
+            {validatorBroken && (
+              <p className="font-mono text-xs text-rose-400 border-l-2 border-rose-400 pl-3">
+                <span className="font-semibold">!</span> validator error in this challenge. open devtools to see the cause and please report.
+              </p>
+            )}
           </div>
         )}
 
