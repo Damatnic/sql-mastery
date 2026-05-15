@@ -12,6 +12,10 @@ import XPBadge from '@/components/XPBadge';
 import SchemaViewer from '@/components/SchemaViewer';
 import SQLCheatSheet from '@/components/SQLCheatSheet';
 import LessonToolDock, { type DockTool } from '@/components/LessonToolDock';
+import LessonAnchorNav, { type AnchorSection } from '@/components/LessonAnchorNav';
+import MobileModuleNav from '@/components/MobileModuleNav';
+import NextLessonCard from '@/components/NextLessonCard';
+import InterfaceOnboarding from '@/components/InterfaceOnboarding';
 import { createDatabase, runQuery } from '@/lib/db';
 import { COMPANY_DB, STORE_DB, SCHOOL_DB } from '@/lib/databases';
 import {
@@ -45,6 +49,14 @@ export default function LessonPage({ params }: LessonPageProps) {
   const [activeQuery, setActiveQuery] = useState('');
   const [activeError, setActiveError] = useState<string | undefined>();
   const [dockOpen, setDockOpen] = useState<DockTool | null>(null);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [tutorPrompt, setTutorPrompt] = useState<string | null>(null);
+  const [completedChallengeIds, setCompletedChallengeIds] = useState<Set<string>>(new Set());
+
+  const handleAskTutor = useCallback((prompt: string) => {
+    setTutorPrompt(prompt);
+    setDockOpen('tutor');
+  }, []);
 
   const lesson = getLessonBySlug(moduleSlug, lessonSlug);
   const moduleInfo = getModuleBySlug(moduleSlug);
@@ -95,13 +107,20 @@ export default function LessonPage({ params }: LessonPageProps) {
 
   const markCompleteFiredRef = useRef(false);
 
-  const handleChallengeComplete = useCallback(() => {
-    if (!lesson) return;
-    // Per-challenge idempotency lives in ChallengeBlock via hasFiredCompleteRef.
-    // Page-level handler runs once per distinct challenge, which is correct.
-    completeLesson(lessonKey);
-    addXP(XP_VALUES.CHALLENGE_COMPLETE);
-  }, [lesson, lessonKey, completeLesson, addXP]);
+  const handleChallengeComplete = useCallback(
+    (challengeId: string) => {
+      if (!lesson) return;
+      setCompletedChallengeIds((prev) => {
+        if (prev.has(challengeId)) return prev;
+        const next = new Set(prev);
+        next.add(challengeId);
+        return next;
+      });
+      completeLesson(lessonKey);
+      addXP(XP_VALUES.CHALLENGE_COMPLETE);
+    },
+    [lesson, lessonKey, completeLesson, addXP],
+  );
 
   const handleMarkComplete = useCallback(() => {
     if (!lesson || isAlreadyComplete) return;
@@ -133,19 +152,54 @@ export default function LessonPage({ params }: LessonPageProps) {
   const hasChallenges = lesson.challenges.length > 0;
   const totalChallenges = lesson.challenges.length;
 
+  const anchorSections: AnchorSection[] = (() => {
+    const s: AnchorSection[] = [{ id: 'theory', label: 'theory' }];
+    if (lesson.examples.length > 0) s.push({ id: 'examples', label: 'examples', badge: String(lesson.examples.length) });
+    if (hasChallenges) {
+      s.push({
+        id: 'challenges',
+        label: 'challenges',
+        badge: `${completedChallengeIds.size}/${totalChallenges}`,
+      });
+    }
+    if (projectChallenge) s.push({ id: 'project', label: 'project' });
+    return s;
+  })();
+
+  const allChallengesDone =
+    hasChallenges && completedChallengeIds.size === totalChallenges;
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <header className="border-b border-slate-800 sticky top-0 z-40 bg-slate-950/95 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between text-xs font-mono">
-          <Link
-            href="/learn"
-            className="text-slate-400 hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
-          >
-            <span className="text-indigo-400">$</span> cd ../lessons
-          </Link>
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-3 text-xs font-mono">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen(true)}
+              className="lg:hidden px-2 py-1 rounded border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              aria-label="open module nav"
+            >
+              ☰
+            </button>
+            <Link
+              href="/learn"
+              className="text-slate-400 hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded"
+            >
+              <span className="text-indigo-400">$</span> cd ../lessons
+            </Link>
+          </div>
           <XPBadge />
         </div>
       </header>
+
+      <MobileModuleNav
+        open={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        currentLesson={lesson}
+        moduleLessons={moduleLessons}
+        moduleInfo={moduleInfo}
+      />
 
       <div className="border-b border-slate-800/60 bg-slate-900/20">
         <div className="max-w-7xl mx-auto px-6 py-2 font-mono text-xs text-slate-400">
@@ -177,7 +231,7 @@ export default function LessonPage({ params }: LessonPageProps) {
         </aside>
 
         <main className="flex-1 max-w-4xl mx-auto px-6 py-8">
-          <section className="mb-6">
+          <section className="mb-4">
             <p className="font-mono text-xs text-slate-400">
               <span className="text-indigo-400">[{lesson.badge}]</span>
               <span className="ml-2 text-slate-500">lesson {String(lesson.lesson).padStart(2, '0')}</span>
@@ -185,6 +239,8 @@ export default function LessonPage({ params }: LessonPageProps) {
             </p>
             <h1 className="mt-2 text-2xl font-semibold text-slate-100">{lesson.title}</h1>
           </section>
+
+          <LessonAnchorNav sections={anchorSections} />
 
           {isLoading ? (
             <p className="h-32 flex items-center justify-center font-mono text-xs text-slate-500">
@@ -207,13 +263,13 @@ export default function LessonPage({ params }: LessonPageProps) {
             </div>
           ) : (
             <div className="space-y-10">
-              <section>
+              <section id="theory" className="scroll-mt-32">
                 <p className="font-mono text-xs uppercase tracking-widest text-slate-500 mb-3"># theory</p>
                 <TheoryBlock content={lesson.theory.content} />
               </section>
 
               {lesson.examples.length > 0 && database && (
-                <section>
+                <section id="examples" className="scroll-mt-32">
                   <p className="font-mono text-xs uppercase tracking-widest text-slate-500 mb-3">
                     # examples <span className="text-slate-600">[{lesson.examples.length}]</span>
                   </p>
@@ -232,7 +288,7 @@ export default function LessonPage({ params }: LessonPageProps) {
               )}
 
               {hasChallenges && database && (
-                <section>
+                <section id="challenges" className="scroll-mt-32">
                   <p className="font-mono text-xs uppercase tracking-widest text-slate-500 mb-3">
                     # challenges <span className="text-slate-600">[{totalChallenges}]</span>
                   </p>
@@ -243,13 +299,14 @@ export default function LessonPage({ params }: LessonPageProps) {
                         challenge={challenge}
                         database={database}
                         runQuery={runQuery}
-                        onComplete={handleChallengeComplete}
+                        onComplete={() => handleChallengeComplete(challenge.id)}
                         onQueryChange={(q, err) => {
                           setActiveQuery(q);
                           setActiveError(err);
                         }}
                         challengeNumber={idx + 1}
                         totalChallenges={totalChallenges}
+                        onAskTutor={handleAskTutor}
                       />
                     ))}
                   </div>
@@ -257,7 +314,7 @@ export default function LessonPage({ params }: LessonPageProps) {
               )}
 
               {projectChallenge && projectThread && database && (
-                <section className="pt-2">
+                <section id="project" className="pt-2 scroll-mt-32">
                   <div className="mb-3 px-3 py-2 rounded border border-amber-400/30 bg-amber-400/[0.04] font-mono text-xs">
                     <p>
                       <span className="text-amber-400">✦ project thread</span>
@@ -303,6 +360,17 @@ export default function LessonPage({ params }: LessonPageProps) {
                   )}
                 </div>
               )}
+
+              {allChallengesDone && nextLesson && (
+                <NextLessonCard
+                  nextLesson={{
+                    lessonSlug: nextLesson.lessonSlug,
+                    moduleSlug: nextLesson.moduleSlug,
+                    title: nextLesson.title,
+                  }}
+                />
+              )}
+              {allChallengesDone && !nextLesson && <NextLessonCard nextLesson={null} />}
             </div>
           )}
 
@@ -367,8 +435,12 @@ export default function LessonPage({ params }: LessonPageProps) {
           hideTrigger
           open={dockOpen === 'tutor'}
           onOpenChange={(v) => setDockOpen(v ? 'tutor' : null)}
+          initialPrompt={tutorPrompt}
+          onPromptConsumed={() => setTutorPrompt(null)}
         />
       </LessonToolDock>
+
+      <InterfaceOnboarding />
     </div>
   );
 }

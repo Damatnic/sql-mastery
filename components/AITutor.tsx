@@ -16,6 +16,8 @@ interface AITutorProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   hideTrigger?: boolean;
+  initialPrompt?: string | null;
+  onPromptConsumed?: () => void;
 }
 
 export default function AITutor({
@@ -27,6 +29,8 @@ export default function AITutor({
   open: controlledOpen,
   onOpenChange,
   hideTrigger,
+  initialPrompt,
+  onPromptConsumed,
 }: AITutorProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = controlledOpen ?? internalOpen;
@@ -46,6 +50,14 @@ export default function AITutor({
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
+
+  useEffect(() => {
+    if (isOpen && initialPrompt && !input.trim()) {
+      setInput(initialPrompt);
+      onPromptConsumed?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, initialPrompt]);
 
   const sendMessage = useCallback(
     async (content: string) => {
@@ -162,8 +174,8 @@ export default function AITutor({
 
           <div className="flex-1 overflow-y-auto p-3 space-y-3 text-xs">
             {messages.length === 0 && (
-              <p className="text-slate-500 text-center py-8">
-                # ask a question or pick a command above
+              <p className="text-slate-500 py-4 leading-relaxed">
+                # ask in your own words. i&apos;ll point at the next move, i won&apos;t write the solution.
               </p>
             )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 export type DockTool = "schema" | "cheatsheet" | "tutor";
 
@@ -17,8 +17,29 @@ const LABELS: Record<DockTool, string> = {
   tutor: "$ ./ai-tutor",
 };
 
+const PULSE_SEEN_KEY = "sql-mastery-tutor-seen";
+
 export default function LessonToolDock({ tools, open, onOpen, children }: LessonToolDockProps) {
   const [expanded, setExpanded] = useState(false);
+  const [pulse, setPulse] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(PULSE_SEEN_KEY) === "1") return;
+    } catch {
+      return;
+    }
+    setPulse(true);
+    const t = setTimeout(() => {
+      setPulse(false);
+      try {
+        localStorage.setItem(PULSE_SEEN_KEY, "1");
+      } catch {
+        // ignore
+      }
+    }, 8000);
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <>
@@ -26,13 +47,24 @@ export default function LessonToolDock({ tools, open, onOpen, children }: Lesson
 
       {open === null && (
         <div
-          className="fixed bottom-4 right-4 z-40 font-mono text-xs border border-slate-800 bg-slate-950/95 backdrop-blur rounded shadow-2xl overflow-hidden"
+          data-tour-target="tutor"
+          className={`fixed bottom-4 right-4 z-40 font-mono text-xs border bg-slate-950/95 backdrop-blur rounded shadow-2xl overflow-hidden ${
+            pulse ? "border-indigo-400 ring-2 ring-indigo-400/60 animate-pulse" : "border-slate-800"
+          }`}
           role="region"
           aria-label="lesson tools"
         >
           <button
             type="button"
-            onClick={() => setExpanded((e) => !e)}
+            onClick={() => {
+              setExpanded((e) => !e);
+              setPulse(false);
+              try {
+                localStorage.setItem(PULSE_SEEN_KEY, "1");
+              } catch {
+                // ignore
+              }
+            }}
             className="w-full flex items-center justify-between gap-3 px-3 py-1.5 hover:bg-slate-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             aria-expanded={expanded}
             aria-label={expanded ? "collapse tools" : "expand tools"}

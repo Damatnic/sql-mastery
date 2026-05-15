@@ -25,6 +25,7 @@ interface ChallengeBlockProps {
   challengeNumber?: number;
   totalChallenges?: number;
   className?: string;
+  onAskTutor?: (prompt: string) => void;
 }
 
 
@@ -37,6 +38,7 @@ export default function ChallengeBlock({
   challengeNumber,
   totalChallenges,
   className = '',
+  onAskTutor,
 }: ChallengeBlockProps) {
   const [query, setQuery] = useState('');
   const [result, setResult] = useState<QueryResponse | null>(null);
@@ -48,7 +50,71 @@ export default function ChallengeBlock({
   const [isRunning, setIsRunning] = useState(false);
   const [copiedSolution, setCopiedSolution] = useState(false);
   const [validatorBroken, setValidatorBroken] = useState(false);
+  const [editorHeight, setEditorHeight] = useState<number>(150);
+  const [expanded, setExpanded] = useState(false);
+  const dragOriginRef = useRef<{ startY: number; startHeight: number } | null>(null);
   const hasFiredCompleteRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`sql-mastery-editor-h-${challenge.id}`);
+      if (saved) {
+        const n = parseInt(saved, 10);
+        if (Number.isFinite(n) && n >= 100 && n <= 800) setEditorHeight(n);
+      }
+    } catch {
+      // ignore
+    }
+  }, [challenge.id]);
+
+  useEffect(() => {
+    if (!expanded) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExpanded(false);
+    };
+    document.addEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
+  }, [expanded]);
+
+  const onResizeMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      dragOriginRef.current = { startY: e.clientY, startHeight: editorHeight };
+      const onMove = (ev: MouseEvent) => {
+        if (!dragOriginRef.current) return;
+        const delta = ev.clientY - dragOriginRef.current.startY;
+        const next = Math.max(100, Math.min(800, dragOriginRef.current.startHeight + delta));
+        setEditorHeight(next);
+      };
+      const onUp = () => {
+        if (dragOriginRef.current) {
+          try {
+            localStorage.setItem(`sql-mastery-editor-h-${challenge.id}`, String(editorHeight));
+          } catch {
+            // ignore
+          }
+        }
+        dragOriginRef.current = null;
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    },
+    [editorHeight, challenge.id],
+  );
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`sql-mastery-editor-h-${challenge.id}`, String(editorHeight));
+    } catch {
+      // ignore
+    }
+  }, [editorHeight, challenge.id]);
 
   useEffect(() => {
     const saved = localStorage.getItem(`sql-mastery-code-${challenge.id}`);
@@ -207,14 +273,67 @@ export default function ChallengeBlock({
       </div>
 
       <div className="p-4 space-y-4">
-        <SQLEditor
-          value={query}
-          onChange={setQuery}
-          onRun={handleRun}
-          onReset={handleReset}
-          isRunning={isRunning}
-          height="150px"
-        />
+        <div data-tour-target="editor" className="relative">
+          <SQLEditor
+            value={query}
+            onChange={setQuery}
+            onRun={handleRun}
+            onReset={handleReset}
+            isRunning={isRunning}
+            height={`${editorHeight}px`}
+          />
+          <div className="flex items-center justify-between -mt-px border-x border-b border-slate-800 bg-slate-900/60 rounded-b">
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              className="px-3 py-1 font-mono text-[11px] text-slate-500 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              aria-label="expand editor"
+            >
+              [ expand ]
+            </button>
+            <button
+              type="button"
+              onMouseDown={onResizeMouseDown}
+              className="px-3 py-1 font-mono text-[11px] text-slate-500 hover:text-slate-200 cursor-ns-resize select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              aria-label="drag to resize editor height"
+              title="drag to resize"
+            >
+              ─ drag to resize ─
+            </button>
+            <span className="px-3 py-1 font-mono text-[10px] text-slate-600">
+              {editorHeight}px
+            </span>
+          </div>
+        </div>
+        {expanded && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="expanded editor"
+            className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur p-4 sm:p-8 flex flex-col"
+          >
+            <div className="flex items-center justify-between mb-3 font-mono text-xs">
+              <span className="text-slate-400"># editor · esc to close</span>
+              <button
+                type="button"
+                onClick={() => setExpanded(false)}
+                className="px-3 py-1 rounded border border-slate-700 text-slate-300 hover:text-slate-100 hover:border-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              >
+                collapse
+              </button>
+            </div>
+            <div className="flex-1 min-h-0">
+              <SQLEditor
+                value={query}
+                onChange={setQuery}
+                onRun={handleRun}
+                onReset={handleReset}
+                isRunning={isRunning}
+                height="100%"
+              />
+            </div>
+          </div>
+        )}
 
         {result && (
           <div className="space-y-3 font-mono text-xs">
@@ -245,6 +364,15 @@ export default function ChallengeBlock({
               className="px-2 py-1 rounded border border-slate-800 text-amber-400 hover:bg-amber-400/10 hover:border-amber-400/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             >
               show hint
+            </button>
+          )}
+          {onAskTutor && !isCorrect && (
+            <button
+              type="button"
+              onClick={() => onAskTutor(`I'm stuck on this challenge: ${challenge.prompt}`)}
+              className="text-slate-500 hover:text-indigo-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded"
+            >
+              &gt; stuck? ask the tutor
             </button>
           )}
           {(() => {
