@@ -84,7 +84,14 @@ export default function AITutor({
         });
 
         if (!response.ok) {
-          throw new Error('Failed to get response');
+          let message = 'Failed to get response';
+          try {
+            const errBody = (await response.json()) as { error?: string };
+            if (errBody.error) message = errBody.error;
+          } catch {
+            // non-json error body
+          }
+          throw new Error(message);
         }
 
         const data = await response.json();
@@ -93,12 +100,14 @@ export default function AITutor({
           content: data.content || 'Sorry, I could not process that request.',
         };
         setMessages((prev) => [...prev, assistantMessage]);
-      } catch {
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Sorry, there was an error processing your request.';
         setMessages((prev) => [
           ...prev,
           {
             role: 'assistant',
-            content: 'Sorry, there was an error processing your request. Please try again.',
+            content: message,
           },
         ]);
       } finally {
@@ -146,7 +155,7 @@ export default function AITutor({
 
       {isOpen && (
         <div
-          className="fixed right-4 bottom-20 z-50 w-96 h-[500px] bg-slate-950 border border-slate-800 rounded shadow-2xl flex flex-col overflow-hidden font-mono text-sm"
+          className="fixed right-4 bottom-20 z-50 w-[min(24rem,calc(100vw-2rem))] h-[min(500px,calc(100vh-6rem))] bg-slate-950 border border-slate-800 rounded shadow-2xl flex flex-col overflow-hidden font-mono text-sm"
           role="dialog"
           aria-label="AI tutor"
         >

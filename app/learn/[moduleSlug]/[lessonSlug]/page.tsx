@@ -114,10 +114,15 @@ export default function LessonPage({ params }: LessonPageProps) {
         if (prev.has(challengeId)) return prev;
         const next = new Set(prev);
         next.add(challengeId);
+        addXP(XP_VALUES.CHALLENGE_COMPLETE);
+        const allDone =
+          lesson.challenges.length > 0 &&
+          lesson.challenges.every((c) => next.has(c.id));
+        if (allDone) {
+          completeLesson(lessonKey);
+        }
         return next;
       });
-      completeLesson(lessonKey);
-      addXP(XP_VALUES.CHALLENGE_COMPLETE);
     },
     [lesson, lessonKey, completeLesson, addXP],
   );

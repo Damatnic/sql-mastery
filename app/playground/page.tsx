@@ -28,6 +28,7 @@ export default function PlaygroundPage() {
   const [result, setResult] = useState<QueryResponse | null>(null);
   const [executionTime, setExecutionTime] = useState<number | undefined>();
   const [isLoading, setIsLoading] = useState(true);
+  const [dbError, setDbError] = useState<string | null>(null);
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
@@ -35,6 +36,7 @@ export default function PlaygroundPage() {
 
     async function initDb() {
       setIsLoading(true);
+      setDbError(null);
       try {
         const db = await createDatabase(databases[selectedDb]);
         if (mounted) {
@@ -42,8 +44,12 @@ export default function PlaygroundPage() {
           setSchema(getDatabaseSchema(db));
           setResult(null);
         }
-      } catch {
-        // db unavailable; handled by the schema panel showing nothing
+      } catch (error) {
+        if (mounted) {
+          setDatabase(null);
+          setSchema({});
+          setDbError(error instanceof Error ? error.message : 'Failed to load database');
+        }
       } finally {
         if (mounted) {
           setIsLoading(false);
@@ -155,6 +161,18 @@ export default function PlaygroundPage() {
             {isLoading ? (
               <div className="h-[300px] bg-slate-900 rounded border border-slate-800 flex items-center justify-center font-mono text-xs text-slate-500">
                 loading {selectedDb}.db…
+              </div>
+            ) : dbError ? (
+              <div className="h-[300px] bg-slate-900 rounded border border-slate-800 flex flex-col items-start justify-center px-6 font-mono text-xs text-slate-300">
+                <p className="text-rose-400">error: could not load {selectedDb}.db</p>
+                <p className="mt-2 text-slate-500">{dbError}</p>
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="mt-4 rounded border border-slate-700 px-3 py-1.5 text-slate-200 hover:border-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                >
+                  refresh
+                </button>
               </div>
             ) : (
               <>

@@ -223,12 +223,17 @@ export default function ChallengeBlock({
   }, [query, database, runQuery, validateResult, onComplete, onQueryChange]);
 
   const handleReset = useCallback(() => {
+    try {
+      localStorage.removeItem(`sql-mastery-code-${challenge.id}`);
+    } catch {
+      // ignore
+    }
     setQuery('');
     setResult(null);
     setExecutionTime(undefined);
     setIsCorrect(false);
     hasFiredCompleteRef.current = false;
-  }, []);
+  }, [challenge.id]);
 
   const handleCopySolution = useCallback(async () => {
     try {

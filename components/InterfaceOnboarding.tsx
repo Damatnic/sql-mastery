@@ -23,7 +23,7 @@ const STEPS: Step[] = [
   },
   {
     selector: '[data-tour-target="tutor"]',
-    text: "stuck? this won't give you the answer — but it'll ask the question that gets you unstuck.",
+    text: "stuck? this won't give you the answer, but it'll ask the question that gets you unstuck.",
     placement: 'top',
   },
 ];
