@@ -66,10 +66,8 @@ export const lessons: Lesson[] = [
     title: "SELECT Basics", badge: "concept", database: "company",
     theory: { content: `> 🎯 **Why This Matters:** Every query you ever write starts with SELECT and FROM. Get these two right and the rest of SQL builds on top of them. Get them wrong and nothing else can save you.
 
-## Mental Model
 SQL is how you ask questions about data sitting in a table. A table is like a spreadsheet; rows are individual records, columns are the fields each record has.
 
-## Syntax
 \`\`\`sql
 SELECT column1, column2
 FROM table_name;
@@ -80,14 +78,10 @@ SELECT *
 FROM table_name;
 \`\`\`
 
-## How It Works
 - **SELECT** tells SQL what columns you want back
 - **FROM** tells SQL which table to look in
 - The semicolon ends the statement
 - \`*\` is shorthand for "every column"; great for exploring, but avoid in production queries
-
-## When To Use This
-Any time you want to see data. This is the foundation of every query you'll ever write.
 
 > ⚠️ **Common Mistake:** \`SELECT *\` is fine when exploring but never in production code. New columns added to the table will silently flow into your query and break the layer that reads it. Always name the columns you actually need.` },
     examples: [
@@ -107,10 +101,8 @@ Any time you want to see data. This is the foundation of every query you'll ever
     slug: "getting-started/where-filtering",
     moduleSlug: "getting-started", lessonSlug: "where-filtering",
     title: "WHERE · Filtering Rows", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-WHERE is a filter. Without it, you get every row. With it, you only get rows where the condition is true. Think of it like the filter button in Excel.
+    theory: { content: `WHERE is a filter. Without it, you get every row. With it, you only get rows where the condition is true. Think of it like the filter button in Excel.
 
-## Syntax
 \`\`\`sql
 SELECT columns
 FROM table
@@ -133,9 +125,6 @@ WHERE condition;
 - \`'%son'\` = ends with son
 - \`'%ar%'\` = contains ar
 
-## When To Use This
-Every time you don't want all the rows; which is almost always.
-
 > ⚠️ **Common Mistake:** \`WHERE name = NULL\` and \`WHERE name != NULL\` both return zero rows. NULL isn't equal to anything, not even itself. Use \`IS NULL\` and \`IS NOT NULL\` for null checks.` },
     examples: [
       { title: "Filtering down to one segment", explanation: "Filter to one specific department", sql: "SELECT name, salary\nFROM employees\nWHERE department = 'Engineering';" },
@@ -155,24 +144,18 @@ Every time you don't want all the rows; which is almost always.
     slug: "getting-started/order-by",
     moduleSlug: "getting-started", lessonSlug: "order-by",
     title: "ORDER BY · Sorting Results", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-ORDER BY is sort. By default results come back in no guaranteed order. ORDER BY controls the sequence. ASC = smallest to largest (or A→Z). DESC = largest to smallest (or Z→A).
+    theory: { content: `ORDER BY is sort. By default results come back in no guaranteed order. ORDER BY controls the sequence. ASC = smallest to largest (or A→Z). DESC = largest to smallest (or Z→A).
 
-## Syntax
 \`\`\`sql
 SELECT columns
 FROM table
 ORDER BY column1 ASC, column2 DESC;
 \`\`\`
 
-## How It Works
 - **ASC** is the default; you can omit it
 - **DESC** you must write explicitly
 - You can sort by multiple columns; the second column breaks ties in the first
 - You can ORDER BY a column you didn't SELECT (though it's unusual)
-
-## When To Use This
-Any time the order of results matters; leaderboards, most recent records, alphabetical lists.
 
 > ⚠️ **Common Mistake:** assuming SQL gives you rows back in insertion order or any "default" order when you skip ORDER BY. It doesn't. The engine can return rows in whatever order is convenient. If the order matters, write ORDER BY. Always.` },
     examples: [
@@ -192,10 +175,8 @@ Any time the order of results matters; leaderboards, most recent records, alphab
     slug: "getting-started/limit-offset",
     moduleSlug: "getting-started", lessonSlug: "limit-offset",
     title: "LIMIT and OFFSET", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-LIMIT says "stop after N results." OFFSET says "skip the first N results before you start." Together they let you page through large datasets.
+    theory: { content: `LIMIT says "stop after N results." OFFSET says "skip the first N results before you start." Together they let you page through large datasets.
 
-## Syntax
 \`\`\`sql
 SELECT columns
 FROM table
@@ -205,14 +186,10 @@ LIMIT 10;          -- first 10 rows
 LIMIT 10 OFFSET 20; -- rows 21-30 (skip first 20, take next 10)
 \`\`\`
 
-## How It Works
 - LIMIT without ORDER BY gives you N rows in unpredictable order; usually pair them together
 - OFFSET is 0-based: OFFSET 0 = start at beginning, OFFSET 10 = skip first 10
 - Page formula: \`OFFSET = (page_number - 1) * page_size\`
 
-## When To Use This
-- "Show me the top 5" queries
-- Pagination in applications
 - Sampling a large table to see what's in it` },
     examples: [
       { title: "Top N pattern: sort then LIMIT", explanation: "Sort descending, take the first 3", sql: "SELECT name, salary\nFROM employees\nORDER BY salary DESC\nLIMIT 3;" },
@@ -231,23 +208,17 @@ LIMIT 10 OFFSET 20; -- rows 21-30 (skip first 20, take next 10)
     slug: "getting-started/distinct",
     moduleSlug: "getting-started", lessonSlug: "distinct",
     title: "DISTINCT · Unique Values", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-DISTINCT removes duplicate rows from your results. If 10 employees are in "Engineering," SELECT DISTINCT department gives you "Engineering" once, not 10 times.
+    theory: { content: `DISTINCT removes duplicate rows from your results. If 10 employees are in "Engineering," SELECT DISTINCT department gives you "Engineering" once, not 10 times.
 
-## Syntax
 \`\`\`sql
 SELECT DISTINCT column
 FROM table;
 \`\`\`
 
-## How It Works
 - Goes right after SELECT, before column names
 - Applies to the full combination of columns you select; not just one
 - \`SELECT DISTINCT dept, location\` gives unique dept+location pairs, not just unique depts
 
-## When To Use This
-- Finding all unique values in a column ("what departments exist?")
-- Deduplicating results before counting
 - Exploring data you've never seen before` },
     examples: [
       { title: "Inventory: distinct values in one column", explanation: "Get each department name once", sql: "SELECT DISTINCT department\nFROM employees;" },
@@ -270,10 +241,8 @@ FROM table;
     title: "Aggregate Functions", badge: "concept", database: "company",
     theory: { content: `> 🎯 **Why This Matters:** Aggregates are how analysts answer business questions. "How many," "how much," "what's the average" — every dashboard ships these. Module 2 is the move from reading data to answering questions about it.
 
-## Mental Model
 Aggregate functions collapse many rows into a single number. Instead of listing 20 salaries, COUNT tells you there are 20. SUM adds them all up. AVG gives the average. They answer the "how many / how much total / what's the average" questions.
 
-## Syntax
 \`\`\`sql
 SELECT COUNT(*), SUM(salary), AVG(salary), MIN(salary), MAX(salary)
 FROM employees;
@@ -289,12 +258,10 @@ FROM employees;
 | MIN(column) | Smallest value |
 | MAX(column) | Largest value |
 
-## How It Works
 - Without GROUP BY, they collapse the entire table into one row
 - \`COUNT(*)\` counts rows; \`COUNT(salary)\` counts rows where salary is NOT NULL
 - You can alias results: \`AVG(salary) AS avg_salary\`
 
-## When To Use This
 Any question with "how many," "total," "average," "highest," or "lowest" in it.` },
     examples: [
       { title: "Several aggregates in one pass", explanation: "Multiple aggregates in one query", sql: "SELECT COUNT(*) AS total_employees,\n       AVG(salary) AS avg_salary,\n       MIN(salary) AS lowest,\n       MAX(salary) AS highest\nFROM employees;" },
@@ -313,10 +280,8 @@ Any question with "how many," "total," "average," "highest," or "lowest" in it.`
     slug: "data-analysis/group-by",
     moduleSlug: "data-analysis", lessonSlug: "group-by",
     title: "GROUP BY", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-GROUP BY means "for each X, calculate Y." Instead of one number for the whole table, you get one number per group. It's like a pivot table in Excel; one row per unique value in the group column.
+    theory: { content: `GROUP BY means "for each X, calculate Y." Instead of one number for the whole table, you get one number per group. It's like a pivot table in Excel; one row per unique value in the group column.
 
-## Syntax
 \`\`\`sql
 SELECT grouping_column, AGG_FUNCTION(other_column)
 FROM table
@@ -326,13 +291,9 @@ GROUP BY grouping_column;
 ## The Golden Rule
 **Every column in SELECT must either be in GROUP BY or be inside an aggregate function.** If you GROUP BY department, you can SELECT department and AVG(salary), but not name, because there are multiple names per department and SQL doesn't know which one to show.
 
-## How It Works
 1. SQL splits the table into groups by the GROUP BY column
 2. For each group, it runs the aggregate functions
 3. You get one output row per unique group value
-
-## When To Use This
-"For each department / category / region / month... what is the count / total / average?"
 
 ## The slow way vs the fast way
 **Slow:** group everyone first, then throw most of them away with HAVING. SQL has to aggregate every department before the filter runs.
@@ -374,10 +335,8 @@ The exact same operation in pandas is \`DataFrame.groupby(...).agg(...)\`. Same 
     slug: "data-analysis/having",
     moduleSlug: "data-analysis", lessonSlug: "having",
     title: "HAVING · Filtering Groups", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-WHERE filters rows before grouping. HAVING filters groups after grouping. If WHERE is a pre-filter, HAVING is a post-filter.
+    theory: { content: `WHERE filters rows before grouping. HAVING filters groups after grouping. If WHERE is a pre-filter, HAVING is a post-filter.
 
-## Syntax
 \`\`\`sql
 SELECT department, AVG(salary) AS avg_salary
 FROM employees
@@ -393,7 +352,6 @@ HAVING avg_salary > 80000;       -- then filter groups
 | Filters | Individual rows | Groups/aggregates |
 | Can use aggregates? | No | Yes |
 
-## When To Use This
 When you want to filter by a calculated value; "only show departments where average salary exceeds X" or "only show departments with more than 5 employees."` },
     examples: [
       { title: "Departments with avg salary over $80k", explanation: "Filter on the aggregate result", sql: "SELECT department, AVG(salary) AS avg_salary\nFROM employees\nGROUP BY department\nHAVING avg_salary > 80000;" },
@@ -412,10 +370,8 @@ When you want to filter by a calculated value; "only show departments where aver
     slug: "data-analysis/null-values",
     moduleSlug: "data-analysis", lessonSlug: "null-values",
     title: "NULL Values", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-NULL means "no value exists here." It is not zero. It is not an empty string. It is the absence of a value. This causes a lot of confusion because NULL doesn't behave like normal values; you can't compare it with = or !=.
+    theory: { content: `NULL means "no value exists here." It is not zero. It is not an empty string. It is the absence of a value. This causes a lot of confusion because NULL doesn't behave like normal values; you can't compare it with = or !=.
 
-## Syntax
 \`\`\`sql
 -- Check for NULL
 WHERE column IS NULL
@@ -432,7 +388,6 @@ COALESCE(column, default_value)
 COALESCE(a, b, c) returns the first non-NULL value from the list.
 \`COALESCE(manager_id, 0)\` returns manager_id if it exists, otherwise 0.
 
-## When To Use This
 Any time a column might be empty; optional fields, foreign keys, or data that wasn't filled in.` },
     examples: [
       { title: "Finding missing values with IS NULL", explanation: "IS NULL finds missing values", sql: "SELECT name, department\nFROM employees\nWHERE manager_id IS NULL;" },
@@ -451,10 +406,8 @@ Any time a column might be empty; optional fields, foreign keys, or data that wa
     slug: "data-analysis/case-expressions",
     moduleSlug: "data-analysis", lessonSlug: "case-expressions",
     title: "CASE Expressions", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-CASE is if/else inside a SQL query. It lets you create a new column whose value depends on conditions. Like an Excel IF formula but more powerful.
+    theory: { content: `CASE is if/else inside a SQL query. It lets you create a new column whose value depends on conditions. Like an Excel IF formula but more powerful.
 
-## Syntax
 \`\`\`sql
 SELECT name,
   CASE
@@ -465,7 +418,6 @@ SELECT name,
 FROM employees;
 \`\`\`
 
-## How It Works
 - SQL checks each WHEN condition top to bottom
 - Returns the THEN value for the first condition that's true
 - ELSE is the fallback if nothing matches (returns NULL if you omit it)
@@ -479,11 +431,6 @@ CASE department
   ELSE 'Other'
 END
 \`\`\`
-
-## When To Use This
-Bucketing/categorizing continuous values, translating codes to labels, conditional aggregation.
-
-> ⚠️ **Common Mistake:** forgetting ELSE in a CASE. Any row that matches no WHEN returns NULL silently. Either add ELSE explicitly or wrap the whole CASE with COALESCE so the NULL never escapes.
 
 ## See also
 In Python/NumPy this is \`np.where(condition, value_if_true, value_if_false)\` for two branches, \`np.select\` for many. Vectorized, no row loop. Worked example on damato-python at [/learn/numpy-foundations/vectorization-vs-loops](https://damato-python.vercel.app/learn/numpy-foundations/vectorization-vs-loops).` },
@@ -508,10 +455,8 @@ In Python/NumPy this is \`np.where(condition, value_if_true, value_if_false)\` f
     title: "INNER JOIN", badge: "concept", database: "company",
     theory: { content: `> 🎯 **Why This Matters:** Data lives in many tables on purpose; it's called normalization. Joins are how you put it back together to answer a single question. Without joins you're stuck in one table at a time.
 
-## Mental Model
 An INNER JOIN is like a Venn diagram; you only get rows that exist in BOTH tables. If an employee has no matching department, they're excluded. If a department has no employees, it's excluded.
 
-## Syntax
 \`\`\`sql
 SELECT e.name, d.location
 FROM employees e
@@ -519,13 +464,9 @@ JOIN departments d ON e.department = d.name;
 \`\`\`
 (INNER JOIN and JOIN mean the same thing; JOIN is shorthand)
 
-## How It Works
 - The ON clause specifies the matching condition; usually a foreign key relationship
 - Use table aliases (e, d) to keep queries readable and avoid ambiguity
 - When both tables have a column with the same name, prefix with the alias: \`e.name\` vs \`d.name\`
-
-## When To Use This
-When you need columns from two tables and only want rows that have matches in both. The most common join type.
 
 ## The slow way vs the fast way
 **Slow / risky:** the old comma-join syntax. Forget the WHERE and you silently produce a cartesian product.
@@ -563,10 +504,8 @@ The pandas analog is \`pd.merge\` (or \`df.merge\`). Same JOIN-on-keys idea: see
     slug: "joining-tables/left-join",
     moduleSlug: "joining-tables", lessonSlug: "left-join",
     title: "LEFT JOIN", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-LEFT JOIN keeps ALL rows from the left (first) table, and attaches matching rows from the right table. If there's no match on the right, you get NULL in those columns. Nothing from the left table gets dropped.
+    theory: { content: `LEFT JOIN keeps ALL rows from the left (first) table, and attaches matching rows from the right table. If there's no match on the right, you get NULL in those columns. Nothing from the left table gets dropped.
 
-## Syntax
 \`\`\`sql
 SELECT e.name, p.name AS project_name
 FROM employees e
@@ -580,9 +519,6 @@ LEFT JOIN projects p ON ep.project_id = p.id;
 
 ## Finding Missing Relationships
 LEFT JOIN + WHERE right_table.id IS NULL finds rows in the left table with NO match on the right. Classic pattern for "find employees not assigned to any project."
-
-## When To Use This
-When you want to keep all records from the main table even if the related data is missing.
 
 ## The slow way vs the fast way
 **Slow / wrong:** \`NOT IN\` with a subquery that might return NULL. If a single row in the subquery is NULL, the entire result is empty. Silent data loss.
@@ -620,10 +556,8 @@ Why: \`x NOT IN (... NULL ...)\` evaluates to \`x != NULL\`, which is UNKNOWN, w
     slug: "joining-tables/multiple-joins",
     moduleSlug: "joining-tables", lessonSlug: "multiple-joins",
     title: "Multiple JOINs", badge: "practice", database: "company",
-    theory: { content: `## Mental Model
-Chain JOINs to pull data from more than two tables. Each JOIN adds more columns from a new table. Think of it like connecting puzzle pieces; each piece adds new information.
+    theory: { content: `Chain JOINs to pull data from more than two tables. Each JOIN adds more columns from a new table. Think of it like connecting puzzle pieces; each piece adds new information.
 
-## Syntax
 \`\`\`sql
 SELECT e.name, p.name AS project, d.location
 FROM employees e
@@ -632,13 +566,11 @@ JOIN projects p ON ep.project_id = p.id
 JOIN departments d ON e.department = d.name;
 \`\`\`
 
-## How It Works
 - Each JOIN adds to the result set from the previous step
 - Order usually doesn't matter for the final result, but matters for readability
 - The junction table (employee_projects) is the "bridge" between employees and projects
 - You can mix JOIN types; e.g., INNER then LEFT
 
-## When To Use This
 When your data lives across 3+ tables and you need columns from all of them.` },
     examples: [
       { title: "Employees with project and location", explanation: "Three JOINs connecting four tables", sql: "SELECT e.name, p.name AS project, d.location\nFROM employees e\nJOIN employee_projects ep ON e.id = ep.employee_id\nJOIN projects p ON ep.project_id = p.id\nJOIN departments d ON e.department = d.name;" },
@@ -657,10 +589,8 @@ When your data lives across 3+ tables and you need columns from all of them.` },
     slug: "joining-tables/self-join",
     moduleSlug: "joining-tables", lessonSlug: "self-join",
     title: "Self JOIN", badge: "practice", database: "company",
-    theory: { content: `## Mental Model
-A self JOIN joins a table to itself. Sounds weird, but it's the natural solution when a row has a relationship to another row in the same table; like an employee whose manager is also in the employees table.
+    theory: { content: `A self JOIN joins a table to itself. Sounds weird, but it's the natural solution when a row has a relationship to another row in the same table; like an employee whose manager is also in the employees table.
 
-## Syntax
 \`\`\`sql
 SELECT e.name AS employee, m.name AS manager
 FROM employees e
@@ -668,12 +598,10 @@ JOIN employees m ON e.manager_id = m.id;
 \`\`\`
 Aliases are required; you need two different names for the same table to tell SQL which instance is which.
 
-## How It Works
 - You create two "copies" of the table with different aliases
 - One alias is for the "child" row, the other for the "parent" row
 - The ON clause connects them via the self-referencing key
 
-## When To Use This
 Hierarchies (employees/managers, categories/subcategories), comparing rows in the same table.` },
     examples: [
       { title: "Employee and manager names", explanation: "Classic self-join for org chart data", sql: "SELECT e.name AS employee, m.name AS manager\nFROM employees e\nJOIN employees m ON e.manager_id = m.id;" },
@@ -692,8 +620,7 @@ Hierarchies (employees/managers, categories/subcategories), comparing rows in th
     slug: "joining-tables/full-outer-join",
     moduleSlug: "joining-tables", lessonSlug: "full-outer-join",
     title: "FULL OUTER JOIN", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-FULL OUTER JOIN keeps everything from both tables; matched and unmatched. Rows with no match on either side get NULLs filled in. It's the union of LEFT JOIN and RIGHT JOIN.
+    theory: { content: `FULL OUTER JOIN keeps everything from both tables; matched and unmatched. Rows with no match on either side get NULLs filled in. It's the union of LEFT JOIN and RIGHT JOIN.
 
 ## Syntax (SQLite workaround)
 SQLite doesn't support FULL OUTER JOIN directly. Simulate it with UNION:
@@ -710,7 +637,6 @@ RIGHT JOIN departments d ON e.department = d.name;
 \`\`\`
 Or use LEFT JOIN UNION LEFT JOIN with tables swapped.
 
-## When To Use This
 Finding records in either table that have no match; great for data audits and finding orphaned records.` },
     examples: [
       { title: "All employees and departments, matched where possible", explanation: "UNION of two LEFT JOINs simulates FULL OUTER", sql: "SELECT e.name AS employee, d.name AS department\nFROM employees e\nLEFT JOIN departments d ON e.department = d.name\n\nUNION\n\nSELECT e.name, d.name\nFROM departments d\nLEFT JOIN employees e ON d.name = e.department;" },
@@ -736,17 +662,14 @@ Finding records in either table that have no match; great for data audits and fi
     title: "Subqueries in WHERE", badge: "concept", database: "company",
     theory: { content: `> 🎯 **Why This Matters:** Subqueries are how you ask a question whose answer depends on another question. The whole module is about building queries in layers instead of trying to write one giant statement.
 
-## Mental Model
 A subquery is a query inside a query. SQL runs the inner query first, gets a result, then uses that result in the outer query. Think of it as answering a preliminary question so you can answer the main question.
 
-## Syntax
 \`\`\`sql
 SELECT name, salary
 FROM employees
 WHERE salary > (SELECT AVG(salary) FROM employees);
 \`\`\`
 
-## How It Works
 - The inner query (in parentheses) runs first and returns a value
 - The outer query uses that value just like a literal number or string
 - Scalar subqueries return one value; list subqueries (used with IN) return multiple values
@@ -755,9 +678,6 @@ WHERE salary > (SELECT AVG(salary) FROM employees);
 \`\`\`sql
 WHERE department IN (SELECT name FROM departments WHERE budget > 1000000)
 \`\`\`
-
-## When To Use This
-When your filter condition depends on a calculated value from the same (or another) table; like "above average" comparisons.
 
 ## The slow way vs the fast way
 **Slow:** a correlated subquery that recomputes the same aggregate once per outer row. With 10,000 employees and 100 departments, this runs the SELECT AVG... 10,000 times.
@@ -804,10 +724,8 @@ Why: \`EXPLAIN QUERY PLAN\` on the first form shows a nested SCAN per outer row.
     slug: "subqueries-ctes/subqueries-from",
     moduleSlug: "subqueries-ctes", lessonSlug: "subqueries-from",
     title: "Subqueries in FROM", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-You can use a query as if it were a table. Put the subquery in the FROM clause, give it an alias, and query it just like a real table. It's a temporary, virtual table that exists just for this query.
+    theory: { content: `You can use a query as if it were a table. Put the subquery in the FROM clause, give it an alias, and query it just like a real table. It's a temporary, virtual table that exists just for this query.
 
-## Syntax
 \`\`\`sql
 SELECT dept_stats.department, dept_stats.avg_salary
 FROM (
@@ -818,12 +736,10 @@ FROM (
 WHERE dept_stats.avg_salary > 80000;
 \`\`\`
 
-## How It Works
 - The inner query runs first and produces a result set
 - You give it an alias (dept_stats above) and treat it like any table
 - This is useful when you need to filter or aggregate on an already-aggregated result
 
-## When To Use This
 When you need to do a "second-level" operation on aggregated data; like filtering groups after aggregating, or joining two aggregated result sets together. (CTEs do the same thing more readably.)` },
     examples: [
       { title: "Filter aggregated results", explanation: "Can't use HAVING for all cases; subquery in FROM is sometimes cleaner", sql: "SELECT d.department, d.avg_salary\nFROM (\n  SELECT department, AVG(salary) AS avg_salary\n  FROM employees\n  GROUP BY department\n) AS d\nWHERE d.avg_salary > 75000;" },
@@ -841,10 +757,8 @@ When you need to do a "second-level" operation on aggregated data; like filterin
     slug: "subqueries-ctes/correlated-subqueries",
     moduleSlug: "subqueries-ctes", lessonSlug: "correlated-subqueries",
     title: "Correlated Subqueries", badge: "practice", database: "company",
-    theory: { content: `## Mental Model
-A correlated subquery references the outer query. It runs once for every row the outer query processes; the inner query uses a value from the current outer row. Slower than regular subqueries, but necessary for row-by-row comparisons.
+    theory: { content: `A correlated subquery references the outer query. It runs once for every row the outer query processes; the inner query uses a value from the current outer row. Slower than regular subqueries, but necessary for row-by-row comparisons.
 
-## Syntax
 \`\`\`sql
 SELECT name, salary, department
 FROM employees e
@@ -855,13 +769,9 @@ WHERE salary > (
 );
 \`\`\`
 
-## How It Works
 - For each employee row in the outer query, the subquery runs with that employee's department
 - It compares each employee against their own department's average, not the company average
 - The outer alias (e) is accessible inside the subquery
-
-## When To Use This
-Row-by-row comparisons where the filter depends on the current row's context; "above average for their own group" is the classic case.
 
 ## The slow way vs the fast way
 **Slow:** \`(SELECT COUNT(*) ...) = 0\` to test "does this row have any match." Counts every match before comparing.
@@ -901,10 +811,8 @@ Why: \`EXISTS\` and \`NOT EXISTS\` are designed to short-circuit, so the engine 
     slug: "subqueries-ctes/ctes-with",
     moduleSlug: "subqueries-ctes", lessonSlug: "ctes-with",
     title: "CTEs · WITH Clause", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-A CTE (Common Table Expression) is a named subquery. Instead of nesting a subquery inside another query, you name it at the top with WITH, then reference it by name. Same result, way more readable.
+    theory: { content: `A CTE (Common Table Expression) is a named subquery. Instead of nesting a subquery inside another query, you name it at the top with WITH, then reference it by name. Same result, way more readable.
 
-## Syntax
 \`\`\`sql
 WITH dept_stats AS (
   SELECT department, AVG(salary) AS avg_salary
@@ -931,7 +839,6 @@ They produce the same result. CTEs are preferred because:
 - Read top-to-bottom; easier to follow the logic
 - Easier to debug (just SELECT * FROM the CTE name)
 
-## When To Use This
 Any time you have a complex query with a subquery. CTEs make it readable.` },
     examples: [
       { title: "Above-average salary with CTE", explanation: "Same as the subquery version but much more readable", sql: "WITH company_avg AS (\n  SELECT AVG(salary) AS avg_sal FROM employees\n)\nSELECT e.name, e.salary\nFROM employees e, company_avg\nWHERE e.salary > company_avg.avg_sal;" },
@@ -954,10 +861,8 @@ Any time you have a complex query with a subquery. CTEs make it readable.` },
     title: "INSERT · Adding Rows", badge: "concept", database: "company",
     theory: { content: `> 🎯 **Why This Matters:** Up to now you've only read data. Module 5 is how you change it. The same precision that helped you SELECT cleanly is what keeps you from wrecking the table.
 
-## Mental Model
 INSERT adds new rows to a table. You specify the table, the columns you're filling, and the values for each column in the same order.
 
-## Syntax
 \`\`\`sql
 -- Insert one row (explicit columns; recommended)
 INSERT INTO employees (name, department, salary, hire_date)
@@ -979,9 +884,6 @@ INSERT INTO archive_employees
 SELECT * FROM employees WHERE hire_date < '2019-01-01';
 \`\`\`
 
-## When To Use This
-Adding new records to a table; new employees, new orders, new entries of any kind.
-
 > ⚠️ **Common Mistake:** omitting the column list and relying on column order in the table definition. Works until someone adds or reorders a column, at which point your inserts start landing in the wrong slot. Always name the columns explicitly.` },
     examples: [
       { title: "Add one employee", explanation: "Named columns + matching values", sql: "INSERT INTO employees (id, name, department, salary, hire_date, manager_id)\nVALUES (21, 'Alex Torres', 'Engineering', 85000, '2026-01-15', 1);" },
@@ -999,10 +901,8 @@ Adding new records to a table; new employees, new orders, new entries of any kin
     slug: "modifying-data/update",
     moduleSlug: "modifying-data", lessonSlug: "update",
     title: "UPDATE · Modifying Rows", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-UPDATE changes existing rows. The WHERE clause is critical; without it, you update every single row in the table. This is one of the most dangerous SQL mistakes.
+    theory: { content: `UPDATE changes existing rows. The WHERE clause is critical; without it, you update every single row in the table. This is one of the most dangerous SQL mistakes.
 
-## Syntax
 \`\`\`sql
 UPDATE employees
 SET salary = 95000,
@@ -1023,9 +923,6 @@ UPDATE employees SET salary = salary * 1.05
 WHERE department IN (SELECT name FROM departments WHERE budget > 1000000);
 \`\`\`
 
-## When To Use This
-Correcting data, applying raises/adjustments, changing status fields.
-
 > ⚠️ **Common Mistake:** running UPDATE without WHERE. It updates every row. Always write the WHERE first, run a SELECT with the same WHERE to preview which rows are affected, then convert to UPDATE.` },
     examples: [
       { title: "Give one employee a raise", explanation: "Always use WHERE with a specific ID", sql: "UPDATE employees\nSET salary = 130000\nWHERE id = 1;\nSELECT name, salary FROM employees WHERE id = 1;" },
@@ -1044,10 +941,8 @@ Correcting data, applying raises/adjustments, changing status fields.
     slug: "modifying-data/delete",
     moduleSlug: "modifying-data", lessonSlug: "delete",
     title: "DELETE · Removing Rows", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-DELETE removes rows from a table permanently. Like UPDATE, the WHERE clause is what keeps this from being catastrophic. Always test with a SELECT first.
+    theory: { content: `DELETE removes rows from a table permanently. Like UPDATE, the WHERE clause is what keeps this from being catastrophic. Always test with a SELECT first.
 
-## Syntax
 \`\`\`sql
 DELETE FROM employees
 WHERE id = 15;
@@ -1060,9 +955,6 @@ WHERE id = 15;
 
 ## Soft Delete Pattern
 Instead of actually deleting, many systems add an is_deleted or status column and UPDATE instead of DELETE. Safer, recoverable.
-
-## When To Use This
-Removing test data, deleting expired records, cleaning up orphaned rows.
 
 > ⚠️ **Common Mistake:** DELETE without WHERE wipes the entire table. Run a SELECT with your intended WHERE first to confirm the row count, then convert to DELETE. There is no undo in production.` },
     examples: [
@@ -1081,10 +973,8 @@ Removing test data, deleting expired records, cleaning up orphaned rows.
     slug: "modifying-data/transactions",
     moduleSlug: "modifying-data", lessonSlug: "transactions",
     title: "Transactions", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-A transaction is an all-or-nothing operation. Either every statement inside it succeeds and gets saved, or if anything fails, everything rolls back like it never happened. Think of it as an undo button for a group of related changes.
+    theory: { content: `A transaction is an all-or-nothing operation. Either every statement inside it succeeds and gets saved, or if anything fails, everything rolls back like it never happened. Think of it as an undo button for a group of related changes.
 
-## Syntax
 \`\`\`sql
 BEGIN;
   UPDATE accounts SET balance = balance - 500 WHERE id = 1;
@@ -1102,7 +992,6 @@ ROLLBACK;  -- undo everything since BEGIN
 - **Isolated**: concurrent transactions don't interfere
 - **Durable**: committed changes survive crashes
 
-## When To Use This
 Any time you have two or more related changes that must succeed or fail together; financial transfers, order + inventory updates, multi-table inserts.` },
     examples: [
       { title: "Safe multi-step update", explanation: "Both updates wrapped in a transaction", sql: "BEGIN;\n  UPDATE employees SET salary = 125000 WHERE id = 1;\n  UPDATE departments SET budget = budget - 5000 WHERE name = 'Engineering';\nCOMMIT;\nSELECT id, salary FROM employees WHERE id = 1;" },
@@ -1124,7 +1013,6 @@ Any time you have two or more related changes that must succeed or fail together
     title: "String Functions", badge: "practice", database: "company",
     theory: { content: `> 🎯 **Why This Matters:** Real data is messy: weird casing, trailing spaces, dates stored as text. Functions are the cleanup layer. If your output looks fine but your join doesn't match, it's almost always a function-shaped problem.
 
-## Mental Model
 String functions let you manipulate text inside a query; clean it, transform it, extract pieces from it. Essential for messy real-world data.
 
 ## Common Functions (SQLite)
@@ -1139,7 +1027,6 @@ String functions let you manipulate text inside a query; clean it, transform it,
 | INSTR(s, sub) | Find position of substring | INSTR('hello', 'ell') → 2 |
 | s || s | Concatenate strings | 'Hello' || ' ' || 'World' |
 
-## When To Use This
 Cleaning inconsistent data, formatting output, building display values, searching within text.` },
     examples: [
       { title: "Format names", explanation: "UPPER for display, concatenation for full name", sql: "SELECT UPPER(name) AS name_upper,\n       LENGTH(name) AS name_length\nFROM employees\nLIMIT 5;" },
@@ -1158,8 +1045,7 @@ Cleaning inconsistent data, formatting output, building display values, searchin
     slug: "functions/date-functions",
     moduleSlug: "functions", lessonSlug: "date-functions",
     title: "Date Functions", badge: "practice", database: "company",
-    theory: { content: `## Mental Model
-Date functions let you calculate time differences, extract parts of dates, and format dates. In SQLite, dates are stored as text (YYYY-MM-DD) but date functions treat them as actual dates.
+    theory: { content: `Date functions let you calculate time differences, extract parts of dates, and format dates. In SQLite, dates are stored as text (YYYY-MM-DD) but date functions treat them as actual dates.
 
 ## Key SQLite Date Functions
 \`\`\`sql
@@ -1179,7 +1065,6 @@ julianday('now') - julianday(hire_date)  -- days between dates
 CAST((julianday('now') - julianday(hire_date)) / 365.25 AS INTEGER)
 \`\`\`
 
-## When To Use This
 Calculating tenure, finding records in a date range, grouping by month/year, aging reports.` },
     examples: [
       { title: "Years of service", explanation: "Calculate tenure using julianday", sql: "SELECT name,\n       hire_date,\n       CAST((julianday('now') - julianday(hire_date)) / 365.25 AS INTEGER) AS years_of_service\nFROM employees\nORDER BY years_of_service DESC;" },
@@ -1198,8 +1083,7 @@ Calculating tenure, finding records in a date range, grouping by month/year, agi
     slug: "functions/math-functions",
     moduleSlug: "functions", lessonSlug: "math-functions",
     title: "Math Functions", badge: "practice", database: "company",
-    theory: { content: `## Mental Model
-Math functions handle numeric calculations. Most are straightforward; the ones worth knowing are ROUND (required for money), ABS (absolute value), and integer division.
+    theory: { content: `Math functions handle numeric calculations. Most are straightforward; the ones worth knowing are ROUND (required for money), ABS (absolute value), and integer division.
 
 ## Common Functions
 \`\`\`sql
@@ -1215,7 +1099,6 @@ MIN(a, b)           -- lesser of two values
 ## Watch Out
 Integer ÷ Integer = Integer in most databases. \`SELECT 1/2\` returns 0, not 0.5. Use \`1.0/2\` or \`CAST(1 AS REAL)/2\`.
 
-## When To Use This
 Financial calculations (rounding), percentages, ranking math, modulo for even/odd checks.` },
     examples: [
       { title: "Salary calculations", explanation: "ROUND for clean numbers, math for bonus calculation", sql: "SELECT name, salary,\n       ROUND(salary * 0.1, 2) AS bonus_10pct,\n       ROUND(salary / 12.0, 2) AS monthly_salary\nFROM employees;" },
@@ -1233,10 +1116,8 @@ Financial calculations (rounding), percentages, ranking math, modulo for even/od
     slug: "functions/type-casting",
     moduleSlug: "functions", lessonSlug: "type-casting",
     title: "Type Casting", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-Sometimes SQL stores a number as text, or you need to convert between types for math or display. CAST is the explicit way to tell SQL "treat this as this type."
+    theory: { content: `Sometimes SQL stores a number as text, or you need to convert between types for math or display. CAST is the explicit way to tell SQL "treat this as this type."
 
-## Syntax
 \`\`\`sql
 CAST(column AS INTEGER)
 CAST(column AS REAL)      -- float/decimal
@@ -1263,7 +1144,6 @@ CAST('42' AS INTEGER)  -- → 42
 CAST('abc' AS INTEGER) -- → 0 (silently)
 \`\`\`
 
-## When To Use This
 Division that keeps losing decimals, concatenating numbers into strings, dealing with columns that stored numbers as text.` },
     examples: [
       { title: "Fix integer division", explanation: "Cast to REAL before dividing to get decimal result", sql: "SELECT department,\n       COUNT(*) AS headcount,\n       CAST(COUNT(*) AS REAL) / (SELECT COUNT(*) FROM employees) AS fraction\nFROM employees\nGROUP BY department;" },
@@ -1281,8 +1161,7 @@ Division that keeps losing decimals, concatenating numbers into strings, dealing
     slug: "functions/coalesce-nullif",
     moduleSlug: "functions", lessonSlug: "coalesce-nullif",
     title: "COALESCE, NULLIF, and IIF", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-These are practical NULL-handling and conditional tools. COALESCE gives you the first non-NULL value in a list. NULLIF converts a value to NULL if it matches a condition. IIF is a compact if/else.
+    theory: { content: `These are practical NULL-handling and conditional tools. COALESCE gives you the first non-NULL value in a list. NULLIF converts a value to NULL if it matches a condition. IIF is a compact if/else.
 
 ## COALESCE
 \`\`\`sql
@@ -1303,7 +1182,6 @@ IIF(condition, value_if_true, value_if_false)
 IIF(salary > 90000, 'High', 'Standard')  -- inline if/else
 \`\`\`
 
-## When To Use This
 Cleaning NULL values in output, safe division, compact conditional columns.` },
     examples: [
       { title: "Replace NULL manager with label", explanation: "COALESCE converts NULL to readable text", sql: "SELECT name,\n  COALESCE(CAST(manager_id AS TEXT), 'No Manager') AS manager\nFROM employees;" },
@@ -1331,7 +1209,6 @@ Cleaning NULL values in output, safe division, compact conditional columns.` },
     title: "ROW_NUMBER, RANK, DENSE_RANK", badge: "challenge", database: "company",
     theory: { content: `> 🎯 **Why This Matters:** Window functions are the single biggest pedagogical jump in SQL. Most analyst job posts in 2026 want them. Top-N per group, running totals, period-over-period; all of it is window functions.
 
-## Mental Model
 Window functions add a new column to every row without collapsing the table. GROUP BY loses individual rows. Window functions keep them all and add computed values alongside.
 
 ## The Three Ranking Functions
@@ -1348,15 +1225,11 @@ DENSE_RANK() OVER (ORDER BY salary DESC)  -- 1,2,2,3,4... ties get same rank, no
 
 Run the first example below to actually see the difference on real rows.
 
-## Syntax
 \`\`\`sql
 SELECT name, salary,
   ROW_NUMBER() OVER (ORDER BY salary DESC) AS row_num
 FROM employees;
 \`\`\`
-
-## When To Use This
-Leaderboards, finding top-N per group, paginating sorted results, deduplication (keep only row_number = 1 per group).
 
 ## The slow way vs the fast way
 **Slow:** the classic pre-window-function trick of "count how many rows beat me" with a self-join. O(n²) within each group.
@@ -1402,10 +1275,8 @@ The pandas equivalent for ranking inside a group is \`df.groupby(...).rank()\` o
     slug: "window-functions/partition-by",
     moduleSlug: "window-functions", lessonSlug: "partition-by",
     title: "PARTITION BY", badge: "challenge", database: "company",
-    theory: { content: `## Mental Model
-PARTITION BY is to window functions what GROUP BY is to aggregates; it splits the calculation into groups. Without PARTITION BY, the window function runs across all rows. With PARTITION BY, it restarts for each group.
+    theory: { content: `PARTITION BY is to window functions what GROUP BY is to aggregates; it splits the calculation into groups. Without PARTITION BY, the window function runs across all rows. With PARTITION BY, it restarts for each group.
 
-## Syntax
 \`\`\`sql
 SELECT name, department, salary,
   AVG(salary) OVER (PARTITION BY department) AS dept_avg,
@@ -1413,12 +1284,10 @@ SELECT name, department, salary,
 FROM employees;
 \`\`\`
 
-## How It Works
 - \`AVG(salary) OVER ()\` → company-wide average (one value, repeated)
 - \`AVG(salary) OVER (PARTITION BY department)\` → dept average (different per dept, same for all in dept)
 - \`RANK() OVER (PARTITION BY department ORDER BY salary DESC)\` → rank within each department
 
-## When To Use This
 Any "vs their group" comparison; "how does this employee compare to their department average?"` },
     examples: [
       { title: "Salary vs dept average", explanation: "PARTITION BY keeps rows while adding dept context", sql: "SELECT name, department, salary,\n  ROUND(AVG(salary) OVER (PARTITION BY department), 0) AS dept_avg,\n  salary - ROUND(AVG(salary) OVER (PARTITION BY department), 0) AS diff\nFROM employees\nORDER BY department, diff DESC;" },
@@ -1436,10 +1305,8 @@ Any "vs their group" comparison; "how does this employee compare to their depart
     slug: "window-functions/lag-lead",
     moduleSlug: "window-functions", lessonSlug: "lag-lead",
     title: "LAG and LEAD", badge: "challenge", database: "company",
-    theory: { content: `## Mental Model
-LAG looks at the previous row. LEAD looks at the next row. They let you compare a value to its neighbor without a self-join.
+    theory: { content: `LAG looks at the previous row. LEAD looks at the next row. They let you compare a value to its neighbor without a self-join.
 
-## Syntax
 \`\`\`sql
 LAG(column, n, default)  OVER (ORDER BY ...)  -- n rows back (default n=1)
 LEAD(column, n, default) OVER (ORDER BY ...)  -- n rows forward
@@ -1457,7 +1324,6 @@ salary - LAG(salary) OVER (ORDER BY salary) AS salary_gap
 LAG(salary, 1, 0) OVER (ORDER BY hire_date) AS prev_or_zero
 \`\`\`
 
-## When To Use This
 Calculating change over time, comparing sequential records, finding gaps between consecutive values.` },
     examples: [
       { title: "Compare each salary to the next lower", explanation: "See the gap between each salary level", sql: "SELECT name, salary,\n  LAG(salary)  OVER (ORDER BY salary DESC) AS next_higher,\n  LEAD(salary) OVER (ORDER BY salary DESC) AS next_lower\nFROM employees\nORDER BY salary DESC;" },
@@ -1475,10 +1341,8 @@ Calculating change over time, comparing sequential records, finding gaps between
     slug: "window-functions/running-totals",
     moduleSlug: "window-functions", lessonSlug: "running-totals",
     title: "Running Totals and Moving Averages", badge: "challenge", database: "company",
-    theory: { content: `## Mental Model
-Running totals accumulate as you go through rows. Each row shows the total up to and including that row. You get this by adding ORDER BY inside the OVER clause; without ORDER BY, you get the grand total repeated on every row.
+    theory: { content: `Running totals accumulate as you go through rows. Each row shows the total up to and including that row. You get this by adding ORDER BY inside the OVER clause; without ORDER BY, you get the grand total repeated on every row.
 
-## Syntax
 \`\`\`sql
 SUM(salary)  OVER (ORDER BY hire_date) AS running_payroll
 AVG(salary)  OVER (ORDER BY hire_date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS moving_avg_3
@@ -1492,7 +1356,6 @@ OVER (ORDER BY col ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)  -- 3-row moving wi
 OVER (ORDER BY col ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)  -- explicit running total
 \`\`\`
 
-## When To Use This
 Running totals for payroll/revenue, moving averages for trends, cumulative counts.` },
     examples: [
       { title: "Running payroll as employees were hired", explanation: "Cumulative SUM ordered by hire date", sql: "SELECT name, hire_date, salary,\n  SUM(salary) OVER (ORDER BY hire_date) AS running_payroll,\n  COUNT(*)    OVER (ORDER BY hire_date) AS running_headcount\nFROM employees\nORDER BY hire_date;" },
@@ -1510,10 +1373,8 @@ Running totals for payroll/revenue, moving averages for trends, cumulative count
     slug: "window-functions/first-last-value",
     moduleSlug: "window-functions", lessonSlug: "first-last-value",
     title: "FIRST_VALUE and LAST_VALUE", badge: "challenge", database: "company",
-    theory: { content: `## Mental Model
-FIRST_VALUE returns the value from the first row of the window. LAST_VALUE returns the value from the last row. Useful for comparing every row against the best/worst/first/last in its group.
+    theory: { content: `FIRST_VALUE returns the value from the first row of the window. LAST_VALUE returns the value from the last row. Useful for comparing every row against the best/worst/first/last in its group.
 
-## Syntax
 \`\`\`sql
 FIRST_VALUE(salary) OVER (PARTITION BY department ORDER BY salary DESC) AS dept_max_salary
 LAST_VALUE(salary)  OVER (PARTITION BY department ORDER BY salary DESC
@@ -1528,7 +1389,6 @@ By default, the frame ends at the current row, so LAST_VALUE only sees rows up t
 NTH_VALUE(salary, 2) OVER (PARTITION BY department ORDER BY salary DESC)  -- 2nd highest per dept
 \`\`\`
 
-## When To Use This
 Showing the best/worst alongside every row, "what was the first hire in this department?" type queries.` },
     examples: [
       { title: "Each employee vs dept max salary", explanation: "FIRST_VALUE gets the highest (since ordered DESC)", sql: "SELECT name, department, salary,\n  FIRST_VALUE(salary) OVER (PARTITION BY department ORDER BY salary DESC) AS dept_max,\n  FIRST_VALUE(name)   OVER (PARTITION BY department ORDER BY salary DESC) AS top_earner\nFROM employees\nORDER BY department, salary DESC;" },
@@ -1550,10 +1410,8 @@ Showing the best/worst alongside every row, "what was the first hire in this dep
     title: "Views", badge: "practice", database: "company",
     theory: { content: `> 🎯 **Why This Matters:** Database objects (views, indexes, procedures, triggers, UDFs) are how a query stops being something one person ran once and becomes something the whole org depends on. This module is how SQL goes from script to system.
 
-## Mental Model
 A view is a saved query with a name. You create it once, then query it like a table. It doesn't store data; it runs the query every time you SELECT from it. Think of it as a shortcut or a named lens on your data.
 
-## Syntax
 \`\`\`sql
 -- Create
 CREATE VIEW eng_employees AS
@@ -1573,7 +1431,6 @@ DROP VIEW IF EXISTS eng_employees;
 - Hide complexity from other users (they just see a clean table-like interface)
 - Security: expose only certain columns to certain users
 
-## When To Use This
 Complex queries you'll reuse, sharing a consistent "report" definition, simplifying multi-table joins for other queries.` },
     examples: [
       { title: "Create a high-earners view", explanation: "Define once, query many times", sql: "CREATE VIEW high_earners AS\nSELECT name, department, salary\nFROM employees\nWHERE salary > 90000;\n\nSELECT * FROM high_earners ORDER BY salary DESC;" },
@@ -1591,10 +1448,8 @@ Complex queries you'll reuse, sharing a consistent "report" definition, simplify
     slug: "database-objects/indexes",
     moduleSlug: "database-objects", lessonSlug: "indexes",
     title: "Indexes", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-An index is like the index at the back of a book. Without it, SQL scans every row to find what you're looking for (table scan). With an index on the right column, it jumps directly to matching rows. Faster reads, slightly slower writes and more storage.
+    theory: { content: `An index is like the index at the back of a book. Without it, SQL scans every row to find what you're looking for (table scan). With an index on the right column, it jumps directly to matching rows. Faster reads, slightly slower writes and more storage.
 
-## Syntax
 \`\`\`sql
 -- Create an index
 CREATE INDEX idx_emp_dept ON employees(department);
@@ -1637,8 +1492,7 @@ DROP INDEX IF EXISTS idx_emp_dept;
     slug: "database-objects/stored-procedures",
     moduleSlug: "database-objects", lessonSlug: "stored-procedures",
     title: "Stored Procedures (T-SQL Concept)", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-A stored procedure is a named, reusable block of SQL code stored in the database. You call it by name with parameters instead of rewriting the same query. Think of it like a function in programming; define once, call many times.
+    theory: { content: `A stored procedure is a named, reusable block of SQL code stored in the database. You call it by name with parameters instead of rewriting the same query. Think of it like a function in programming; define once, call many times.
 
 ## T-SQL Syntax (SQL Server / WCTC class)
 \`\`\`sql
@@ -1680,8 +1534,7 @@ SQLite doesn't support stored procedures. In class you'll use T-SQL on SQL Serve
     slug: "database-objects/triggers",
     moduleSlug: "database-objects", lessonSlug: "triggers",
     title: "Triggers", badge: "practice", database: "company",
-    theory: { content: `## Mental Model
-A trigger is a SQL statement that runs automatically when a specific event happens on a table; an INSERT, UPDATE, or DELETE. You don't call it; the database fires it for you. Used for audit trails, enforcing rules, and cascading updates.
+    theory: { content: `A trigger is a SQL statement that runs automatically when a specific event happens on a table; an INSERT, UPDATE, or DELETE. You don't call it; the database fires it for you. Used for audit trails, enforcing rules, and cascading updates.
 
 ## Syntax (SQLite)
 \`\`\`sql
@@ -1698,7 +1551,6 @@ END;
 - \`NEW.column\`; the new value (available in INSERT and UPDATE)
 - \`OLD.column\`; the old value (available in UPDATE and DELETE)
 
-## When To Use This
 Audit logs (track every change), enforcing business rules the app can't enforce, automatic timestamp updates.` },
     examples: [
       { title: "Create an audit log table and trigger", explanation: "Every INSERT into employees creates an audit record", sql: "CREATE TABLE IF NOT EXISTS emp_audit (\n  id INTEGER PRIMARY KEY AUTOINCREMENT,\n  emp_name TEXT,\n  action TEXT,\n  changed_at TEXT\n);\n\nCREATE TRIGGER IF NOT EXISTS trg_emp_insert\nAFTER INSERT ON employees\nFOR EACH ROW\nBEGIN\n  INSERT INTO emp_audit (emp_name, action, changed_at)\n  VALUES (NEW.name, 'INSERT', datetime('now'));\nEND;\n\n-- Test it\nINSERT INTO employees (id, name, department, salary, hire_date)\nVALUES (21, 'Test Employee', 'Engineering', 80000, '2026-01-01');\n\nSELECT * FROM emp_audit;" }
@@ -1715,8 +1567,7 @@ Audit logs (track every change), enforcing business rules the app can't enforce,
     slug: "database-objects/user-defined-functions",
     moduleSlug: "database-objects", lessonSlug: "user-defined-functions",
     title: "User-Defined Functions", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
-User-defined functions (UDFs) let you write custom functions and use them just like built-in SQL functions (UPPER, ROUND, etc.). In T-SQL, you write them in SQL. In application code, you can also register functions with the database driver.
+    theory: { content: `User-defined functions (UDFs) let you write custom functions and use them just like built-in SQL functions (UPPER, ROUND, etc.). In T-SQL, you write them in SQL. In application code, you can also register functions with the database driver.
 
 ## T-SQL Scalar Function
 \`\`\`sql
@@ -1738,7 +1589,6 @@ SELECT name, dbo.GetSalaryTier(salary) AS tier FROM employees;
 ## SQLite Alternative
 SQLite supports UDFs registered via application code, but not CREATE FUNCTION in SQL. Use CASE expressions or CTEs to simulate reusable logic in pure SQL.
 
-## When To Use This
 Complex logic you'd repeat in many queries, calculations that need to stay consistent, business rule encoding.` },
     examples: [
       { title: "Simulating a UDF with CASE", explanation: "The CASE below is what a GetSalaryTier() UDF would do", sql: "-- This is what a GetSalaryTier UDF would return:\nSELECT name, salary,\n  CASE\n    WHEN salary >= 100000 THEN 'Senior'\n    WHEN salary >= 75000  THEN 'Mid'\n    ELSE 'Junior'\n  END AS tier\nFROM employees;" },
@@ -1760,10 +1610,8 @@ Complex logic you'd repeat in many queries, calculations that need to stay consi
     title: "Recursive CTEs", badge: "challenge", database: "company",
     theory: { content: `> 🎯 **Why This Matters:** Module 9 is the patterns that come up in real jobs but rarely in courses: recursion, pivot, query optimization, the deduplication and top-N tricks. If you only know module 9 stuff you're already shippable.
 
-## Mental Model
 A recursive CTE calls itself; like a loop. It has an anchor (the starting point) and a recursive member (the step that builds on the previous result). It keeps going until no new rows are produced.
 
-## Syntax
 \`\`\`sql
 WITH RECURSIVE org_chart AS (
   -- Anchor: start with the CEO (no manager)
@@ -1781,13 +1629,11 @@ WITH RECURSIVE org_chart AS (
 SELECT * FROM org_chart ORDER BY level, name;
 \`\`\`
 
-## How It Works
 1. Anchor query runs once, gives the starting rows
 2. Recursive member joins the CTE to itself, adding the next "level"
 3. Repeats until no new rows can be added
 4. All results are combined with UNION ALL
 
-## When To Use This
 Org charts, category trees, finding all ancestors/descendants, pathfinding.` },
     examples: [
       { title: "Build an org chart", explanation: "Starting from top-level employees, walk down the hierarchy", sql: "WITH RECURSIVE org AS (\n  SELECT id, name, manager_id, 0 AS depth,\n         name AS path\n  FROM employees\n  WHERE manager_id IS NULL\n\n  UNION ALL\n\n  SELECT e.id, e.name, e.manager_id, org.depth + 1,\n         org.path || ' > ' || e.name\n  FROM employees e\n  JOIN org ON e.manager_id = org.id\n)\nSELECT name, depth, path FROM org ORDER BY path;" },
@@ -1805,8 +1651,7 @@ Org charts, category trees, finding all ancestors/descendants, pathfinding.` },
     slug: "advanced/pivot",
     moduleSlug: "advanced", lessonSlug: "pivot",
     title: "PIVOT · Rotating Data", badge: "challenge", database: "company",
-    theory: { content: `## Mental Model
-PIVOT rotates rows into columns. Instead of one row per department with a "value" column, you get one row total with one column per department. Like transposing data from tall/narrow to wide/short.
+    theory: { content: `PIVOT rotates rows into columns. Instead of one row per department with a "value" column, you get one row total with one column per department. Like transposing data from tall/narrow to wide/short.
 
 ## T-SQL PIVOT (SQL Server)
 \`\`\`sql
@@ -1825,7 +1670,6 @@ SELECT
 FROM employees;
 \`\`\`
 
-## When To Use This
 Cross-tab reports, comparing categories side-by-side, turning category values into column headers.` },
     examples: [
       { title: "Pivot salary by department", explanation: "One column per department, CASE selects the right rows", sql: "SELECT\n  AVG(CASE WHEN department = 'Engineering' THEN salary END) AS engineering,\n  AVG(CASE WHEN department = 'Sales' THEN salary END) AS sales,\n  AVG(CASE WHEN department = 'Marketing' THEN salary END) AS marketing,\n  AVG(CASE WHEN department = 'Finance' THEN salary END) AS finance\nFROM employees;" },
@@ -1843,8 +1687,7 @@ Cross-tab reports, comparing categories side-by-side, turning category values in
     slug: "advanced/query-optimization",
     moduleSlug: "advanced", lessonSlug: "query-optimization",
     title: "Query Optimization", badge: "challenge", database: "company",
-    theory: { content: `## Mental Model
-A slow query is usually doing unnecessary work; scanning millions of rows when an index would skip to the right ones, or returning huge amounts of data when you only need 10 rows. EXPLAIN QUERY PLAN shows you exactly what the database is doing.
+    theory: { content: `A slow query is usually doing unnecessary work; scanning millions of rows when an index would skip to the right ones, or returning huge amounts of data when you only need 10 rows. EXPLAIN QUERY PLAN shows you exactly what the database is doing.
 
 ## EXPLAIN QUERY PLAN
 \`\`\`sql
@@ -1892,8 +1735,7 @@ Small tables (under ~10k rows) don't need optimization. When tables are large an
     slug: "advanced/real-world-patterns",
     moduleSlug: "advanced", lessonSlug: "real-world-patterns",
     title: "Real-World SQL Patterns", badge: "challenge", database: "company",
-    theory: { content: `## Mental Model
-These are the patterns you'll reach for again and again in real jobs. Not syntax exercises; actual recurring problems with standard SQL solutions.
+    theory: { content: `These are the patterns you'll reach for again and again in real jobs. Not syntax exercises; actual recurring problems with standard SQL solutions.
 
 ## Pattern 1: Deduplication (keep latest record)
 \`\`\`sql
@@ -1953,8 +1795,7 @@ WHERE row_num <= 3  -- filter on ROW_NUMBER() OVER (PARTITION BY group ORDER BY 
     slug: "school-advanced/stored-procedures",
     moduleSlug: "school-advanced", lessonSlug: "stored-procedures",
     title: "Stored Procedures", badge: "concept", database: "company",
-    theory: { content: `## What's a Stored Procedure?
-
+    theory: { content: `
 Think of a stored procedure as a saved script you can run over and over. Instead of typing out the same query every time, you save it with a name and just call that name. It's like a function in programming but for SQL.
 
 Stored procedures keep business logic in the database instead of scattered across application code. The app calls one line and the database handles the work.
@@ -2018,8 +1859,7 @@ SQLite doesn't have stored procedures, so the challenges here use CTEs to simula
     slug: "school-advanced/temp-tables",
     moduleSlug: "school-advanced", lessonSlug: "temp-tables",
     title: "Temp Tables", badge: "concept", database: "company",
-    theory: { content: `## What Are Temp Tables?
-
+    theory: { content: `
 Temp tables are temporary storage that only exists for your session. Super useful when you need to stage data, break a complex query into steps, or store intermediate results.
 
 I use these all the time when a query gets too complicated. Break it into pieces, dump results into a temp table, then query that.
@@ -2086,8 +1926,7 @@ SELECT * FROM employees WHERE department = 'Engineering';
     slug: "school-advanced/while-loops",
     moduleSlug: "school-advanced", lessonSlug: "while-loops",
     title: "WHILE Loops and Iteration", badge: "practice", database: "company",
-    theory: { content: `## Iteration in SQL
-
+    theory: { content: `
 SQL is set-based, meaning it processes whole sets of rows at once. But sometimes you need row-by-row processing. That's where WHILE loops come in.
 
 Fair warning: loops in SQL are usually slower than set-based operations. Try to solve problems with regular queries first. Only use loops when you really need them.
@@ -2153,8 +1992,7 @@ SQLite doesn't have WHILE loops or cursors in SQL. You'd handle iteration in you
     slug: "school-advanced/user-defined-functions",
     moduleSlug: "school-advanced", lessonSlug: "user-defined-functions",
     title: "User-Defined Functions", badge: "concept", database: "company",
-    theory: { content: `## What Are UDFs?
-
+    theory: { content: `
 User-defined functions let you write custom functions that work just like built-in ones (UPPER, ROUND, etc.). Write the logic once, call it anywhere in your queries.
 
 There are two main types in T-SQL:
@@ -2224,8 +2062,7 @@ SQLite doesn't support CREATE FUNCTION in SQL. You'd register functions through 
     slug: "school-advanced/triggers-advanced",
     moduleSlug: "school-advanced", lessonSlug: "triggers-advanced",
     title: "Triggers · INSERT, UPDATE, DELETE", badge: "practice", database: "company",
-    theory: { content: `## Triggers Recap
-
+    theory: { content: `
 A trigger fires automatically when something happens to a table. You don't call it, the database runs it for you. Super useful for audit trails and enforcing rules.
 
 Triggers are kind of confusing at first because you have to think about when things run. But once you get it, they're powerful.
@@ -2294,8 +2131,7 @@ END;
     slug: "school-advanced/dynamic-sql",
     moduleSlug: "school-advanced", lessonSlug: "dynamic-sql",
     title: "Dynamic SQL", badge: "challenge", database: "company",
-    theory: { content: `## What Is Dynamic SQL?
-
+    theory: { content: `
 Dynamic SQL is SQL that builds itself at runtime. Instead of a fixed query, you construct the query string using variables, then execute it.
 
 Powerful when you need it, dangerous if you don't parameterize. SQL injection is the main risk.
@@ -2360,8 +2196,7 @@ SQLite doesn't have EXEC or sp_executesql. Dynamic SQL is handled in application
     slug: "school-advanced/xml-sql-server",
     moduleSlug: "school-advanced", lessonSlug: "xml-sql-server",
     title: "XML in SQL Server", badge: "practice", database: "company",
-    theory: { content: `## XML in SQL Server
-
+    theory: { content: `
 SQL Server can output query results as XML and parse XML data. This was huge before JSON became popular. You'll still see it in older systems and SOAP web services.
 
 Not gonna lie, XML syntax is kind of verbose compared to JSON, but it's still used a lot in enterprise systems.
@@ -2430,8 +2265,7 @@ SQLite doesn't have native XML support. The challenges here use string concatena
     slug: "school-advanced/json-sql-server",
     moduleSlug: "school-advanced", lessonSlug: "json-sql-server",
     title: "JSON in SQL Server", badge: "practice", database: "company",
-    theory: { content: `## JSON in SQL Server
-
+    theory: { content: `
 SQL Server 2016+ supports JSON parsing and serialization, which is what most modern APIs use.
 
 ## FOR JSON: Query Results to JSON
@@ -2500,8 +2334,7 @@ SQLite has json functions too! They work slightly differently but the concept is
     slug: "school-advanced/indexes-deep-dive",
     moduleSlug: "school-advanced", lessonSlug: "indexes-deep-dive",
     title: "Indexes Deep Dive", badge: "challenge", database: "company",
-    theory: { content: `## Index Types in SQL Server
-
+    theory: { content: `
 There are two main types and understanding the difference is important:
 
 ### Clustered Index
@@ -2575,8 +2408,7 @@ This covers queries that filter on dept but need name/salary too.` },
     slug: "school-advanced/temporal-tables",
     moduleSlug: "school-advanced", lessonSlug: "temporal-tables",
     title: "Tracking Changes · Temporal Tables", badge: "challenge", database: "company",
-    theory: { content: `## What Are Temporal Tables?
-
+    theory: { content: `
 Temporal tables (system-versioned tables in SQL Server 2016+) automatically track the full history of every change. Want to know what someone's salary was 6 months ago? Temporal tables got you.
 
 It's like having automatic version control for your data. Super useful for auditing and debugging.
