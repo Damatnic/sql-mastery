@@ -109,7 +109,7 @@ FROM table
 WHERE condition;
 \`\`\`
 
-## Operators
+## operators
 | Operator | Meaning |
 |----------|---------|
 | = | equals |
@@ -248,7 +248,7 @@ SELECT COUNT(*), SUM(salary), AVG(salary), MIN(salary), MAX(salary)
 FROM employees;
 \`\`\`
 
-## The Functions
+## the functions
 | Function | What it does |
 |----------|-------------|
 | COUNT(*) | Count all rows |
@@ -288,14 +288,14 @@ FROM table
 GROUP BY grouping_column;
 \`\`\`
 
-## The Golden Rule
+## the golden rule
 **Every column in SELECT must either be in GROUP BY or be inside an aggregate function.** If you GROUP BY department, you can SELECT department and AVG(salary), but not name, because there are multiple names per department and SQL doesn't know which one to show.
 
 1. SQL splits the table into groups by the GROUP BY column
 2. For each group, it runs the aggregate functions
 3. You get one output row per unique group value
 
-## The slow way vs the fast way
+## the slow way vs the fast way
 **Slow:** group everyone first, then throw most of them away with HAVING. SQL has to aggregate every department before the filter runs.
 \`\`\`sql
 SELECT department, AVG(salary) AS avg_sal
@@ -316,7 +316,7 @@ Why: HAVING runs after GROUP BY; WHERE runs before. Use HAVING only for filters 
 
 > ⚠️ **Common Mistake:** putting a non-aggregated column in SELECT that isn't in GROUP BY. SQLite silently picks one row per group; SQL Server errors out. Either add the column to GROUP BY or wrap it in an aggregate like MAX or MIN.
 
-## See also
+## see also
 The exact same operation in pandas is \`DataFrame.groupby(...).agg(...)\`. Same mental model, different syntax: walk through it on damato-python at [/learn/grouping-combining/groupby-basics](https://damato-python.vercel.app/learn/grouping-combining/groupby-basics).` },
     examples: [
       { title: "One number per group: classic GROUP BY", explanation: "The classic GROUP BY; one row per department", sql: "SELECT department, AVG(salary) AS avg_salary\nFROM employees\nGROUP BY department;" },
@@ -381,7 +381,7 @@ WHERE column IS NOT NULL
 COALESCE(column, default_value)
 \`\`\`
 
-## Common Mistake
+## common mistake
 \`WHERE manager_id = NULL\` will never match anything, even if manager_id is null. You must write \`WHERE manager_id IS NULL\`.
 
 ## COALESCE
@@ -423,7 +423,7 @@ FROM employees;
 - ELSE is the fallback if nothing matches (returns NULL if you omit it)
 - The whole CASE expression acts like a column; give it an alias with AS
 
-## Simple CASE (matching one value)
+## simple CASE (matching one value)
 \`\`\`sql
 CASE department
   WHEN 'Engineering' THEN 'Tech'
@@ -432,7 +432,7 @@ CASE department
 END
 \`\`\`
 
-## See also
+## see also
 In Python/NumPy this is \`np.where(condition, value_if_true, value_if_false)\` for two branches, \`np.select\` for many. Vectorized, no row loop. Worked example on damato-python at [/learn/numpy-foundations/vectorization-vs-loops](https://damato-python.vercel.app/learn/numpy-foundations/vectorization-vs-loops).` },
     examples: [
       { title: "Bucketing continuous values into categories", explanation: "Bucket numeric values into categories", sql: "SELECT name, salary,\n  CASE\n    WHEN salary >= 100000 THEN 'Senior'\n    WHEN salary >= 75000  THEN 'Mid-Level'\n    ELSE 'Junior'\n  END AS tier\nFROM employees;" },
@@ -468,7 +468,7 @@ JOIN departments d ON e.department = d.name;
 - Use table aliases (e, d) to keep queries readable and avoid ambiguity
 - When both tables have a column with the same name, prefix with the alias: \`e.name\` vs \`d.name\`
 
-## The slow way vs the fast way
+## the slow way vs the fast way
 **Slow / risky:** the old comma-join syntax. Forget the WHERE and you silently produce a cartesian product.
 \`\`\`sql
 SELECT e.name, d.location
@@ -485,7 +485,7 @@ JOIN departments d ON d.name = e.department;
 
 Why: same query plan in modern engines, but the explicit form is reviewable. The danger of the comma form isn't slowness, it's the night you forget the WHERE on a 10-million-row table and produce 10^14 rows.
 
-## See also
+## see also
 The pandas analog is \`pd.merge\` (or \`df.merge\`). Same JOIN-on-keys idea: see [/learn/grouping-combining/merge-join](https://damato-python.vercel.app/learn/grouping-combining/merge-join) on damato-python for the DataFrame version.` },
     examples: [
       { title: "Pulling context from a related table", explanation: "Pull location from departments into the employee results", sql: "SELECT e.name, e.department, d.location\nFROM employees e\nJOIN departments d ON e.department = d.name;" },
@@ -517,10 +517,10 @@ LEFT JOIN projects p ON ep.project_id = p.id;
 - INNER JOIN: only rows with matches in both tables
 - LEFT JOIN: all rows from left table, NULLs if no match on right
 
-## Finding Missing Relationships
+## finding missing relationships
 LEFT JOIN + WHERE right_table.id IS NULL finds rows in the left table with NO match on the right. Classic pattern for "find employees not assigned to any project."
 
-## The slow way vs the fast way
+## the slow way vs the fast way
 **Slow / wrong:** \`NOT IN\` with a subquery that might return NULL. If a single row in the subquery is NULL, the entire result is empty. Silent data loss.
 \`\`\`sql
 -- returns ZERO rows if employee_projects has any NULL employee_id
@@ -622,7 +622,7 @@ Hierarchies (employees/managers, categories/subcategories), comparing rows in th
     title: "FULL OUTER JOIN", badge: "concept", database: "company",
     theory: { content: `FULL OUTER JOIN keeps everything from both tables; matched and unmatched. Rows with no match on either side get NULLs filled in. It's the union of LEFT JOIN and RIGHT JOIN.
 
-## Syntax (SQLite workaround)
+## syntax (SQLite workaround)
 SQLite doesn't support FULL OUTER JOIN directly. Simulate it with UNION:
 \`\`\`sql
 SELECT e.name, d.name AS dept_name
@@ -674,12 +674,12 @@ WHERE salary > (SELECT AVG(salary) FROM employees);
 - The outer query uses that value just like a literal number or string
 - Scalar subqueries return one value; list subqueries (used with IN) return multiple values
 
-## With IN
+## with IN
 \`\`\`sql
 WHERE department IN (SELECT name FROM departments WHERE budget > 1000000)
 \`\`\`
 
-## The slow way vs the fast way
+## the slow way vs the fast way
 **Slow:** a correlated subquery that recomputes the same aggregate once per outer row. With 10,000 employees and 100 departments, this runs the SELECT AVG... 10,000 times.
 \`\`\`sql
 SELECT e.name, e.salary
@@ -773,7 +773,7 @@ WHERE salary > (
 - It compares each employee against their own department's average, not the company average
 - The outer alias (e) is accessible inside the subquery
 
-## The slow way vs the fast way
+## the slow way vs the fast way
 **Slow:** \`(SELECT COUNT(*) ...) = 0\` to test "does this row have any match." Counts every match before comparing.
 \`\`\`sql
 SELECT e.name
@@ -825,7 +825,7 @@ JOIN dept_stats d ON e.department = d.department
 WHERE e.salary > d.avg_salary;
 \`\`\`
 
-## Multiple CTEs
+## multiple CTEs
 \`\`\`sql
 WITH
   cte_one AS (SELECT ...),
@@ -833,7 +833,7 @@ WITH
 SELECT ... FROM cte_one JOIN cte_two ON ...;
 \`\`\`
 
-## CTE vs Subquery in FROM
+## CTE vs subquery in FROM
 They produce the same result. CTEs are preferred because:
 - Named, so you can reference them multiple times
 - Read top-to-bottom; easier to follow the logic
@@ -875,10 +875,10 @@ VALUES
   ('James Park', 'Sales', 70000, '2026-02-15');
 \`\`\`
 
-## Best Practice
+## best practice
 Always list the column names explicitly. Relying on column order works until someone adds a column and breaks your insert.
 
-## Insert from a SELECT
+## INSERT from a SELECT
 \`\`\`sql
 INSERT INTO archive_employees
 SELECT * FROM employees WHERE hire_date < '2019-01-01';
@@ -910,10 +910,10 @@ SET salary = 95000,
 WHERE id = 5;
 \`\`\`
 
-## The Golden Rule
+## the golden rule
 **Always write the WHERE clause first before the SET.** Test it with a SELECT to confirm which rows you'll hit before running the UPDATE.
 
-## Useful patterns
+## useful patterns
 \`\`\`sql
 -- Increase by percentage
 UPDATE employees SET salary = salary * 1.1 WHERE department = 'Engineering';
@@ -948,12 +948,12 @@ DELETE FROM employees
 WHERE id = 15;
 \`\`\`
 
-## The Rules
+## the rules
 1. **Always use WHERE**: DELETE FROM employees with no WHERE deletes every row
 2. **Test with SELECT first**: run the same WHERE condition as a SELECT to confirm what you'll delete
 3. **Consider foreign keys**: deleting a department that employees reference can cause errors
 
-## Soft Delete Pattern
+## soft DELETE pattern
 Instead of actually deleting, many systems add an is_deleted or status column and UPDATE instead of DELETE. Safer, recoverable.
 
 > ⚠️ **Common Mistake:** DELETE without WHERE wipes the entire table. Run a SELECT with your intended WHERE first to confirm the row count, then convert to DELETE. There is no undo in production.` },
@@ -986,7 +986,7 @@ If something goes wrong:
 ROLLBACK;  -- undo everything since BEGIN
 \`\`\`
 
-## ACID Properties (the theory)
+## ACID properties
 - **Atomic**: all or nothing
 - **Consistent**: data stays valid
 - **Isolated**: concurrent transactions don't interfere
@@ -1015,7 +1015,7 @@ Any time you have two or more related changes that must succeed or fail together
 
 String functions let you manipulate text inside a query; clean it, transform it, extract pieces from it. Essential for messy real-world data.
 
-## Common Functions (SQLite)
+## common functions (SQLite)
 | Function | What it does | Example |
 |----------|-------------|---------|
 | LENGTH(s) | Character count | LENGTH('hello') → 5 |
@@ -1047,7 +1047,7 @@ Cleaning inconsistent data, formatting output, building display values, searchin
     title: "Date Functions", badge: "practice", database: "company",
     theory: { content: `Date functions let you calculate time differences, extract parts of dates, and format dates. In SQLite, dates are stored as text (YYYY-MM-DD) but date functions treat them as actual dates.
 
-## Key SQLite Date Functions
+## key SQLite date functions
 \`\`\`sql
 date('now')                    -- today's date: '2026-03-29'
 date('now', '-1 year')         -- one year ago
@@ -1060,7 +1060,7 @@ strftime('%Y-%m', hire_date)   -- year-month: '2020-01'
 julianday('now') - julianday(hire_date)  -- days between dates
 \`\`\`
 
-## Calculating Years of Service
+## calculating years of service
 \`\`\`sql
 CAST((julianday('now') - julianday(hire_date)) / 365.25 AS INTEGER)
 \`\`\`
@@ -1085,7 +1085,7 @@ Calculating tenure, finding records in a date range, grouping by month/year, agi
     title: "Math Functions", badge: "practice", database: "company",
     theory: { content: `Math functions handle numeric calculations. Most are straightforward; the ones worth knowing are ROUND (required for money), ABS (absolute value), and integer division.
 
-## Common Functions
+## common functions
 \`\`\`sql
 ROUND(3.14159, 2)   → 3.14   -- round to N decimal places
 ABS(-42)            → 42     -- absolute value
@@ -1096,7 +1096,7 @@ MAX(a, b)           -- greater of two values (not aggregate here)
 MIN(a, b)           -- lesser of two values
 \`\`\`
 
-## Watch Out
+## watch out
 Integer ÷ Integer = Integer in most databases. \`SELECT 1/2\` returns 0, not 0.5. Use \`1.0/2\` or \`CAST(1 AS REAL)/2\`.
 
 Financial calculations (rounding), percentages, ranking math, modulo for even/odd checks.` },
@@ -1131,7 +1131,7 @@ SELECT typeof(salary) FROM employees LIMIT 1;
 -- Returns: 'integer', 'real', 'text', 'null', 'blob'
 \`\`\`
 
-## Common Uses
+## common uses
 \`\`\`sql
 -- Fix integer division
 CAST(count AS REAL) / total
@@ -1211,14 +1211,14 @@ Cleaning NULL values in output, safe division, compact conditional columns.` },
 
 Window functions add a new column to every row without collapsing the table. GROUP BY loses individual rows. Window functions keep them all and add computed values alongside.
 
-## The Three Ranking Functions
+## the three ranking functions
 \`\`\`sql
 ROW_NUMBER() OVER (ORDER BY salary DESC)  -- 1,2,3,4,5... no ties
 RANK()       OVER (ORDER BY salary DESC)  -- 1,2,2,4,5... ties get same rank, gap after
 DENSE_RANK() OVER (ORDER BY salary DESC)  -- 1,2,2,3,4... ties get same rank, no gap
 \`\`\`
 
-## Picking the right one
+## picking the RIGHT one
 - **ROW_NUMBER**: when you don't care about ties; you want exactly N rows back. Top-3 paginators, deduplication.
 - **RANK**: when ties matter and the gap is informative. "I'm tied for 2nd, the next person is 4th."
 - **DENSE_RANK**: when ties matter but you want consecutive ranks. Bucketing, tier assignment, "show the top 3 distinct salaries."
@@ -1231,7 +1231,7 @@ SELECT name, salary,
 FROM employees;
 \`\`\`
 
-## The slow way vs the fast way
+## the slow way vs the fast way
 **Slow:** the classic pre-window-function trick of "count how many rows beat me" with a self-join. O(n²) within each group.
 \`\`\`sql
 SELECT e1.name, e1.department, e1.salary
@@ -1256,7 +1256,7 @@ WHERE rn <= 3;
 
 Why: window functions exist specifically so you don't have to self-join. \`EXPLAIN QUERY PLAN\` on the self-join shows a SCAN of employees inside another SCAN; the window-function form shows a single SCAN plus a sort.
 
-## See also
+## see also
 The pandas equivalent for ranking inside a group is \`df.groupby(...).rank()\` or \`groupby + transform\`. For running totals it's \`Series.rolling\` or \`.cumsum\`. Cross-reference on damato-python at [/learn/functions-apply/custom-aggregations](https://damato-python.vercel.app/learn/functions-apply/custom-aggregations).` },
     examples: [
       { title: "Rank all employees by salary", explanation: "Three ranking functions side-by-side to see the difference", sql: "SELECT name, salary,\n  ROW_NUMBER() OVER (ORDER BY salary DESC) AS row_num,\n  RANK()       OVER (ORDER BY salary DESC) AS rnk,\n  DENSE_RANK() OVER (ORDER BY salary DESC) AS dense_rnk\nFROM employees;" },
@@ -1312,7 +1312,7 @@ LAG(column, n, default)  OVER (ORDER BY ...)  -- n rows back (default n=1)
 LEAD(column, n, default) OVER (ORDER BY ...)  -- n rows forward
 \`\`\`
 
-## Examples
+## examples
 \`\`\`sql
 -- Compare to previous employee's salary
 LAG(salary) OVER (ORDER BY hire_date) AS prev_salary
@@ -1349,7 +1349,7 @@ AVG(salary)  OVER (ORDER BY hire_date ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) 
 COUNT(*)     OVER (ORDER BY hire_date) AS running_headcount
 \`\`\`
 
-## Frame Clauses
+## frame clauses
 \`\`\`sql
 OVER (ORDER BY col)                                   -- running total (default: all preceding rows)
 OVER (ORDER BY col ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)  -- 3-row moving window
@@ -1381,7 +1381,7 @@ LAST_VALUE(salary)  OVER (PARTITION BY department ORDER BY salary DESC
                           ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) AS dept_min_salary
 \`\`\`
 
-## Important: LAST_VALUE Frame
+## important: LAST_VALUE frame
 By default, the frame ends at the current row, so LAST_VALUE only sees rows up to now. Use \`ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING\` to see all rows in the partition.
 
 ## NTH_VALUE
@@ -1426,7 +1426,7 @@ SELECT * FROM eng_employees WHERE salary > 90000;
 DROP VIEW IF EXISTS eng_employees;
 \`\`\`
 
-## Why Use Views?
+## why use views?
 - Simplify complex queries you run repeatedly
 - Hide complexity from other users (they just see a clean table-like interface)
 - Security: expose only certain columns to certain users
@@ -1467,12 +1467,12 @@ SELECT * FROM sqlite_master WHERE type = 'index';
 DROP INDEX IF EXISTS idx_emp_dept;
 \`\`\`
 
-## When To Add an Index
+## when to add an index
 - Columns frequently used in WHERE, JOIN ON, or ORDER BY
 - Foreign key columns (department in employees)
 - Columns used in GROUP BY on large tables
 
-## When NOT To
+## when NOT to
 - Small tables (scan is fast enough)
 - Columns you rarely filter on
 - Tables with very frequent INSERT/UPDATE/DELETE` },
@@ -1494,7 +1494,7 @@ DROP INDEX IF EXISTS idx_emp_dept;
     title: "Stored Procedures (T-SQL Concept)", badge: "concept", database: "company",
     theory: { content: `A stored procedure is a named, reusable block of SQL code stored in the database. You call it by name with parameters instead of rewriting the same query. Think of it like a function in programming; define once, call many times.
 
-## T-SQL Syntax (SQL Server / WCTC class)
+## T-SQL syntax (SQL Server / WCTC class)
 \`\`\`sql
 CREATE PROCEDURE GetEmployeesByDept
   @Department NVARCHAR(50)
@@ -1510,13 +1510,13 @@ END;
 EXEC GetEmployeesByDept @Department = 'Engineering';
 \`\`\`
 
-## Why Use Stored Procedures?
+## why use stored procedures?
 - Reusable; call with different parameters
 - Secure; grant EXECUTE permission without exposing tables
 - Faster; compiled execution plan
 - Maintainable; change the proc, all callers benefit
 
-## SQLite Reality
+## SQLite reality
 SQLite doesn't support stored procedures. In class you'll use T-SQL on SQL Server. The challenge below uses a CTE to simulate parameterized queries in SQLite.` },
     examples: [
       { title: "T-SQL stored procedure example", explanation: "This is T-SQL syntax; runs on SQL Server, not SQLite", sql: "-- T-SQL (SQL Server syntax, for reference):\n-- CREATE PROCEDURE GetDeptSummary\n--   @Department NVARCHAR(50)\n-- AS BEGIN\n--   SELECT COUNT(*) as headcount, AVG(salary) as avg_salary\n--   FROM employees WHERE department = @Department\n-- END;\n\n-- SQLite equivalent using a query:\nSELECT COUNT(*) AS headcount, ROUND(AVG(salary), 0) AS avg_salary\nFROM employees\nWHERE department = 'Engineering';" },
@@ -1536,7 +1536,7 @@ SQLite doesn't support stored procedures. In class you'll use T-SQL on SQL Serve
     title: "Triggers", badge: "practice", database: "company",
     theory: { content: `A trigger is a SQL statement that runs automatically when a specific event happens on a table; an INSERT, UPDATE, or DELETE. You don't call it; the database fires it for you. Used for audit trails, enforcing rules, and cascading updates.
 
-## Syntax (SQLite)
+## syntax (SQLite)
 \`\`\`sql
 CREATE TRIGGER trigger_name
 AFTER INSERT ON employees     -- or BEFORE, or AFTER UPDATE/DELETE
@@ -1569,7 +1569,7 @@ Audit logs (track every change), enforcing business rules the app can't enforce,
     title: "User-Defined Functions", badge: "concept", database: "company",
     theory: { content: `User-defined functions (UDFs) let you write custom functions and use them just like built-in SQL functions (UPPER, ROUND, etc.). In T-SQL, you write them in SQL. In application code, you can also register functions with the database driver.
 
-## T-SQL Scalar Function
+## T-SQL scalar function
 \`\`\`sql
 -- SQL Server syntax:
 CREATE FUNCTION dbo.GetSalaryTier(@salary DECIMAL)
@@ -1586,7 +1586,7 @@ END;
 SELECT name, dbo.GetSalaryTier(salary) AS tier FROM employees;
 \`\`\`
 
-## SQLite Alternative
+## SQLite alternative
 SQLite supports UDFs registered via application code, but not CREATE FUNCTION in SQL. Use CASE expressions or CTEs to simulate reusable logic in pure SQL.
 
 Complex logic you'd repeat in many queries, calculations that need to stay consistent, business rule encoding.` },
@@ -1660,7 +1660,7 @@ FROM (SELECT department, salary FROM employees) AS source
 PIVOT (AVG(salary) FOR department IN ([Engineering],[Sales],[Marketing])) AS pvt;
 \`\`\`
 
-## SQLite Equivalent: CASE + GROUP BY
+## SQLite equivalent: CASE + GROUP BY
 SQLite doesn't have PIVOT. Use CASE inside aggregate functions:
 \`\`\`sql
 SELECT
@@ -1697,7 +1697,7 @@ SELECT name FROM employees WHERE department = 'Engineering';
 -- "SEARCH employees USING INDEX" = good
 \`\`\`
 
-## Common Optimization Tips
+## common optimization tips
 
 **1. Add indexes on WHERE columns**
 \`\`\`sql
@@ -1717,7 +1717,7 @@ HAVING filters after aggregation, WHERE filters before. Use WHERE whenever possi
 **5. Use EXISTS instead of IN for large subqueries**
 EXISTS stops as soon as it finds one match. IN evaluates the full list.
 
-## When To Care
+## when to care
 Small tables (under ~10k rows) don't need optimization. When tables are large and queries get slow, start here.` },
     examples: [
       { title: "Check query plan before and after index", explanation: "See how EXPLAIN QUERY PLAN changes", sql: "EXPLAIN QUERY PLAN\nSELECT name, salary FROM employees WHERE department = 'Engineering';\n\n-- Create an index\nCREATE INDEX IF NOT EXISTS idx_dept ON employees(department);\n\n-- Check again\nEXPLAIN QUERY PLAN\nSELECT name, salary FROM employees WHERE department = 'Engineering';" },
@@ -1737,7 +1737,7 @@ Small tables (under ~10k rows) don't need optimization. When tables are large an
     title: "Real-World SQL Patterns", badge: "challenge", database: "company",
     theory: { content: `These are the patterns you'll reach for again and again in real jobs. Not syntax exercises; actual recurring problems with standard SQL solutions.
 
-## Pattern 1: Deduplication (keep latest record)
+## pattern 1: deduplication (keep latest record)
 \`\`\`sql
 WITH ranked AS (
   SELECT *, ROW_NUMBER() OVER (PARTITION BY employee_id ORDER BY changed_at DESC) AS rn
@@ -1746,7 +1746,7 @@ WITH ranked AS (
 SELECT * FROM ranked WHERE rn = 1;
 \`\`\`
 
-## Pattern 2: Pagination (cursor-based)
+## pattern 2: pagination (cursor-based)
 \`\`\`sql
 -- Page 1
 SELECT * FROM employees ORDER BY id LIMIT 10;
@@ -1754,12 +1754,12 @@ SELECT * FROM employees ORDER BY id LIMIT 10;
 SELECT * FROM employees WHERE id > 10 ORDER BY id LIMIT 10;
 \`\`\`
 
-## Pattern 3: Running total
+## pattern 3: running total
 \`\`\`sql
 SUM(amount) OVER (ORDER BY date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)
 \`\`\`
 
-## Pattern 4: Find gaps in a sequence
+## pattern 4: find gaps IN a sequence
 \`\`\`sql
 SELECT id + 1 AS missing_from
 FROM employees e
@@ -1767,7 +1767,7 @@ WHERE NOT EXISTS (SELECT 1 FROM employees WHERE id = e.id + 1)
 AND id < (SELECT MAX(id) FROM employees);
 \`\`\`
 
-## Pattern 5: Top N per group
+## pattern 5: TOP n per GROUP
 \`\`\`sql
 WHERE row_num <= 3  -- filter on ROW_NUMBER() OVER (PARTITION BY group ORDER BY value DESC)
 \`\`\``,
@@ -1779,7 +1779,7 @@ WHERE row_num <= 3  -- filter on ROW_NUMBER() OVER (PARTITION BY group ORDER BY 
     challenges: [
       { id: "42-1", prompt: "Get the top 2 highest-paid employees from each department.", hint: "ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC), filter WHERE rn <= 2.", expectedColumns: ["name","department","salary"], validateFn: "return rows.length > 0;", solution: "SELECT name, department, salary\nFROM (\n  SELECT name, department, salary,\n    ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) AS rn\n  FROM employees\n) t\nWHERE rn <= 2\nORDER BY department, salary DESC;" },
       { id: "42-2", prompt: "Show a running total of employees hired over time (by hire date). Show each hire date and the cumulative headcount at that point.", hint: "COUNT(*) OVER (ORDER BY hire_date).", expectedColumns: ["hire_date","name","running_total"], validateFn: "return rows.length > 0 && rows[rows.length-1].running_total > 1;", solution: "SELECT hire_date, name,\n  COUNT(*) OVER (ORDER BY hire_date, id) AS running_total\nFROM employees\nORDER BY hire_date;" },
-      { id: "42-3", prompt: "Write a query that identifies employees who have no project assignment AND earn above the company average salary; these might be underutilized high performers.", hint: "LEFT JOIN employee_projects, WHERE ep.employee_id IS NULL AND salary > (SELECT AVG...).", expectedColumns: ["name","department","salary"], validateFn: "return rows.length >= 0;", solution: "SELECT e.name, e.department, e.salary\nFROM employees e\nLEFT JOIN employee_projects ep ON e.id = ep.employee_id\nWHERE ep.employee_id IS NULL\n  AND e.salary > (SELECT AVG(salary) FROM employees)\nORDER BY e.salary DESC;" },
+      { id: "42-3", prompt: "Write a query that identifies employees who have no project assignment AND earn above the company average salary; these might be high performers stuck on the bench.", hint: "LEFT JOIN employee_projects, WHERE ep.employee_id IS NULL AND salary > (SELECT AVG...).", expectedColumns: ["name","department","salary"], validateFn: "return rows.length >= 0;", solution: "SELECT e.name, e.department, e.salary\nFROM employees e\nLEFT JOIN employee_projects ep ON e.id = ep.employee_id\nWHERE ep.employee_id IS NULL\n  AND e.salary > (SELECT AVG(salary) FROM employees)\nORDER BY e.salary DESC;" },
       { id: "42-capstone", noHint: true, prompt: "Find every employee who is all three of these at once: in the top half of salary in their department, has at least one project assignment, and was hired after their department's average hire date. Return name, department, salary, project_count, and days_after_dept_avg (integer days between their hire date and the department average). Sort by department, then salary descending.", expectedColumns: ["name","department","salary","project_count","days_after_dept_avg"], validateFn: "if (rows.length === 0) return false; return rows.every(r => Number(r.project_count) >= 1 && Number(r.days_after_dept_avg) > 0 && r.salary > 0);", solution: "WITH ranked AS (\n  SELECT e.id, e.name, e.department, e.salary, e.hire_date,\n         NTILE(2) OVER (PARTITION BY e.department ORDER BY e.salary DESC) AS half_rank,\n         AVG(JULIANDAY(e.hire_date)) OVER (PARTITION BY e.department) AS dept_avg_jd\n  FROM employees e\n),\nproject_counts AS (\n  SELECT employee_id, COUNT(*) AS project_count\n  FROM employee_projects\n  GROUP BY employee_id\n)\nSELECT r.name, r.department, r.salary,\n       pc.project_count,\n       CAST(JULIANDAY(r.hire_date) - r.dept_avg_jd AS INTEGER) AS days_after_dept_avg\nFROM ranked r\nJOIN project_counts pc ON pc.employee_id = r.id\nWHERE r.half_rank = 1\n  AND JULIANDAY(r.hire_date) > r.dept_avg_jd\nORDER BY r.department, r.salary DESC;" }
     ]
   },
@@ -1800,7 +1800,7 @@ Think of a stored procedure as a saved script you can run over and over. Instead
 
 Stored procedures keep business logic in the database instead of scattered across application code. The app calls one line and the database handles the work.
 
-## T-SQL Syntax
+## T-SQL syntax
 
 \`\`\`sql
 CREATE PROCEDURE GetEmployeesByDept
@@ -1817,7 +1817,7 @@ END;
 EXEC GetEmployeesByDept @DeptName = 'Engineering';
 \`\`\`
 
-## Parameters
+## parameters
 
 You can have input params (data going in) and output params (data coming back out):
 
@@ -1833,14 +1833,14 @@ BEGIN
 END;
 \`\`\`
 
-## Why Use Them?
+## why use them?
 
 - Reusable: write once, call from anywhere
 - Faster: SQL Server compiles and caches the execution plan
 - Secure: you can grant EXEC permission without exposing tables
 - Maintainable: change the proc, all callers get the update
 
-## SQLite Note
+## SQLite note
 
 SQLite doesn't have stored procedures, so the challenges here use CTEs to simulate the concept. In your WCTC class you'll use real T-SQL on SQL Server.` },
     examples: [
@@ -1864,7 +1864,7 @@ Temp tables are temporary storage that only exists for your session. Super usefu
 
 I use these all the time when a query gets too complicated. Break it into pieces, dump results into a temp table, then query that.
 
-## T-SQL Syntax
+## T-SQL syntax
 
 \`\`\`sql
 -- Local temp table (only you can see it, # prefix)
@@ -1886,7 +1886,7 @@ SELECT * FROM #MyTempTable WHERE salary > 90000;
 DROP TABLE #MyTempTable;
 \`\`\`
 
-## Local vs Global
+## local vs global
 
 | Type | Prefix | Scope |
 |------|--------|-------|
@@ -1895,7 +1895,7 @@ DROP TABLE #MyTempTable;
 
 Global temp tables stick around until the last session using them disconnects. I almost never use global temp tables tbh, local is safer.
 
-## SQLite Equivalent
+## SQLite equivalent
 
 SQLite uses regular tables with TEMP or TEMPORARY keyword:
 
@@ -1904,7 +1904,7 @@ CREATE TEMP TABLE my_temp AS
 SELECT * FROM employees WHERE department = 'Engineering';
 \`\`\`
 
-## When to Use Temp Tables
+## when to use temp tables
 
 - Breaking complex queries into readable steps
 - Storing intermediate results for reuse
@@ -1931,7 +1931,7 @@ SQL is set-based, meaning it processes whole sets of rows at once. But sometimes
 
 Fair warning: loops in SQL are usually slower than set-based operations. Try to solve problems with regular queries first. Only use loops when you really need them.
 
-## T-SQL WHILE Syntax
+## T-SQL while syntax
 
 \`\`\`sql
 DECLARE @counter INT = 1;
@@ -1947,7 +1947,7 @@ BEGIN
 END;
 \`\`\`
 
-## Cursors (Row-by-Row Processing)
+## cursors (row-by-row processing)
 
 When you need to loop through actual query results:
 
@@ -1973,7 +1973,7 @@ DEALLOCATE emp_cursor;
 
 Cursors are kind of confusing at first because there's so much boilerplate. But basically: DECLARE sets it up, OPEN starts it, FETCH gets rows, CLOSE and DEALLOCATE clean up.
 
-## SQLite Reality
+## SQLite reality
 
 SQLite doesn't have WHILE loops or cursors in SQL. You'd handle iteration in your application code. The challenges here simulate concepts with recursive CTEs.` },
     examples: [
@@ -1999,7 +1999,7 @@ There are two main types in T-SQL:
 - **Scalar functions**: return a single value
 - **Table-valued functions**: return a whole table
 
-## Scalar Function (T-SQL)
+## scalar FUNCTION (T-SQL)
 
 \`\`\`sql
 CREATE FUNCTION dbo.GetSalaryTier(@salary DECIMAL)
@@ -2017,7 +2017,7 @@ SELECT name, dbo.GetSalaryTier(salary) AS tier
 FROM employees;
 \`\`\`
 
-## Table-Valued Function (T-SQL)
+## table-valued FUNCTION (T-SQL)
 
 \`\`\`sql
 CREATE FUNCTION dbo.GetDeptEmployees(@dept NVARCHAR(50))
@@ -2034,11 +2034,11 @@ SELECT * FROM dbo.GetDeptEmployees('Engineering');
 
 Table-valued functions can be joined, filtered, and used anywhere a regular table can.
 
-## SQLite Reality
+## SQLite reality
 
 SQLite doesn't support CREATE FUNCTION in SQL. You'd register functions through your application code. For class purposes, we simulate the concept with CASE expressions and views.
 
-## UDF vs Stored Procedure
+## UDF vs stored procedure
 
 | Feature | Scalar UDF | Stored Procedure |
 |---------|------------|------------------|
@@ -2067,7 +2067,7 @@ A trigger fires automatically when something happens to a table. You don't call 
 
 Triggers are kind of confusing at first because you have to think about when things run. But once you get it, they're powerful.
 
-## T-SQL Trigger Syntax
+## T-SQL trigger syntax
 
 \`\`\`sql
 CREATE TRIGGER trg_employee_audit
@@ -2084,7 +2084,7 @@ AS BEGIN
 END;
 \`\`\`
 
-## The inserted and deleted Tables
+## the inserted AND deleted tables
 
 This is the confusing part but it's actually pretty logical:
 
@@ -2096,7 +2096,7 @@ This is the confusing part but it's actually pretty logical:
 
 So for UPDATE, you have both. That's how you compare old vs new values.
 
-## SQLite Syntax
+## SQLite syntax
 
 \`\`\`sql
 CREATE TRIGGER trg_salary_audit
@@ -2109,7 +2109,7 @@ BEGIN
 END;
 \`\`\`
 
-## Common Use Cases
+## common use cases
 
 - Audit logging (who changed what when)
 - Cascading updates (update related tables)
@@ -2136,7 +2136,7 @@ Dynamic SQL is SQL that builds itself at runtime. Instead of a fixed query, you 
 
 Powerful when you need it, dangerous if you don't parameterize. SQL injection is the main risk.
 
-## T-SQL Dynamic SQL
+## T-SQL dynamic SQL
 
 \`\`\`sql
 -- simple EXEC
@@ -2147,7 +2147,7 @@ SET @sql = 'SELECT * FROM ' + @tableName;
 EXEC(@sql);  -- runs: SELECT * FROM employees
 \`\`\`
 
-## The Safe Way: sp_executesql
+## the safe way: sp_executesql
 
 \`\`\`sql
 -- parameterized dynamic SQL (prevents SQL injection)
@@ -2164,20 +2164,20 @@ EXEC sp_executesql @sql,
 
 Why sp_executesql? Because it uses parameters instead of string concatenation. If someone passes \`'; DROP TABLE employees; --\` as the department name, it won't execute the DROP.
 
-## When to Use Dynamic SQL
+## when to use dynamic SQL
 
 - Column/table names from user input (can't parameterize these)
 - Building complex WHERE clauses dynamically
 - Pivot queries with unknown column names
 - Generic reporting tools
 
-## When NOT to Use It
+## when NOT to use it
 
 - When a regular query works fine
 - Without parameterization (SQL injection risk)
 - For simple filters (just use WHERE)
 
-## SQLite Note
+## SQLite note
 
 SQLite doesn't have EXEC or sp_executesql. Dynamic SQL is handled in application code. The challenges here use query construction concepts.` },
     examples: [
@@ -2218,7 +2218,7 @@ FOR XML PATH('employee'), ROOT('employees');
 -- </employees>
 \`\`\`
 
-## FOR XML PATH Tricks
+## FOR XML PATH tricks
 
 \`\`\`sql
 -- attributes instead of elements
@@ -2234,7 +2234,7 @@ FOR XML PATH('emp'), ROOT('team');
 -- </team>
 \`\`\`
 
-## Reading XML with OPENXML
+## reading XML WITH OPENXML
 
 \`\`\`sql
 DECLARE @xml XML = '<employees>
@@ -2246,7 +2246,7 @@ FROM OPENXML(@xml.nodes('/employees/emp') AS t(c))
 -- or use the newer .nodes() and .value() methods
 \`\`\`
 
-## SQLite Note
+## SQLite note
 
 SQLite doesn't have native XML support. The challenges here use string concatenation to simulate XML building, which gives you the concept without the T-SQL functions.` },
     examples: [
@@ -2268,7 +2268,7 @@ SQLite doesn't have native XML support. The challenges here use string concatena
     theory: { content: `
 SQL Server 2016+ supports JSON parsing and serialization, which is what most modern APIs use.
 
-## FOR JSON: Query Results to JSON
+## FOR JSON: query results to JSON
 
 \`\`\`sql
 -- AUTO mode (quick and easy)
@@ -2285,7 +2285,7 @@ FOR JSON PATH;
 -- [{"employee":{"name":"Sarah","pay":{"annual":120000}}},...]
 \`\`\`
 
-## OPENJSON: Parse JSON Data
+## OPENJSON: parse JSON data
 
 \`\`\`sql
 DECLARE @json NVARCHAR(MAX) = '[
@@ -2300,7 +2300,7 @@ WITH (
 );
 \`\`\`
 
-## JSON_VALUE: Extract Single Values
+## JSON_VALUE: extract single values
 
 \`\`\`sql
 DECLARE @json NVARCHAR(MAX) = '{"name":"Sarah","dept":"Eng"}';
@@ -2308,14 +2308,14 @@ SELECT JSON_VALUE(@json, '$.name');  -- returns 'Sarah'
 SELECT JSON_VALUE(@json, '$.dept');  -- returns 'Eng'
 \`\`\`
 
-## JSON_QUERY: Extract Objects or Arrays
+## JSON_QUERY: extract objects or arrays
 
 \`\`\`sql
 DECLARE @json NVARCHAR(MAX) = '{"person":{"name":"Sarah","skills":["SQL","Python"]}}';
 SELECT JSON_QUERY(@json, '$.person.skills');  -- returns '["SQL","Python"]'
 \`\`\`
 
-## SQLite JSON Support
+## SQLite JSON support
 
 SQLite has json functions too! They work slightly differently but the concept is similar. We'll use those in the challenges.` },
     examples: [
@@ -2356,7 +2356,7 @@ CREATE CLUSTERED INDEX idx_pk ON employees(id);
 CREATE NONCLUSTERED INDEX idx_dept ON employees(department);
 \`\`\`
 
-## Covering Indexes
+## covering indexes
 
 A covering index includes all columns needed for a query. The database doesn't have to go back to the table because everything's in the index.
 
@@ -2369,14 +2369,14 @@ SELECT department, salary FROM employees
 WHERE department = 'Engineering';
 \`\`\`
 
-## When Indexes Help
+## WHEN indexes help
 
 - WHERE clauses (equality and range)
 - JOIN conditions
 - ORDER BY columns
 - GROUP BY columns
 
-## When Indexes DON'T Help
+## WHEN indexes DON'T help
 
 - Small tables (scan is faster than index lookup)
 - Columns with few unique values
@@ -2384,7 +2384,7 @@ WHERE department = 'Engineering';
 - Columns you rarely query
 - Tables with tons of INSERTs (index maintenance overhead)
 
-## The INCLUDE Keyword (SQL Server)
+## the INCLUDE keyword (SQL server)
 
 \`\`\`sql
 -- include extra columns without making them part of the key
@@ -2413,7 +2413,7 @@ Temporal tables (system-versioned tables in SQL Server 2016+) automatically trac
 
 It's like having automatic version control for your data. Super useful for auditing and debugging.
 
-## SQL Server Temporal Table
+## SQL server temporal TABLE
 
 \`\`\`sql
 CREATE TABLE employees_temporal (
@@ -2428,7 +2428,7 @@ CREATE TABLE employees_temporal (
 WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.employees_history));
 \`\`\`
 
-## Querying Historical Data
+## querying historical data
 
 \`\`\`sql
 -- what was the data at a specific time?
@@ -2444,7 +2444,7 @@ SELECT * FROM employees
 FOR SYSTEM_TIME ALL;
 \`\`\`
 
-## Change Tracking (Alternative Approach)
+## change tracking (alternative approach)
 
 SQL Server also has Change Tracking for lightweight change detection:
 
@@ -2459,7 +2459,7 @@ SELECT * FROM CHANGETABLE(CHANGES employees, @last_version) AS ct;
 
 This tells you WHAT changed but not the old values.
 
-## Manual History Tables (SQLite Simulation)
+## manual history tables (SQLite simulation)
 
 Without temporal table support, you can use triggers to maintain a history table. That's what we'll do in the challenges.` },
     examples: [
