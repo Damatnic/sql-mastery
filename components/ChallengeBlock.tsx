@@ -13,6 +13,7 @@ interface Challenge {
   expectedColumns: string[];
   validateFn: string;
   solution: string;
+  noHint?: boolean;
 }
 
 interface ChallengeBlockProps {
@@ -180,13 +181,21 @@ export default function ChallengeBlock({
     <div className={`rounded border border-slate-800 bg-slate-900/40 ${className}`}>
       <div className="px-4 py-3 border-b border-slate-800 font-mono text-xs flex items-center justify-between">
         <span className="text-slate-400">
-          <span className="text-indigo-400"># challenge</span>
+          <span className={challenge.noHint ? 'text-emerald-400' : 'text-indigo-400'}>
+            # {challenge.noHint ? 'capstone' : 'challenge'}
+          </span>
           {totalChallenges && challengeNumber && (
             <span className="text-slate-500"> {String(challengeNumber).padStart(2, '0')}/{String(totalChallenges).padStart(2, '0')}</span>
           )}
         </span>
         <span className={statusClass}>{status}</span>
       </div>
+
+      {challenge.noHint && (
+        <div className="px-4 py-2 border-b border-emerald-400/30 bg-emerald-400/[0.04] font-mono text-[11px] text-emerald-300">
+          <span className="text-emerald-400">✦</span> no hint. work it. compose what you&apos;ve learned.
+        </div>
+      )}
 
       <div className="px-4 py-4 text-sm text-slate-200 leading-relaxed border-b border-slate-800/60">
         {challenge.prompt}
@@ -238,19 +247,27 @@ export default function ChallengeBlock({
               show hint
             </button>
           )}
-          {attempts >= 3 && !isCorrect && !showSolution && (
-            <button
-              onClick={handleUseSolution}
-              className="px-2 py-1 rounded border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
-            >
-              show solution
-            </button>
-          )}
-          {attempts > 0 && attempts < 3 && !isCorrect && (
-            <span className="ml-auto text-slate-500">
-              {3 - attempts} more attempt{3 - attempts !== 1 ? 's' : ''} until solution unlocks
-            </span>
-          )}
+          {(() => {
+            const solutionGate = challenge.noHint ? 6 : 3;
+            if (attempts >= solutionGate && !isCorrect && !showSolution) {
+              return (
+                <button
+                  onClick={handleUseSolution}
+                  className="px-2 py-1 rounded border border-slate-800 text-slate-400 hover:text-slate-100 hover:border-slate-600 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                >
+                  show solution
+                </button>
+              );
+            }
+            if (attempts > 0 && attempts < solutionGate && !isCorrect) {
+              return (
+                <span className="ml-auto text-slate-500">
+                  {solutionGate - attempts} more attempt{solutionGate - attempts !== 1 ? 's' : ''} until solution unlocks
+                </span>
+              );
+            }
+            return null;
+          })()}
         </div>
 
         {showHint && challenge.hint && (

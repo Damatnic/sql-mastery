@@ -25,6 +25,8 @@ export interface Lesson {
     expectedColumns: string[];
     validateFn: string;
     solution: string;
+    /** Capstone-style challenge: no hint shown, solution gated behind more attempts. */
+    noHint?: boolean;
   }>;
   moduleSlug: string;
   lessonSlug: string;
@@ -62,7 +64,9 @@ export const lessons: Lesson[] = [
     slug: "getting-started/select-basics",
     moduleSlug: "getting-started", lessonSlug: "select-basics",
     title: "SELECT Basics", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
+    theory: { content: `> 🎯 **Why This Matters:** Every query you ever write starts with SELECT and FROM. Get these two right and the rest of SQL builds on top of them. Get them wrong and nothing else can save you.
+
+## Mental Model
 SQL is how you ask questions about data sitting in a table. A table is like a spreadsheet; rows are individual records, columns are the fields each record has.
 
 ## Syntax
@@ -83,11 +87,13 @@ FROM table_name;
 - \`*\` is shorthand for "every column"; great for exploring, but avoid in production queries
 
 ## When To Use This
-Any time you want to see data. This is the foundation of every query you'll ever write.` },
+Any time you want to see data. This is the foundation of every query you'll ever write.
+
+> ⚠️ **Common Mistake:** \`SELECT *\` is fine when exploring but never in production code. New columns added to the table will silently flow into your query and break the layer that reads it. Always name the columns you actually need.` },
     examples: [
-      { title: "See all employees", explanation: "Grab every column from the employees table", sql: "SELECT *\nFROM employees;" },
-      { title: "Just names and salaries", explanation: "Pick specific columns to keep the result clean", sql: "SELECT name, salary\nFROM employees;" },
-      { title: "Three columns", explanation: "You can list as many columns as you need", sql: "SELECT name, department, hire_date\nFROM employees;" }
+      { title: "Quick exploration: peek at the full table", explanation: "Grab every column from the employees table", sql: "SELECT *\nFROM employees;" },
+      { title: "Production-style: name only the columns you need", explanation: "Pick specific columns to keep the result clean", sql: "SELECT name, salary\nFROM employees;" },
+      { title: "Same pattern, more columns at once", explanation: "You can list as many columns as you need", sql: "SELECT name, department, hire_date\nFROM employees;" }
     ],
     challenges: [
       { id: "1-1", prompt: "Show every column from the departments table.", hint: "Use SELECT * to grab all columns.", expectedColumns: ["id","name","budget","location"], validateFn: "return rows.length === 5 && rows[0].hasOwnProperty('budget');", solution: "SELECT *\nFROM departments;" },
@@ -128,12 +134,14 @@ WHERE condition;
 - \`'%ar%'\` = contains ar
 
 ## When To Use This
-Every time you don't want all the rows; which is almost always.` },
+Every time you don't want all the rows; which is almost always.
+
+> ⚠️ **Common Mistake:** \`WHERE name = NULL\` and \`WHERE name != NULL\` both return zero rows. NULL isn't equal to anything, not even itself. Use \`IS NULL\` and \`IS NOT NULL\` for null checks.` },
     examples: [
-      { title: "Engineers only", explanation: "Filter to one specific department", sql: "SELECT name, salary\nFROM employees\nWHERE department = 'Engineering';" },
-      { title: "High earners", explanation: "Comparison operators work on numbers", sql: "SELECT name, department, salary\nFROM employees\nWHERE salary > 90000;" },
-      { title: "Salary range with BETWEEN", explanation: "BETWEEN is inclusive on both ends", sql: "SELECT name, salary\nFROM employees\nWHERE salary BETWEEN 70000 AND 90000;" },
-      { title: "Multiple departments with IN", explanation: "IN is cleaner than writing multiple OR conditions", sql: "SELECT name, department\nFROM employees\nWHERE department IN ('Engineering', 'Finance');" }
+      { title: "Filtering down to one segment", explanation: "Filter to one specific department", sql: "SELECT name, salary\nFROM employees\nWHERE department = 'Engineering';" },
+      { title: "Threshold filter on a numeric column", explanation: "Comparison operators work on numbers", sql: "SELECT name, department, salary\nFROM employees\nWHERE salary > 90000;" },
+      { title: "When the filter is a numeric range", explanation: "BETWEEN is inclusive on both ends", sql: "SELECT name, salary\nFROM employees\nWHERE salary BETWEEN 70000 AND 90000;" },
+      { title: "Cleaner than chaining OR conditions", explanation: "IN is cleaner than writing multiple OR conditions", sql: "SELECT name, department\nFROM employees\nWHERE department IN ('Engineering', 'Finance');" }
     ],
     challenges: [
       { id: "2-1", prompt: "Find all employees in the Sales department.", hint: "WHERE department = ...", expectedColumns: ["name","department"], validateFn: "return rows.length > 0 && rows.every(r => r.department === 'Sales');", solution: "SELECT name, department\nFROM employees\nWHERE department = 'Sales';" },
@@ -164,11 +172,13 @@ ORDER BY column1 ASC, column2 DESC;
 - You can ORDER BY a column you didn't SELECT (though it's unusual)
 
 ## When To Use This
-Any time the order of results matters; leaderboards, most recent records, alphabetical lists.` },
+Any time the order of results matters; leaderboards, most recent records, alphabetical lists.
+
+> ⚠️ **Common Mistake:** assuming SQL gives you rows back in insertion order or any "default" order when you skip ORDER BY. It doesn't. The engine can return rows in whatever order is convenient. If the order matters, write ORDER BY. Always.` },
     examples: [
-      { title: "Highest paid first", explanation: "DESC puts the largest value at the top", sql: "SELECT name, salary\nFROM employees\nORDER BY salary DESC;" },
-      { title: "Alphabetical by name", explanation: "ASC is default for text; A to Z", sql: "SELECT name, department\nFROM employees\nORDER BY name;" },
-      { title: "Sort by dept then salary", explanation: "Second column breaks ties in the first", sql: "SELECT name, department, salary\nFROM employees\nORDER BY department ASC, salary DESC;" }
+      { title: "Leaderboard pattern: largest values at the top", explanation: "DESC puts the largest value at the top", sql: "SELECT name, salary\nFROM employees\nORDER BY salary DESC;" },
+      { title: "Default sort behavior on text columns", explanation: "ASC is default for text; A to Z", sql: "SELECT name, department\nFROM employees\nORDER BY name;" },
+      { title: "When the primary sort has ties", explanation: "Second column breaks ties in the first", sql: "SELECT name, department, salary\nFROM employees\nORDER BY department ASC, salary DESC;" }
     ],
     challenges: [
       { id: "3-1", prompt: "List all employees sorted alphabetically by department, then by name within each department.", hint: "ORDER BY two columns; department first, then name.", expectedColumns: ["name","department"], validateFn: "return rows.length > 0 && rows[0].department <= rows[rows.length-1].department;", solution: "SELECT name, department\nFROM employees\nORDER BY department ASC, name ASC;" },
@@ -205,9 +215,9 @@ LIMIT 10 OFFSET 20; -- rows 21-30 (skip first 20, take next 10)
 - Pagination in applications
 - Sampling a large table to see what's in it` },
     examples: [
-      { title: "Top 3 earners", explanation: "Sort descending, take the first 3", sql: "SELECT name, salary\nFROM employees\nORDER BY salary DESC\nLIMIT 3;" },
-      { title: "Page 2 of employees", explanation: "Skip the first 5, get the next 5", sql: "SELECT name, salary\nFROM employees\nORDER BY salary DESC\nLIMIT 5 OFFSET 5;" },
-      { title: "Quick data sample", explanation: "Just peek at a few rows", sql: "SELECT *\nFROM employees\nLIMIT 5;" }
+      { title: "Top N pattern: sort then LIMIT", explanation: "Sort descending, take the first 3", sql: "SELECT name, salary\nFROM employees\nORDER BY salary DESC\nLIMIT 3;" },
+      { title: "Pagination: skip then take", explanation: "Skip the first 5, get the next 5", sql: "SELECT name, salary\nFROM employees\nORDER BY salary DESC\nLIMIT 5 OFFSET 5;" },
+      { title: "Sampling rows during exploration", explanation: "Just peek at a few rows", sql: "SELECT *\nFROM employees\nLIMIT 5;" }
     ],
     challenges: [
       { id: "4-1", prompt: "Show the top 5 highest-paid employees.", hint: "ORDER BY salary DESC, then LIMIT 5.", expectedColumns: ["name","salary"], validateFn: "return rows.length === 5 && rows[0].salary >= rows[4].salary;", solution: "SELECT name, salary\nFROM employees\nORDER BY salary DESC\nLIMIT 5;" },
@@ -240,9 +250,9 @@ FROM table;
 - Deduplicating results before counting
 - Exploring data you've never seen before` },
     examples: [
-      { title: "What departments exist?", explanation: "Get each department name once", sql: "SELECT DISTINCT department\nFROM employees;" },
-      { title: "Unique dept + location combos", explanation: "DISTINCT applies to the row as a whole", sql: "SELECT DISTINCT name, location\nFROM departments;" },
-      { title: "Count unique departments", explanation: "Combine DISTINCT with COUNT", sql: "SELECT COUNT(DISTINCT department) AS dept_count\nFROM employees;" }
+      { title: "Inventory: distinct values in one column", explanation: "Get each department name once", sql: "SELECT DISTINCT department\nFROM employees;" },
+      { title: "Distinct combinations across multiple columns", explanation: "DISTINCT applies to the row as a whole", sql: "SELECT DISTINCT name, location\nFROM departments;" },
+      { title: "Counting how many distinct values exist", explanation: "Combine DISTINCT with COUNT", sql: "SELECT COUNT(DISTINCT department) AS dept_count\nFROM employees;" }
     ],
     challenges: [
       { id: "5-1", prompt: "List all unique departments in the employees table.", hint: "SELECT DISTINCT on the department column.", expectedColumns: ["department"], validateFn: "const depts = rows.map(r => r.department); return new Set(depts).size === depts.length;", solution: "SELECT DISTINCT department\nFROM employees;" },
@@ -258,7 +268,9 @@ FROM table;
     slug: "data-analysis/aggregate-functions",
     moduleSlug: "data-analysis", lessonSlug: "aggregate-functions",
     title: "Aggregate Functions", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
+    theory: { content: `> 🎯 **Why This Matters:** Aggregates are how analysts answer business questions. "How many," "how much," "what's the average" — every dashboard ships these. Module 2 is the move from reading data to answering questions about it.
+
+## Mental Model
 Aggregate functions collapse many rows into a single number. Instead of listing 20 salaries, COUNT tells you there are 20. SUM adds them all up. AVG gives the average. They answer the "how many / how much total / what's the average" questions.
 
 ## Syntax
@@ -285,9 +297,9 @@ FROM employees;
 ## When To Use This
 Any question with "how many," "total," "average," "highest," or "lowest" in it.` },
     examples: [
-      { title: "Basic stats", explanation: "Multiple aggregates in one query", sql: "SELECT COUNT(*) AS total_employees,\n       AVG(salary) AS avg_salary,\n       MIN(salary) AS lowest,\n       MAX(salary) AS highest\nFROM employees;" },
-      { title: "Total payroll", explanation: "SUM all salaries", sql: "SELECT SUM(salary) AS total_payroll\nFROM employees;" },
-      { title: "Count in Engineering", explanation: "Combine aggregate with WHERE", sql: "SELECT COUNT(*) AS eng_headcount\nFROM employees\nWHERE department = 'Engineering';" }
+      { title: "Several aggregates in one pass", explanation: "Multiple aggregates in one query", sql: "SELECT COUNT(*) AS total_employees,\n       AVG(salary) AS avg_salary,\n       MIN(salary) AS lowest,\n       MAX(salary) AS highest\nFROM employees;" },
+      { title: "Single aggregate over the whole table", explanation: "SUM all salaries", sql: "SELECT SUM(salary) AS total_payroll\nFROM employees;" },
+      { title: "Aggregate after a WHERE filter", explanation: "Combine aggregate with WHERE", sql: "SELECT COUNT(*) AS eng_headcount\nFROM employees\nWHERE department = 'Engineering';" }
     ],
     challenges: [
       { id: "6-1", prompt: "How many employees are there total?", hint: "COUNT(*) gives you all rows.", expectedColumns: ["total"], validateFn: "return rows.length === 1 && rows[0].total > 0;", solution: "SELECT COUNT(*) AS total\nFROM employees;" },
@@ -320,11 +332,35 @@ GROUP BY grouping_column;
 3. You get one output row per unique group value
 
 ## When To Use This
-"For each department / category / region / month... what is the count / total / average?"` },
+"For each department / category / region / month... what is the count / total / average?"
+
+## The slow way vs the fast way
+**Slow:** group everyone first, then throw most of them away with HAVING. SQL has to aggregate every department before the filter runs.
+\`\`\`sql
+SELECT department, AVG(salary) AS avg_sal
+FROM employees
+GROUP BY department
+HAVING department = 'Engineering';
+\`\`\`
+
+**Fast:** filter rows in the WHERE clause before aggregation runs. Only one department gets grouped.
+\`\`\`sql
+SELECT department, AVG(salary) AS avg_sal
+FROM employees
+WHERE department = 'Engineering'
+GROUP BY department;
+\`\`\`
+
+Why: HAVING runs after GROUP BY; WHERE runs before. Use HAVING only for filters that depend on the aggregate itself (\`HAVING AVG(salary) > 80000\`). Non-aggregate filters belong in WHERE so the optimizer can shrink the input.
+
+> ⚠️ **Common Mistake:** putting a non-aggregated column in SELECT that isn't in GROUP BY. SQLite silently picks one row per group; SQL Server errors out. Either add the column to GROUP BY or wrap it in an aggregate like MAX or MIN.
+
+## See also
+The exact same operation in pandas is \`DataFrame.groupby(...).agg(...)\`. Same mental model, different syntax: walk through it on damato-python at [/learn/grouping-combining/groupby-basics](https://damato-python.vercel.app/learn/grouping-combining/groupby-basics).` },
     examples: [
-      { title: "Average salary by department", explanation: "The classic GROUP BY; one row per department", sql: "SELECT department, AVG(salary) AS avg_salary\nFROM employees\nGROUP BY department;" },
-      { title: "Headcount per department", explanation: "COUNT(*) with GROUP BY", sql: "SELECT department, COUNT(*) AS headcount\nFROM employees\nGROUP BY department\nORDER BY headcount DESC;" },
-      { title: "Multiple aggregates", explanation: "Several metrics per group at once", sql: "SELECT department,\n       COUNT(*) AS headcount,\n       AVG(salary) AS avg_salary,\n       MAX(salary) AS top_salary\nFROM employees\nGROUP BY department;" }
+      { title: "One number per group: classic GROUP BY", explanation: "The classic GROUP BY; one row per department", sql: "SELECT department, AVG(salary) AS avg_salary\nFROM employees\nGROUP BY department;" },
+      { title: "Counting rows within each group", explanation: "COUNT(*) with GROUP BY", sql: "SELECT department, COUNT(*) AS headcount\nFROM employees\nGROUP BY department\nORDER BY headcount DESC;" },
+      { title: "Several metrics per group at once", explanation: "Several metrics per group at once", sql: "SELECT department,\n       COUNT(*) AS headcount,\n       AVG(salary) AS avg_salary,\n       MAX(salary) AS top_salary\nFROM employees\nGROUP BY department;" }
     ],
     challenges: [
       { id: "7-1", prompt: "Show the total salary cost (payroll) for each department.", hint: "GROUP BY department, use SUM(salary).", expectedColumns: ["department","total_payroll"], validateFn: "return rows.length > 1 && rows[0].total_payroll > 0;", solution: "SELECT department, SUM(salary) AS total_payroll\nFROM employees\nGROUP BY department;" },
@@ -399,8 +435,8 @@ COALESCE(a, b, c) returns the first non-NULL value from the list.
 ## When To Use This
 Any time a column might be empty; optional fields, foreign keys, or data that wasn't filled in.` },
     examples: [
-      { title: "Find employees with no manager", explanation: "IS NULL finds missing values", sql: "SELECT name, department\nFROM employees\nWHERE manager_id IS NULL;" },
-      { title: "Find employees who have a manager", explanation: "IS NOT NULL is the opposite", sql: "SELECT name, manager_id\nFROM employees\nWHERE manager_id IS NOT NULL;" },
+      { title: "Finding missing values with IS NULL", explanation: "IS NULL finds missing values", sql: "SELECT name, department\nFROM employees\nWHERE manager_id IS NULL;" },
+      { title: "Filtering out NULL rows", explanation: "IS NOT NULL is the opposite", sql: "SELECT name, manager_id\nFROM employees\nWHERE manager_id IS NOT NULL;" },
       { title: "Replace NULL with a label", explanation: "COALESCE substitutes a default when value is missing", sql: "SELECT name,\n       COALESCE(CAST(manager_id AS TEXT), 'No Manager') AS manager\nFROM employees;" }
     ],
     challenges: [
@@ -445,9 +481,14 @@ END
 \`\`\`
 
 ## When To Use This
-Bucketing/categorizing continuous values, translating codes to labels, conditional aggregation.` },
+Bucketing/categorizing continuous values, translating codes to labels, conditional aggregation.
+
+> ⚠️ **Common Mistake:** forgetting ELSE in a CASE. Any row that matches no WHEN returns NULL silently. Either add ELSE explicitly or wrap the whole CASE with COALESCE so the NULL never escapes.
+
+## See also
+In Python/NumPy this is \`np.where(condition, value_if_true, value_if_false)\` for two branches, \`np.select\` for many. Vectorized, no row loop. Worked example on damato-python at [/learn/numpy-foundations/vectorization-vs-loops](https://damato-python.vercel.app/learn/numpy-foundations/vectorization-vs-loops).` },
     examples: [
-      { title: "Salary tier label", explanation: "Bucket numeric values into categories", sql: "SELECT name, salary,\n  CASE\n    WHEN salary >= 100000 THEN 'Senior'\n    WHEN salary >= 75000  THEN 'Mid-Level'\n    ELSE 'Junior'\n  END AS tier\nFROM employees;" },
+      { title: "Bucketing continuous values into categories", explanation: "Bucket numeric values into categories", sql: "SELECT name, salary,\n  CASE\n    WHEN salary >= 100000 THEN 'Senior'\n    WHEN salary >= 75000  THEN 'Mid-Level'\n    ELSE 'Junior'\n  END AS tier\nFROM employees;" },
       { title: "Count by tier using CASE", explanation: "Conditional aggregation; CASE inside COUNT", sql: "SELECT\n  COUNT(CASE WHEN salary >= 100000 THEN 1 END) AS senior_count,\n  COUNT(CASE WHEN salary >= 75000 AND salary < 100000 THEN 1 END) AS mid_count,\n  COUNT(CASE WHEN salary < 75000 THEN 1 END) AS junior_count\nFROM employees;" },
       { title: "Remote-friendly label", explanation: "Simple CASE matching a value", sql: "SELECT name, manager_id,\n  CASE\n    WHEN manager_id IS NULL THEN 'Team Lead'\n    ELSE 'IC'\n  END AS role_type\nFROM employees;" }
     ],
@@ -465,7 +506,9 @@ Bucketing/categorizing continuous values, translating codes to labels, condition
     slug: "joining-tables/inner-join",
     moduleSlug: "joining-tables", lessonSlug: "inner-join",
     title: "INNER JOIN", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
+    theory: { content: `> 🎯 **Why This Matters:** Data lives in many tables on purpose; it's called normalization. Joins are how you put it back together to answer a single question. Without joins you're stuck in one table at a time.
+
+## Mental Model
 An INNER JOIN is like a Venn diagram; you only get rows that exist in BOTH tables. If an employee has no matching department, they're excluded. If a department has no employees, it's excluded.
 
 ## Syntax
@@ -482,11 +525,31 @@ JOIN departments d ON e.department = d.name;
 - When both tables have a column with the same name, prefix with the alias: \`e.name\` vs \`d.name\`
 
 ## When To Use This
-When you need columns from two tables and only want rows that have matches in both. The most common join type.` },
+When you need columns from two tables and only want rows that have matches in both. The most common join type.
+
+## The slow way vs the fast way
+**Slow / risky:** the old comma-join syntax. Forget the WHERE and you silently produce a cartesian product.
+\`\`\`sql
+SELECT e.name, d.location
+FROM employees e, departments d
+WHERE e.department = d.name;
+\`\`\`
+
+**Fast / safe:** explicit JOIN ... ON. The relationship lives next to the table, not buried in WHERE, and forgetting the ON is a syntax error instead of a quietly catastrophic result.
+\`\`\`sql
+SELECT e.name, d.location
+FROM employees e
+JOIN departments d ON d.name = e.department;
+\`\`\`
+
+Why: same query plan in modern engines, but the explicit form is reviewable. The danger of the comma form isn't slowness, it's the night you forget the WHERE on a 10-million-row table and produce 10^14 rows.
+
+## See also
+The pandas analog is \`pd.merge\` (or \`df.merge\`). Same JOIN-on-keys idea: see [/learn/grouping-combining/merge-join](https://damato-python.vercel.app/learn/grouping-combining/merge-join) on damato-python for the DataFrame version.` },
     examples: [
-      { title: "Employees with their department location", explanation: "Pull location from departments into the employee results", sql: "SELECT e.name, e.department, d.location\nFROM employees e\nJOIN departments d ON e.department = d.name;" },
-      { title: "Employees on projects", explanation: "Three-column result from two tables", sql: "SELECT e.name, ep.project_id, ep.role\nFROM employees e\nJOIN employee_projects ep ON e.id = ep.employee_id;" },
-      { title: "High earners with budget context", explanation: "Filter + join together", sql: "SELECT e.name, e.salary, d.budget\nFROM employees e\nJOIN departments d ON e.department = d.name\nWHERE e.salary > 90000;" }
+      { title: "Pulling context from a related table", explanation: "Pull location from departments into the employee results", sql: "SELECT e.name, e.department, d.location\nFROM employees e\nJOIN departments d ON e.department = d.name;" },
+      { title: "Two-table join on a foreign key", explanation: "Three-column result from two tables", sql: "SELECT e.name, ep.project_id, ep.role\nFROM employees e\nJOIN employee_projects ep ON e.id = ep.employee_id;" },
+      { title: "Filter and join in one query", explanation: "Filter + join together", sql: "SELECT e.name, e.salary, d.budget\nFROM employees e\nJOIN departments d ON e.department = d.name\nWHERE e.salary > 90000;" }
     ],
     challenges: [
       { id: "11-1", prompt: "Show each employee's name, department, and the location of their department.", hint: "JOIN employees to departments ON department = name.", expectedColumns: ["name","department","location"], validateFn: "return rows.length > 0 && rows[0].hasOwnProperty('location');", solution: "SELECT e.name, e.department, d.location\nFROM employees e\nJOIN departments d ON e.department = d.name;" },
@@ -519,11 +582,31 @@ LEFT JOIN projects p ON ep.project_id = p.id;
 LEFT JOIN + WHERE right_table.id IS NULL finds rows in the left table with NO match on the right. Classic pattern for "find employees not assigned to any project."
 
 ## When To Use This
-When you want to keep all records from the main table even if the related data is missing.` },
+When you want to keep all records from the main table even if the related data is missing.
+
+## The slow way vs the fast way
+**Slow / wrong:** \`NOT IN\` with a subquery that might return NULL. If a single row in the subquery is NULL, the entire result is empty. Silent data loss.
+\`\`\`sql
+-- returns ZERO rows if employee_projects has any NULL employee_id
+SELECT name FROM employees
+WHERE id NOT IN (SELECT employee_id FROM employee_projects);
+\`\`\`
+
+**Fast / correct:** LEFT JOIN ... IS NULL. NULL-safe, uses the same index path a normal join would, and reads as what it actually does ("the left rows with no match").
+\`\`\`sql
+SELECT e.name
+FROM employees e
+LEFT JOIN employee_projects ep ON ep.employee_id = e.id
+WHERE ep.employee_id IS NULL;
+\`\`\`
+
+Why: \`x NOT IN (... NULL ...)\` evaluates to \`x != NULL\`, which is UNKNOWN, which filters out every row. The LEFT JOIN form never has that trap.
+
+> ⚠️ **Common Mistake:** filtering the right table in WHERE undoes the LEFT JOIN. \`LEFT JOIN ... WHERE right.col = 'x'\` excludes the unmatched rows you were trying to keep. Move filters on the right table into the ON clause; keep WHERE for the left.` },
     examples: [
-      { title: "All employees, with project if they have one", explanation: "Employees without projects still show up with NULL project", sql: "SELECT e.name, ep.project_id\nFROM employees e\nLEFT JOIN employee_projects ep ON e.id = ep.employee_id;" },
-      { title: "Find employees with NO projects", explanation: "LEFT JOIN + IS NULL finds the gaps", sql: "SELECT e.name\nFROM employees e\nLEFT JOIN employee_projects ep ON e.id = ep.employee_id\nWHERE ep.employee_id IS NULL;" },
-      { title: "All departments, with headcount", explanation: "Departments with 0 employees show 0, not get dropped", sql: "SELECT d.name, COUNT(e.id) AS headcount\nFROM departments d\nLEFT JOIN employees e ON d.name = e.department\nGROUP BY d.name;" }
+      { title: "Keep all left rows even when no match exists", explanation: "Employees without projects still show up with NULL project", sql: "SELECT e.name, ep.project_id\nFROM employees e\nLEFT JOIN employee_projects ep ON e.id = ep.employee_id;" },
+      { title: "The anti-join pattern: who has no match", explanation: "LEFT JOIN + IS NULL finds the gaps", sql: "SELECT e.name\nFROM employees e\nLEFT JOIN employee_projects ep ON e.id = ep.employee_id\nWHERE ep.employee_id IS NULL;" },
+      { title: "Counting on the right side without dropping zeros", explanation: "Departments with 0 employees show 0, not get dropped", sql: "SELECT d.name, COUNT(e.id) AS headcount\nFROM departments d\nLEFT JOIN employees e ON d.name = e.department\nGROUP BY d.name;" }
     ],
     challenges: [
       { id: "12-1", prompt: "List all departments and the number of employees in each. Include departments with zero employees.", hint: "LEFT JOIN from departments to employees, then COUNT(e.id); not COUNT(*); so empty depts show 0.", expectedColumns: ["name","headcount"], validateFn: "return rows.length >= 5;", solution: "SELECT d.name, COUNT(e.id) AS headcount\nFROM departments d\nLEFT JOIN employees e ON d.name = e.department\nGROUP BY d.name;" },
@@ -651,7 +734,9 @@ Finding records in either table that have no match; great for data audits and fi
     slug: "subqueries-ctes/subqueries-where",
     moduleSlug: "subqueries-ctes", lessonSlug: "subqueries-where",
     title: "Subqueries in WHERE", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
+    theory: { content: `> 🎯 **Why This Matters:** Subqueries are how you ask a question whose answer depends on another question. The whole module is about building queries in layers instead of trying to write one giant statement.
+
+## Mental Model
 A subquery is a query inside a query. SQL runs the inner query first, gets a result, then uses that result in the outer query. Think of it as answering a preliminary question so you can answer the main question.
 
 ## Syntax
@@ -672,7 +757,36 @@ WHERE department IN (SELECT name FROM departments WHERE budget > 1000000)
 \`\`\`
 
 ## When To Use This
-When your filter condition depends on a calculated value from the same (or another) table; like "above average" comparisons.` },
+When your filter condition depends on a calculated value from the same (or another) table; like "above average" comparisons.
+
+## The slow way vs the fast way
+**Slow:** a correlated subquery that recomputes the same aggregate once per outer row. With 10,000 employees and 100 departments, this runs the SELECT AVG... 10,000 times.
+\`\`\`sql
+SELECT e.name, e.salary
+FROM employees e
+WHERE e.salary > (
+  SELECT AVG(salary)
+  FROM employees x
+  WHERE x.department = e.department
+);
+\`\`\`
+
+**Fast:** compute the per-department averages once in a CTE, then join. The aggregate fires 100 times total, not 10,000.
+\`\`\`sql
+WITH dept_avg AS (
+  SELECT department, AVG(salary) AS avg_sal
+  FROM employees
+  GROUP BY department
+)
+SELECT e.name, e.salary
+FROM employees e
+JOIN dept_avg d ON d.department = e.department
+WHERE e.salary > d.avg_sal;
+\`\`\`
+
+Why: \`EXPLAIN QUERY PLAN\` on the first form shows a nested SCAN per outer row. The CTE form shows one SCAN of employees for the aggregate, then one SCAN for the outer query. Less work, easier to reason about.
+
+> ⚠️ **Common Mistake:** using \`=\` with a subquery that returns more than one row. SQLite errors; SQL Server errors louder. Use IN for multi-row subqueries; reserve \`=\` for ones guaranteed scalar (MAX, MIN, COUNT, a TOP 1 ORDER BY ...).` },
     examples: [
       { title: "Above-average earners", explanation: "Subquery calculates the average, outer query filters against it", sql: "SELECT name, salary\nFROM employees\nWHERE salary > (SELECT AVG(salary) FROM employees)\nORDER BY salary DESC;" },
       { title: "Employees in high-budget departments", explanation: "Subquery returns a list, IN checks membership", sql: "SELECT name, department\nFROM employees\nWHERE department IN (\n  SELECT name FROM departments WHERE budget > 1000000\n);" },
@@ -747,7 +861,30 @@ WHERE salary > (
 - The outer alias (e) is accessible inside the subquery
 
 ## When To Use This
-Row-by-row comparisons where the filter depends on the current row's context; "above average for their own group" is the classic case.` },
+Row-by-row comparisons where the filter depends on the current row's context; "above average for their own group" is the classic case.
+
+## The slow way vs the fast way
+**Slow:** \`(SELECT COUNT(*) ...) = 0\` to test "does this row have any match." Counts every match before comparing.
+\`\`\`sql
+SELECT e.name
+FROM employees e
+WHERE (
+  SELECT COUNT(*) FROM employee_projects ep
+  WHERE ep.employee_id = e.id
+) = 0;
+\`\`\`
+
+**Fast:** \`NOT EXISTS\` short-circuits at the first match. As soon as one row is found, the subquery stops.
+\`\`\`sql
+SELECT e.name
+FROM employees e
+WHERE NOT EXISTS (
+  SELECT 1 FROM employee_projects ep
+  WHERE ep.employee_id = e.id
+);
+\`\`\`
+
+Why: \`EXISTS\` and \`NOT EXISTS\` are designed to short-circuit, so the engine returns the moment the answer is known. \`COUNT(*) = 0\` always reads every matching row before it can decide.` },
     examples: [
       { title: "Employees above their department average", explanation: "Each employee compared to their own dept average", sql: "SELECT e.name, e.salary, e.department\nFROM employees e\nWHERE e.salary > (\n  SELECT AVG(salary)\n  FROM employees\n  WHERE department = e.department\n)\nORDER BY e.department;" },
       { title: "Most expensive project per department", explanation: "Correlated to find the top project per department", sql: "SELECT p.name, p.budget, d.name AS department\nFROM projects p\nJOIN departments d ON p.dept_id = d.id\nWHERE p.budget = (\n  SELECT MAX(budget)\n  FROM projects\n  WHERE dept_id = d.id\n);" }
@@ -803,7 +940,8 @@ Any time you have a complex query with a subquery. CTEs make it readable.` },
     challenges: [
       { id: "19-1", prompt: "Using a CTE, find all employees who earn above the company average salary.", hint: "WITH avg_cte AS (SELECT AVG(salary) AS avg FROM employees) then JOIN/compare.", expectedColumns: ["name","salary"], validateFn: "return rows.length > 0;", solution: "WITH avg_cte AS (\n  SELECT AVG(salary) AS avg FROM employees\n)\nSELECT e.name, e.salary\nFROM employees e, avg_cte\nWHERE e.salary > avg_cte.avg\nORDER BY e.salary DESC;" },
       { id: "19-2", prompt: "Using a CTE, get the average salary per department, then show only departments where the average exceeds $80,000.", hint: "CTE for dept averages, then filter in the outer SELECT.", expectedColumns: ["department","avg_salary"], validateFn: "return rows.length > 0 && rows.every(r => r.avg_salary > 80000);", solution: "WITH dept_avgs AS (\n  SELECT department, AVG(salary) AS avg_salary\n  FROM employees\n  GROUP BY department\n)\nSELECT department, ROUND(avg_salary, 0) AS avg_salary\nFROM dept_avgs\nWHERE avg_salary > 80000;" },
-      { id: "19-3", prompt: "Using two CTEs: first calculate total payroll per department, then calculate what percentage of company payroll each department represents.", hint: "CTE1 = dept payroll, CTE2 = total company payroll. Join them and divide.", expectedColumns: ["department","payroll","pct_of_total"], validateFn: "return rows.length > 0 && rows[0].pct_of_total > 0;", solution: "WITH\n  dept_payroll AS (\n    SELECT department, SUM(salary) AS payroll FROM employees GROUP BY department\n  ),\n  total AS (\n    SELECT SUM(salary) AS total_payroll FROM employees\n  )\nSELECT department, payroll,\n       ROUND(payroll * 100.0 / total_payroll, 1) AS pct_of_total\nFROM dept_payroll, total\nORDER BY payroll DESC;" }
+      { id: "19-3", prompt: "Using two CTEs: first calculate total payroll per department, then calculate what percentage of company payroll each department represents.", hint: "CTE1 = dept payroll, CTE2 = total company payroll. Join them and divide.", expectedColumns: ["department","payroll","pct_of_total"], validateFn: "return rows.length > 0 && rows[0].pct_of_total > 0;", solution: "WITH\n  dept_payroll AS (\n    SELECT department, SUM(salary) AS payroll FROM employees GROUP BY department\n  ),\n  total AS (\n    SELECT SUM(salary) AS total_payroll FROM employees\n  )\nSELECT department, payroll,\n       ROUND(payroll * 100.0 / total_payroll, 1) AS pct_of_total\nFROM dept_payroll, total\nORDER BY payroll DESC;" },
+      { id: "19-capstone", noHint: true, prompt: "Build a single department-summary report. For every department, return: department name, total payroll, average salary (rounded to a whole number), the name of the highest-paid employee in that department, and that department's share of the company's total payroll as a percentage (one decimal). Sort by total payroll descending. Use CTEs.", expectedColumns: ["department","total_payroll","avg_salary","top_earner","pct_of_total"], validateFn: "if (rows.length === 0) return false; const sumPct = rows.reduce((s,r) => s + Number(r.pct_of_total || 0), 0); return rows.every(r => r.total_payroll > 0 && r.avg_salary > 0 && typeof r.top_earner === 'string' && r.top_earner.length > 0) && Math.abs(sumPct - 100) < 1.5;", solution: "WITH dept_stats AS (\n  SELECT department,\n         SUM(salary) AS total_payroll,\n         AVG(salary) AS avg_salary\n  FROM employees\n  GROUP BY department\n),\nranked_employees AS (\n  SELECT department, name, salary,\n         ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) AS rn\n  FROM employees\n),\ncompany_total AS (\n  SELECT SUM(salary) AS total FROM employees\n)\nSELECT ds.department,\n       ds.total_payroll,\n       ROUND(ds.avg_salary, 0) AS avg_salary,\n       re.name AS top_earner,\n       ROUND(ds.total_payroll * 100.0 / ct.total, 1) AS pct_of_total\nFROM dept_stats ds\nJOIN ranked_employees re ON re.department = ds.department AND re.rn = 1\nCROSS JOIN company_total ct\nORDER BY ds.total_payroll DESC;" }
     ]
   },
 
@@ -814,7 +952,9 @@ Any time you have a complex query with a subquery. CTEs make it readable.` },
     slug: "modifying-data/insert",
     moduleSlug: "modifying-data", lessonSlug: "insert",
     title: "INSERT · Adding Rows", badge: "concept", database: "company",
-    theory: { content: `## Mental Model
+    theory: { content: `> 🎯 **Why This Matters:** Up to now you've only read data. Module 5 is how you change it. The same precision that helped you SELECT cleanly is what keeps you from wrecking the table.
+
+## Mental Model
 INSERT adds new rows to a table. You specify the table, the columns you're filling, and the values for each column in the same order.
 
 ## Syntax
@@ -840,7 +980,9 @@ SELECT * FROM employees WHERE hire_date < '2019-01-01';
 \`\`\`
 
 ## When To Use This
-Adding new records to a table; new employees, new orders, new entries of any kind.` },
+Adding new records to a table; new employees, new orders, new entries of any kind.
+
+> ⚠️ **Common Mistake:** omitting the column list and relying on column order in the table definition. Works until someone adds or reorders a column, at which point your inserts start landing in the wrong slot. Always name the columns explicitly.` },
     examples: [
       { title: "Add one employee", explanation: "Named columns + matching values", sql: "INSERT INTO employees (id, name, department, salary, hire_date, manager_id)\nVALUES (21, 'Alex Torres', 'Engineering', 85000, '2026-01-15', 1);" },
       { title: "Add multiple employees", explanation: "One INSERT, multiple value sets", sql: "INSERT INTO employees (id, name, department, salary, hire_date, manager_id)\nVALUES\n  (22, 'Maria Santos', 'Marketing', 62000, '2026-02-01', 9),\n  (23, 'James Park', 'Sales', 70000, '2026-02-15', 5);" }
@@ -882,7 +1024,9 @@ WHERE department IN (SELECT name FROM departments WHERE budget > 1000000);
 \`\`\`
 
 ## When To Use This
-Correcting data, applying raises/adjustments, changing status fields.` },
+Correcting data, applying raises/adjustments, changing status fields.
+
+> ⚠️ **Common Mistake:** running UPDATE without WHERE. It updates every row. Always write the WHERE first, run a SELECT with the same WHERE to preview which rows are affected, then convert to UPDATE.` },
     examples: [
       { title: "Give one employee a raise", explanation: "Always use WHERE with a specific ID", sql: "UPDATE employees\nSET salary = 130000\nWHERE id = 1;\nSELECT name, salary FROM employees WHERE id = 1;" },
       { title: "10% raise for Engineering", explanation: "Multiply existing value", sql: "UPDATE employees\nSET salary = salary * 1.10\nWHERE department = 'Engineering';\nSELECT name, salary FROM employees WHERE department = 'Engineering';" },
@@ -918,7 +1062,9 @@ WHERE id = 15;
 Instead of actually deleting, many systems add an is_deleted or status column and UPDATE instead of DELETE. Safer, recoverable.
 
 ## When To Use This
-Removing test data, deleting expired records, cleaning up orphaned rows.` },
+Removing test data, deleting expired records, cleaning up orphaned rows.
+
+> ⚠️ **Common Mistake:** DELETE without WHERE wipes the entire table. Run a SELECT with your intended WHERE first to confirm the row count, then convert to DELETE. There is no undo in production.` },
     examples: [
       { title: "Delete one employee", explanation: "Always by specific ID when possible", sql: "DELETE FROM employees WHERE id = 20;\nSELECT COUNT(*) AS remaining FROM employees;" },
       { title: "Delete old project assignments", explanation: "Multiple rows matching a condition", sql: "DELETE FROM employee_projects\nWHERE project_id = 1;\nSELECT COUNT(*) AS remaining FROM employee_projects;" }
@@ -976,7 +1122,9 @@ Any time you have two or more related changes that must succeed or fail together
     slug: "functions/string-functions",
     moduleSlug: "functions", lessonSlug: "string-functions",
     title: "String Functions", badge: "practice", database: "company",
-    theory: { content: `## Mental Model
+    theory: { content: `> 🎯 **Why This Matters:** Real data is messy: weird casing, trailing spaces, dates stored as text. Functions are the cleanup layer. If your output looks fine but your join doesn't match, it's almost always a function-shaped problem.
+
+## Mental Model
 String functions let you manipulate text inside a query; clean it, transform it, extract pieces from it. Essential for messy real-world data.
 
 ## Common Functions (SQLite)
@@ -1165,7 +1313,8 @@ Cleaning NULL values in output, safe division, compact conditional columns.` },
     challenges: [
       { id: "28-1", prompt: "Show each employee's name and manager ID. For those with no manager, show 0 instead of NULL.", hint: "COALESCE(manager_id, 0).", expectedColumns: ["name","manager_id"], validateFn: "return rows.length > 0 && rows.every(r => r.manager_id !== null);", solution: "SELECT name, COALESCE(manager_id, 0) AS manager_id FROM employees;" },
       { id: "28-2", prompt: "Show each employee with a 'tier' column: 'Director' if they have no manager, 'Manager' if their id appears as someone else's manager, 'IC' otherwise.", hint: "Use IIF or CASE; check IS NULL for director, IN subquery for manager.", expectedColumns: ["name","tier"], validateFn: "return rows.length > 0 && rows.some(r => r.tier === 'Director');", solution: "SELECT name,\n  CASE\n    WHEN manager_id IS NULL THEN 'Director'\n    WHEN id IN (SELECT DISTINCT manager_id FROM employees WHERE manager_id IS NOT NULL) THEN 'Manager'\n    ELSE 'IC'\n  END AS tier\nFROM employees;" },
-      { id: "28-3", prompt: "Show the average salary per department. If a department has 0 employees (would cause division by zero), use NULLIF to safely return NULL instead of an error.", hint: "NULLIF(COUNT(*), 0) in the denominator.", expectedColumns: ["department","avg_salary"], validateFn: "return rows.length > 0;", solution: "SELECT department,\n  ROUND(SUM(salary) * 1.0 / NULLIF(COUNT(*), 0), 2) AS avg_salary\nFROM employees\nGROUP BY department;" }
+      { id: "28-3", prompt: "Show the average salary per department. If a department has 0 employees (would cause division by zero), use NULLIF to safely return NULL instead of an error.", hint: "NULLIF(COUNT(*), 0) in the denominator.", expectedColumns: ["department","avg_salary"], validateFn: "return rows.length > 0;", solution: "SELECT department,\n  ROUND(SUM(salary) * 1.0 / NULLIF(COUNT(*), 0), 2) AS avg_salary\nFROM employees\nGROUP BY department;" },
+      { id: "28-capstone", noHint: true, prompt: "Produce a single per-employee report. Columns: name, tier (Director if they have no manager, Senior if salary is at least 90000, Standard otherwise), days_since_hire (integer days from hire_date to today), and risk_flag ('review' if they fall in the bottom quartile of their department's salaries, 'ok' otherwise). Sort by hire_date descending. The whole company should appear.", expectedColumns: ["name","tier","days_since_hire","risk_flag"], validateFn: "if (rows.length === 0) return false; const tiers = new Set(rows.map(r => r.tier)); const flags = new Set(rows.map(r => r.risk_flag)); return tiers.has('Director') && tiers.has('Senior') && tiers.has('Standard') && flags.has('review') && flags.has('ok') && rows.every(r => Number(r.days_since_hire) >= 0);", solution: "WITH dept_quartile AS (\n  SELECT id,\n         NTILE(4) OVER (PARTITION BY department ORDER BY salary ASC) AS q\n  FROM employees\n)\nSELECT e.name,\n  CASE\n    WHEN e.manager_id IS NULL THEN 'Director'\n    WHEN e.salary >= 90000 THEN 'Senior'\n    ELSE 'Standard'\n  END AS tier,\n  CAST(JULIANDAY('now') - JULIANDAY(e.hire_date) AS INTEGER) AS days_since_hire,\n  IIF(dq.q = 1, 'review', 'ok') AS risk_flag\nFROM employees e\nJOIN dept_quartile dq ON dq.id = e.id\nORDER BY e.hire_date DESC;" }
     ]
   },
 
@@ -1180,7 +1329,9 @@ Cleaning NULL values in output, safe division, compact conditional columns.` },
     slug: "window-functions/ranking-functions",
     moduleSlug: "window-functions", lessonSlug: "ranking-functions",
     title: "ROW_NUMBER, RANK, DENSE_RANK", badge: "challenge", database: "company",
-    theory: { content: `## Mental Model
+    theory: { content: `> 🎯 **Why This Matters:** Window functions are the single biggest pedagogical jump in SQL. Most analyst job posts in 2026 want them. Top-N per group, running totals, period-over-period; all of it is window functions.
+
+## Mental Model
 Window functions add a new column to every row without collapsing the table. GROUP BY loses individual rows. Window functions keep them all and add computed values alongside.
 
 ## The Three Ranking Functions
@@ -1205,7 +1356,35 @@ FROM employees;
 \`\`\`
 
 ## When To Use This
-Leaderboards, finding top-N per group, paginating sorted results, deduplication (keep only row_number = 1 per group).` },
+Leaderboards, finding top-N per group, paginating sorted results, deduplication (keep only row_number = 1 per group).
+
+## The slow way vs the fast way
+**Slow:** the classic pre-window-function trick of "count how many rows beat me" with a self-join. O(n²) within each group.
+\`\`\`sql
+SELECT e1.name, e1.department, e1.salary
+FROM employees e1
+WHERE (
+  SELECT COUNT(*) FROM employees e2
+  WHERE e2.department = e1.department
+    AND e2.salary > e1.salary
+) < 3;
+\`\`\`
+
+**Fast:** a single pass with \`ROW_NUMBER() OVER (PARTITION BY ...)\`. One sort per partition, no self-join.
+\`\`\`sql
+SELECT name, department, salary
+FROM (
+  SELECT name, department, salary,
+    ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) AS rn
+  FROM employees
+) t
+WHERE rn <= 3;
+\`\`\`
+
+Why: window functions exist specifically so you don't have to self-join. \`EXPLAIN QUERY PLAN\` on the self-join shows a SCAN of employees inside another SCAN; the window-function form shows a single SCAN plus a sort.
+
+## See also
+The pandas equivalent for ranking inside a group is \`df.groupby(...).rank()\` or \`groupby + transform\`. For running totals it's \`Series.rolling\` or \`.cumsum\`. Cross-reference on damato-python at [/learn/functions-apply/custom-aggregations](https://damato-python.vercel.app/learn/functions-apply/custom-aggregations).` },
     examples: [
       { title: "Rank all employees by salary", explanation: "Three ranking functions side-by-side to see the difference", sql: "SELECT name, salary,\n  ROW_NUMBER() OVER (ORDER BY salary DESC) AS row_num,\n  RANK()       OVER (ORDER BY salary DESC) AS rnk,\n  DENSE_RANK() OVER (ORDER BY salary DESC) AS dense_rnk\nFROM employees;" },
       { title: "Top 3 earners using ROW_NUMBER", explanation: "Wrap in subquery and filter on row_num", sql: "SELECT name, salary, row_num\nFROM (\n  SELECT name, salary,\n    ROW_NUMBER() OVER (ORDER BY salary DESC) AS row_num\n  FROM employees\n) ranked\nWHERE row_num <= 3;" }
@@ -1369,7 +1548,9 @@ Showing the best/worst alongside every row, "what was the first hire in this dep
     slug: "database-objects/views",
     moduleSlug: "database-objects", lessonSlug: "views",
     title: "Views", badge: "practice", database: "company",
-    theory: { content: `## Mental Model
+    theory: { content: `> 🎯 **Why This Matters:** Database objects (views, indexes, procedures, triggers, UDFs) are how a query stops being something one person ran once and becomes something the whole org depends on. This module is how SQL goes from script to system.
+
+## Mental Model
 A view is a saved query with a name. You create it once, then query it like a table. It doesn't store data; it runs the query every time you SELECT from it. Think of it as a shortcut or a named lens on your data.
 
 ## Syntax
@@ -1577,7 +1758,9 @@ Complex logic you'd repeat in many queries, calculations that need to stay consi
     slug: "advanced/recursive-ctes",
     moduleSlug: "advanced", lessonSlug: "recursive-ctes",
     title: "Recursive CTEs", badge: "challenge", database: "company",
-    theory: { content: `## Mental Model
+    theory: { content: `> 🎯 **Why This Matters:** Module 9 is the patterns that come up in real jobs but rarely in courses: recursion, pivot, query optimization, the deduplication and top-N tricks. If you only know module 9 stuff you're already shippable.
+
+## Mental Model
 A recursive CTE calls itself; like a loop. It has an anchor (the starting point) and a recursive member (the step that builds on the previous result). It keeps going until no new rows are produced.
 
 ## Syntax
@@ -1754,7 +1937,8 @@ WHERE row_num <= 3  -- filter on ROW_NUMBER() OVER (PARTITION BY group ORDER BY 
     challenges: [
       { id: "42-1", prompt: "Get the top 2 highest-paid employees from each department.", hint: "ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC), filter WHERE rn <= 2.", expectedColumns: ["name","department","salary"], validateFn: "return rows.length > 0;", solution: "SELECT name, department, salary\nFROM (\n  SELECT name, department, salary,\n    ROW_NUMBER() OVER (PARTITION BY department ORDER BY salary DESC) AS rn\n  FROM employees\n) t\nWHERE rn <= 2\nORDER BY department, salary DESC;" },
       { id: "42-2", prompt: "Show a running total of employees hired over time (by hire date). Show each hire date and the cumulative headcount at that point.", hint: "COUNT(*) OVER (ORDER BY hire_date).", expectedColumns: ["hire_date","name","running_total"], validateFn: "return rows.length > 0 && rows[rows.length-1].running_total > 1;", solution: "SELECT hire_date, name,\n  COUNT(*) OVER (ORDER BY hire_date, id) AS running_total\nFROM employees\nORDER BY hire_date;" },
-      { id: "42-3", prompt: "Write a query that identifies employees who have no project assignment AND earn above the company average salary; these might be underutilized high performers.", hint: "LEFT JOIN employee_projects, WHERE ep.employee_id IS NULL AND salary > (SELECT AVG...).", expectedColumns: ["name","department","salary"], validateFn: "return rows.length >= 0;", solution: "SELECT e.name, e.department, e.salary\nFROM employees e\nLEFT JOIN employee_projects ep ON e.id = ep.employee_id\nWHERE ep.employee_id IS NULL\n  AND e.salary > (SELECT AVG(salary) FROM employees)\nORDER BY e.salary DESC;" }
+      { id: "42-3", prompt: "Write a query that identifies employees who have no project assignment AND earn above the company average salary; these might be underutilized high performers.", hint: "LEFT JOIN employee_projects, WHERE ep.employee_id IS NULL AND salary > (SELECT AVG...).", expectedColumns: ["name","department","salary"], validateFn: "return rows.length >= 0;", solution: "SELECT e.name, e.department, e.salary\nFROM employees e\nLEFT JOIN employee_projects ep ON e.id = ep.employee_id\nWHERE ep.employee_id IS NULL\n  AND e.salary > (SELECT AVG(salary) FROM employees)\nORDER BY e.salary DESC;" },
+      { id: "42-capstone", noHint: true, prompt: "Find every employee who is all three of these at once: in the top half of salary in their department, has at least one project assignment, and was hired after their department's average hire date. Return name, department, salary, project_count, and days_after_dept_avg (integer days between their hire date and the department average). Sort by department, then salary descending.", expectedColumns: ["name","department","salary","project_count","days_after_dept_avg"], validateFn: "if (rows.length === 0) return false; return rows.every(r => Number(r.project_count) >= 1 && Number(r.days_after_dept_avg) > 0 && r.salary > 0);", solution: "WITH ranked AS (\n  SELECT e.id, e.name, e.department, e.salary, e.hire_date,\n         NTILE(2) OVER (PARTITION BY e.department ORDER BY e.salary DESC) AS half_rank,\n         AVG(JULIANDAY(e.hire_date)) OVER (PARTITION BY e.department) AS dept_avg_jd\n  FROM employees e\n),\nproject_counts AS (\n  SELECT employee_id, COUNT(*) AS project_count\n  FROM employee_projects\n  GROUP BY employee_id\n)\nSELECT r.name, r.department, r.salary,\n       pc.project_count,\n       CAST(JULIANDAY(r.hire_date) - r.dept_avg_jd AS INTEGER) AS days_after_dept_avg\nFROM ranked r\nJOIN project_counts pc ON pc.employee_id = r.id\nWHERE r.half_rank = 1\n  AND JULIANDAY(r.hire_date) > r.dept_avg_jd\nORDER BY r.department, r.salary DESC;" }
     ]
   },
 
