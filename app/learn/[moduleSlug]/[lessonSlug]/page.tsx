@@ -166,8 +166,10 @@ export default function LessonPage({ params }: LessonPageProps) {
     return s;
   })();
 
-  const allChallengesDone =
+  const allChallengesDoneThisSession =
     hasChallenges && completedChallengeIds.size === totalChallenges;
+  const showNextLessonCard =
+    allChallengesDoneThisSession || (hasChallenges && isAlreadyComplete);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -361,7 +363,7 @@ export default function LessonPage({ params }: LessonPageProps) {
                 </div>
               )}
 
-              {allChallengesDone && nextLesson && (
+              {showNextLessonCard && nextLesson && (
                 <NextLessonCard
                   nextLesson={{
                     lessonSlug: nextLesson.lessonSlug,
@@ -370,7 +372,7 @@ export default function LessonPage({ params }: LessonPageProps) {
                   }}
                 />
               )}
-              {allChallengesDone && !nextLesson && <NextLessonCard nextLesson={null} />}
+              {showNextLessonCard && !nextLesson && <NextLessonCard nextLesson={null} />}
             </div>
           )}
 

@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from 'react';
 
-export type DockTool = "schema" | "cheatsheet" | "tutor";
+export type DockTool = 'schema' | 'cheatsheet' | 'tutor';
 
 interface LessonToolDockProps {
   tools: DockTool[];
@@ -12,12 +12,12 @@ interface LessonToolDockProps {
 }
 
 const LABELS: Record<DockTool, string> = {
-  schema: "$ schema",
-  cheatsheet: "$ cheatsheet.sql",
-  tutor: "$ ./ai-tutor",
+  schema: '$ schema',
+  cheatsheet: '$ cheatsheet.sql',
+  tutor: '$ ./ai-tutor',
 };
 
-const PULSE_SEEN_KEY = "sql-mastery-tutor-seen";
+const PULSE_SEEN_KEY = 'sql-mastery-tutor-seen';
 
 export default function LessonToolDock({ tools, open, onOpen, children }: LessonToolDockProps) {
   const [expanded, setExpanded] = useState(false);
@@ -49,7 +49,7 @@ export default function LessonToolDock({ tools, open, onOpen, children }: Lesson
         <div
           data-tour-target="tutor"
           className={`fixed bottom-4 right-4 z-40 font-mono text-xs border bg-slate-950/95 backdrop-blur rounded shadow-2xl overflow-hidden ${
-            pulse ? "border-indigo-400 ring-2 ring-indigo-400/60 animate-pulse" : "border-slate-800"
+            pulse ? 'border-indigo-400 ring-2 ring-indigo-400/60 animate-pulse motion-reduce:animate-none' : 'border-slate-800'
           }`}
           role="region"
           aria-label="lesson tools"
@@ -60,22 +60,23 @@ export default function LessonToolDock({ tools, open, onOpen, children }: Lesson
               setExpanded((e) => !e);
               setPulse(false);
               try {
-                localStorage.setItem(PULSE_SEEN_KEY, "1");
+                localStorage.setItem(PULSE_SEEN_KEY, '1');
               } catch {
                 // ignore
               }
             }}
             className="w-full flex items-center justify-between gap-3 px-3 py-1.5 hover:bg-slate-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
             aria-expanded={expanded}
-            aria-label={expanded ? "collapse tools" : "expand tools"}
+            aria-controls="lesson-tool-dock-list"
+            aria-label={expanded ? 'collapse tools' : 'expand tools'}
           >
             <span className="text-indigo-400">$</span>
             <span className="text-slate-300">tools</span>
-            <span className="text-slate-500">{expanded ? "▾" : "▸"}</span>
+            <span className="text-slate-500" aria-hidden="true">{expanded ? '▾' : '▸'}</span>
           </button>
 
           {expanded && (
-            <ul className="border-t border-slate-800 divide-y divide-slate-800/60">
+            <ul id="lesson-tool-dock-list" className="border-t border-slate-800 divide-y divide-slate-800/60">
               {tools.map((t) => (
                 <li key={t}>
                   <button

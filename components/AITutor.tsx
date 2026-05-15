@@ -172,7 +172,12 @@ export default function AITutor({
               ))}
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 text-xs">
+          <div
+            className="flex-1 overflow-y-auto p-3 space-y-3 text-xs"
+            role="log"
+            aria-live="polite"
+            aria-label="tutor conversation"
+          >
             {messages.length === 0 && (
               <p className="text-slate-500 py-4 leading-relaxed">
                 # ask in your own words. i&apos;ll point at the next move, i won&apos;t write the solution.
@@ -191,7 +196,10 @@ export default function AITutor({
             ))}
 
             {isLoading && (
-              <p className="text-slate-500">tutor $ <span className="terminal-cursor inline-block w-2 h-3 align-text-bottom bg-slate-500" aria-hidden="true" /></p>
+              <p className="text-slate-500" role="status" aria-live="polite">
+                tutor $ <span className="terminal-cursor inline-block w-2 h-3 align-text-bottom bg-slate-500" aria-hidden="true" />
+                <span className="sr-only">thinking</span>
+              </p>
             )}
 
             <div ref={messagesEndRef} />

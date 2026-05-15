@@ -35,7 +35,7 @@ export default function LessonAnchorNav({ sections }: LessonAnchorNavProps) {
 
   return (
     <nav
-      id="lesson-anchor-nav"
+      data-tour-target="anchor-nav"
       aria-label="lesson sections"
       className="sticky top-[88px] z-30 -mx-6 px-6 py-2 bg-slate-950/95 backdrop-blur border-b border-slate-800/60 font-mono text-xs"
     >
@@ -47,14 +47,14 @@ export default function LessonAnchorNav({ sections }: LessonAnchorNavProps) {
               <a
                 href={`#${s.id}`}
                 className={`inline-flex items-baseline gap-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded ${
-                  active ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-200'
+                  active ? 'text-indigo-400' : 'text-slate-300 hover:text-slate-100'
                 }`}
                 aria-current={active ? 'true' : undefined}
               >
                 <span aria-hidden="true">{active ? '>' : ' '}</span>
                 <span>{s.label}</span>
                 {s.badge && (
-                  <span className="text-[10px] text-slate-600">[{s.badge}]</span>
+                  <span className="text-[10px] text-slate-400">[{s.badge}]</span>
                 )}
               </a>
             </li>

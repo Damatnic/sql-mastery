@@ -67,8 +67,11 @@ export default function ChallengeBlock({
     }
   }, [challenge.id]);
 
+  const expandTriggerRef = useRef<HTMLButtonElement | null>(null);
+
   useEffect(() => {
     if (!expanded) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setExpanded(false);
     };
@@ -77,36 +80,46 @@ export default function ChallengeBlock({
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
+      // restore focus to expand trigger or previously focused element
+      (expandTriggerRef.current ?? previouslyFocused)?.focus?.();
     };
   }, [expanded]);
 
-  const onResizeMouseDown = useCallback(
-    (e: React.MouseEvent) => {
+  const onResizePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLButtonElement>) => {
       e.preventDefault();
+      const target = e.currentTarget;
+      target.setPointerCapture?.(e.pointerId);
       dragOriginRef.current = { startY: e.clientY, startHeight: editorHeight };
-      const onMove = (ev: MouseEvent) => {
+      const onMove = (ev: PointerEvent) => {
         if (!dragOriginRef.current) return;
         const delta = ev.clientY - dragOriginRef.current.startY;
         const next = Math.max(100, Math.min(800, dragOriginRef.current.startHeight + delta));
         setEditorHeight(next);
       };
       const onUp = () => {
-        if (dragOriginRef.current) {
-          try {
-            localStorage.setItem(`sql-mastery-editor-h-${challenge.id}`, String(editorHeight));
-          } catch {
-            // ignore
-          }
-        }
         dragOriginRef.current = null;
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
+        target.removeEventListener('pointermove', onMove);
+        target.removeEventListener('pointerup', onUp);
+        target.removeEventListener('pointercancel', onUp);
       };
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
+      target.addEventListener('pointermove', onMove);
+      target.addEventListener('pointerup', onUp);
+      target.addEventListener('pointercancel', onUp);
     },
-    [editorHeight, challenge.id],
+    [editorHeight],
   );
+
+  const onResizeKeyDown = useCallback((e: React.KeyboardEvent<HTMLButtonElement>) => {
+    const step = e.shiftKey ? 40 : 20;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setEditorHeight((h) => Math.min(800, h + step));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setEditorHeight((h) => Math.max(100, h - step));
+    }
+  }, []);
 
   useEffect(() => {
     try {
@@ -284,23 +297,30 @@ export default function ChallengeBlock({
           />
           <div className="flex items-center justify-between -mt-px border-x border-b border-slate-800 bg-slate-900/60 rounded-b">
             <button
+              ref={expandTriggerRef}
               type="button"
               onClick={() => setExpanded(true)}
-              className="px-3 py-1 font-mono text-[11px] text-slate-500 hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+              className="px-3 py-1 font-mono text-[11px] text-slate-400 hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
               aria-label="expand editor"
             >
               [ expand ]
             </button>
             <button
               type="button"
-              onMouseDown={onResizeMouseDown}
-              className="px-3 py-1 font-mono text-[11px] text-slate-500 hover:text-slate-200 cursor-ns-resize select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
-              aria-label="drag to resize editor height"
-              title="drag to resize"
+              onPointerDown={onResizePointerDown}
+              onKeyDown={onResizeKeyDown}
+              role="slider"
+              aria-label="editor height"
+              aria-valuemin={100}
+              aria-valuemax={800}
+              aria-valuenow={editorHeight}
+              aria-valuetext={`${editorHeight} pixels`}
+              className="px-3 py-1 font-mono text-[11px] text-slate-400 hover:text-slate-100 cursor-ns-resize select-none touch-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              title="drag, or use arrow keys to resize"
             >
               ─ drag to resize ─
             </button>
-            <span className="px-3 py-1 font-mono text-[10px] text-slate-600">
+            <span className="px-3 py-1 font-mono text-[10px] text-slate-500" aria-hidden="true">
               {editorHeight}px
             </span>
           </div>
