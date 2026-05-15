@@ -239,7 +239,7 @@ FROM table;
     slug: "data-analysis/aggregate-functions",
     moduleSlug: "data-analysis", lessonSlug: "aggregate-functions",
     title: "Aggregate Functions", badge: "concept", database: "company",
-    theory: { content: `> 🎯 **Why This Matters:** Aggregates are how analysts answer business questions. "How many," "how much," "what's the average" — every dashboard ships these. Module 2 is the move from reading data to answering questions about it.
+    theory: { content: `> 🎯 **Why This Matters:** Aggregates are how analysts answer business questions. "How many," "how much," "what's the average" all show up on every dashboard. Module 2 is the move from reading data to answering questions about it.
 
 Aggregate functions collapse many rows into a single number. Instead of listing 20 salaries, COUNT tells you there are 20. SUM adds them all up. AVG gives the average. They answer the "how many / how much total / what's the average" questions.
 
