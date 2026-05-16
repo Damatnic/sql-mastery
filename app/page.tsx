@@ -36,20 +36,20 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 font-mono text-sm">
+    <div className="min-h-screen flex flex-col bg-background text-foreground font-mono text-sm">
       <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12 sm:py-16">
         <section className="flex flex-wrap items-baseline justify-between gap-3">
           <div className="flex-1 min-w-0">
             <HomeTerminal modules={modules} />
           </div>
-          <p className="text-xs text-slate-500">
-            // type <span className="text-slate-300">help</span> · ↑↓ history · tab completes
+          <p className="text-xs text-muted-foreground">
+            // type <span className="text-foreground/80">help</span> · ↑↓ history · tab completes
           </p>
         </section>
 
         <section className="mt-8">
-          <p className="text-xs uppercase tracking-widest text-slate-500"># modules</p>
-          <ul className="mt-3 border-y border-slate-800/60 divide-y divide-slate-800/40">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground"># modules</p>
+          <ul className="mt-3 border-y border-border/60 divide-y divide-border/40">
             {modules.map((m) => {
               const doneCount = Array.from(completed).filter((k) =>
                 k === m.slug || k.startsWith(`${m.slug}/`)
@@ -60,25 +60,25 @@ export default function HomePage() {
                 ? "✓ complete"
                 : `${doneCount}/${m.lessons}`;
               const statusClass = doneCount >= m.lessons
-                ? "text-emerald-400"
+                ? "text-success"
                 : doneCount > 0
-                ? "text-indigo-400"
-                : "text-slate-500";
+                ? "text-accent"
+                : "text-muted-foreground";
               return (
                 <li key={m.slug}>
                   <Link
                     href={`/learn/${m.slug}/${m.firstLesson}`}
-                    className="group grid grid-cols-[2.5rem_minmax(0,1fr)_5rem_7rem_1rem] gap-3 items-center py-2 px-2 -mx-2 rounded hover:bg-slate-900/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+                    className="group grid grid-cols-[2.5rem_minmax(0,1fr)_5rem_7rem_1rem] gap-3 items-center py-2 px-2 -mx-2 rounded hover:bg-card/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     aria-label={`Open module ${m.title}`}
                   >
-                    <span className="text-slate-500">{m.num}</span>
+                    <span className="text-muted-foreground">{m.num}</span>
                     <span className="min-w-0 truncate">
-                      <span className="text-slate-100">modules/{m.title}/</span>
-                      <span className="text-slate-500 hidden md:inline">  {m.desc}</span>
+                      <span className="text-foreground">modules/{m.title}/</span>
+                      <span className="text-muted-foreground hidden md:inline">  {m.desc}</span>
                     </span>
-                    <span className="text-slate-500 text-xs">{m.lessons} lessons</span>
+                    <span className="text-muted-foreground text-xs">{m.lessons} lessons</span>
                     <span className={`text-xs ${statusClass}`}>{status}</span>
-                    <span className="text-slate-500 group-hover:text-indigo-400 transition-colors">→</span>
+                    <span className="text-muted-foreground group-hover:text-accent transition-colors">→</span>
                   </Link>
                 </li>
               );
@@ -88,44 +88,44 @@ export default function HomePage() {
 
         <section className="mt-10 grid sm:grid-cols-3 gap-4">
           <div>
-            <p className="text-xs uppercase tracking-widest text-slate-500"># playground</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground"># playground</p>
             <Link
               href="/playground"
-              className="mt-3 block py-2 px-2 -mx-2 rounded hover:bg-slate-900/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              className="mt-3 block py-2 px-2 -mx-2 rounded hover:bg-card/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <span className="text-slate-100">playground/</span>
-              <span className="ml-3 text-slate-500">→</span>
+              <span className="text-foreground">playground/</span>
+              <span className="ml-3 text-muted-foreground">→</span>
             </Link>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-widest text-slate-500"># projects</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground"># projects</p>
             <Link
               href="/projects"
-              className="mt-3 block py-2 px-2 -mx-2 rounded hover:bg-slate-900/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              className="mt-3 block py-2 px-2 -mx-2 rounded hover:bg-card/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <span className="text-slate-100">projects/</span>
-              <span className="ml-3 text-slate-500">→</span>
+              <span className="text-foreground">projects/</span>
+              <span className="ml-3 text-muted-foreground">→</span>
             </Link>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-widest text-slate-500"># stats</p>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground"># stats</p>
             <Link
               href="/stats"
-              className="mt-3 block py-2 px-2 -mx-2 rounded hover:bg-slate-900/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              className="mt-3 block py-2 px-2 -mx-2 rounded hover:bg-card/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <span className="text-slate-100">stats/</span>
-              <span className="ml-3 text-slate-500">→</span>
+              <span className="text-foreground">stats/</span>
+              <span className="ml-3 text-muted-foreground">→</span>
             </Link>
           </div>
         </section>
       </main>
 
-      <footer className="border-t border-slate-800/60 py-5 text-xs">
-        <div className="max-w-3xl mx-auto px-6 flex flex-wrap items-center justify-between gap-3 text-slate-500">
+      <footer className="border-t border-border/60 py-5 text-xs">
+        <div className="max-w-3xl mx-auto px-6 flex flex-wrap items-center justify-between gap-3 text-muted-foreground">
           <span>
-            <span className="text-emerald-400">exit 0</span> · personal use · next.js + sql.js
+            <span className="text-success">exit 0</span> · personal use · next.js + sql.js
           </span>
-          <Link href="/playground" className="hover:text-slate-100 transition-colors">playground/</Link>
+          <Link href="/playground" className="hover:text-foreground transition-colors">playground/</Link>
         </div>
       </footer>
     </div>
