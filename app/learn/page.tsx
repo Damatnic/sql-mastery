@@ -14,17 +14,17 @@ export default function LearnPage() {
   const completedCount = completedLessons.length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
-      <header className="border-b border-slate-800/60">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <header className="border-b border-border/60">
         <div className="max-w-5xl mx-auto px-6 py-3 flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-          <Link href="/" className="text-slate-400 hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded">
-            <span className="text-indigo-400">$</span> cd ~
+          <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded">
+            <span className="text-accent">$</span> cd ~
           </Link>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <span className="text-slate-100">&gt; lessons</span>
-            <Link href="/projects" className="text-slate-400 hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded">projects</Link>
-            <Link href="/playground" className="text-slate-400 hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded">playground</Link>
-            <Link href="/stats" className="text-slate-400 hover:text-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 rounded">stats</Link>
+            <span className="text-foreground">&gt; lessons</span>
+            <Link href="/projects" className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded">projects</Link>
+            <Link href="/playground" className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded">playground</Link>
+            <Link href="/stats" className="text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded">stats</Link>
             <XPBadge />
           </div>
         </div>

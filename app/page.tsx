@@ -128,7 +128,17 @@ export default function HomePage() {
           <span>
             <span className="text-success">exit 0</span> · personal use · next.js + sql.js
           </span>
-          <Link href="/playground" className="hover:text-foreground transition-colors">playground/</Link>
+          <span className="flex flex-wrap gap-x-3 gap-y-1">
+            <Link href="/playground" className="hover:text-foreground transition-colors">playground/</Link>
+            <a
+              href="https://python-practice-omega.vercel.app"
+              className="hover:text-foreground transition-colors"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              practice/
+            </a>
+          </span>
         </div>
       </footer>
     </div>
