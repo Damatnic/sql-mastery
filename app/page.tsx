@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import HomeTerminal from "@/components/HomeTerminal";
 
 const modules = [
@@ -21,19 +21,20 @@ interface PersistedProgress {
   state?: { completedLessons?: string[] };
 }
 
-export default function HomePage() {
-  const [completed, setCompleted] = useState<Set<string>>(new Set());
+function loadCompletedLessons(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem("sql-mastery-progress");
+    if (!raw) return new Set();
+    const parsed: PersistedProgress = JSON.parse(raw);
+    return new Set(parsed.state?.completedLessons ?? []);
+  } catch {
+    return new Set();
+  }
+}
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("sql-mastery-progress");
-      if (raw) {
-        const parsed: PersistedProgress = JSON.parse(raw);
-        const list = parsed.state?.completedLessons ?? [];
-        setCompleted(new Set(list));
-      }
-    } catch {}
-  }, []);
+export default function HomePage() {
+  const [completed] = useState(loadCompletedLessons);
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground font-mono text-sm">
@@ -43,7 +44,9 @@ export default function HomePage() {
             <HomeTerminal modules={modules} />
           </div>
           <p className="text-xs text-muted-foreground">
-            // type <span className="text-foreground/80">help</span> · ↑↓ history · tab completes
+            {'// type '}
+            <span className="text-foreground/80">help</span>
+            {' · ↑↓ history · tab completes'}
           </p>
         </section>
 
