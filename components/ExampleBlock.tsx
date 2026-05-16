@@ -6,6 +6,7 @@ import SQLEditor from './SQLEditor';
 import ResultsTable from './ResultsTable';
 import { runQuery, type QueryResponse } from '@/lib/db';
 import type { Database as SqlJsDatabase } from 'sql.js';
+import { useLearn } from '@/lib/mode';
 
 interface Example {
   title: string;
@@ -25,6 +26,9 @@ export default function ExampleBlock({ example, database, index, onQueryChange }
   const [result, setResult] = useState<QueryResponse | null>(null);
   const [executionTime, setExecutionTime] = useState<number | undefined>();
   const [copied, setCopied] = useState(false);
+  const learn = useLearn();
+  const [revealed, setRevealed] = useState(false);
+  const showExplanation = !learn || revealed;
 
   const handleChange = useCallback((val: string) => {
     setQuery(val);
@@ -83,7 +87,21 @@ export default function ExampleBlock({ example, database, index, onQueryChange }
         </button>
       </div>
       <h3 className="font-semibold text-white mb-1">{example.title}</h3>
-      <p className="text-slate-400 text-sm mb-4">{example.explanation}</p>
+      {showExplanation ? (
+        <p className="text-slate-400 text-sm mb-4">{example.explanation}</p>
+      ) : (
+        <div className="mb-4">
+          <p className="text-slate-500 text-xs mb-2">
+            predict the result from the SQL, then reveal.
+          </p>
+          <button
+            onClick={() => setRevealed(true)}
+            className="px-2 py-1 rounded border border-slate-700 text-xs text-indigo-400 hover:border-indigo-400/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+          >
+            reveal explanation →
+          </button>
+        </div>
+      )}
       <SQLEditor
         value={query}
         onChange={handleChange}

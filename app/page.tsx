@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import HomeTerminal from "@/components/HomeTerminal";
+import { useShowcase } from "@/lib/mode";
 
 const modules = [
   { num: "01", slug: "getting-started", firstLesson: "select-basics", title: "getting-started", desc: "SELECT, WHERE, ORDER BY.", lessons: 5 },
@@ -15,6 +16,7 @@ const modules = [
   { num: "08", slug: "database-objects", firstLesson: "views", title: "database-objects", desc: "Views, indexes, constraints.", lessons: 5 },
   { num: "09", slug: "advanced", firstLesson: "recursive-ctes", title: "advanced", desc: "Recursive CTEs, pivot, optimization.", lessons: 4 },
   { num: "10", slug: "school-advanced", firstLesson: "stored-procedures", title: "school-advanced", desc: "Course notes: procs, dynamic SQL, JSON.", lessons: 10 },
+  { num: "11", slug: "set-design", firstLesson: "set-operations", title: "set-design", desc: "UNION/INTERSECT/EXCEPT, normalization, keys.", lessons: 3 },
 ];
 
 interface PersistedProgress {
@@ -35,6 +37,7 @@ function loadCompletedLessons(): Set<string> {
 
 export default function HomePage() {
   const [completed] = useState(loadCompletedLessons);
+  const showcase = useShowcase();
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground font-mono text-sm">
@@ -54,9 +57,11 @@ export default function HomePage() {
           <p className="text-xs uppercase tracking-widest text-muted-foreground"># modules</p>
           <ul className="mt-3 border-y border-border/60 divide-y divide-border/40">
             {modules.map((m) => {
-              const doneCount = Array.from(completed).filter((k) =>
-                k === m.slug || k.startsWith(`${m.slug}/`)
-              ).length;
+              const doneCount = showcase
+                ? m.lessons
+                : Array.from(completed).filter((k) =>
+                    k === m.slug || k.startsWith(`${m.slug}/`)
+                  ).length;
               const status = doneCount === 0
                 ? "─"
                 : doneCount >= m.lessons

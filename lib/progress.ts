@@ -1,5 +1,39 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { isShowcase } from '@/lib/mode';
+
+// Spaced repetition: a completed lesson is due immediately, then the gap
+// widens each time it's reviewed: +1d -> +3d -> +7d -> +16d -> +35d.
+const DAY = 86_400_000;
+export const SRS_INTERVALS_DAYS = [1, 3, 7, 16, 35];
+
+export interface ReviewState {
+  at: string;
+  box: number;
+}
+
+function normalizeReview(v: ReviewState | string | undefined): ReviewState | null {
+  if (!v) return null;
+  if (typeof v === 'string') return { at: v, box: 0 };
+  if (typeof v.at === 'string' && typeof v.box === 'number') return v;
+  return null;
+}
+
+export function isLessonDue(
+  slug: string,
+  reviewedAt: Record<string, ReviewState | string>,
+): boolean {
+  const r = normalizeReview(reviewedAt[slug]);
+  if (!r) return true;
+  return Date.now() >= new Date(r.at).getTime() + SRS_INTERVALS_DAYS[r.box] * DAY;
+}
+
+export function getDueLessons(
+  completed: string[],
+  reviewedAt: Record<string, ReviewState | string>,
+): string[] {
+  return completed.filter((s) => isLessonDue(s, reviewedAt));
+}
 
 interface ProgressState {
   completedLessons: string[];
@@ -7,7 +41,7 @@ interface ProgressState {
   streak: number;
   maxStreak: number;
   lastActivity: string;
-  reviewedAt: Record<string, string>;
+  reviewedAt: Record<string, ReviewState>;
 
   completeLesson: (slug: string) => void;
   addXP: (amount: number) => void;
@@ -49,6 +83,7 @@ export const useProgressStore = create<ProgressState>()(
       reviewedAt: {},
 
       completeLesson: (slug: string) => {
+        if (isShowcase()) return;
         const state = get();
 
         if (state.completedLessons.includes(slug)) {
@@ -67,6 +102,7 @@ export const useProgressStore = create<ProgressState>()(
       },
 
       addXP: (amount: number) => {
+        if (isShowcase()) return;
         const state = get();
         const newStreak = calculateStreak(state.lastActivity, state.streak);
 
@@ -79,17 +115,29 @@ export const useProgressStore = create<ProgressState>()(
       },
 
       markReviewed: (slug: string) => {
+        if (isShowcase()) return;
         const state = get();
+        const cur = normalizeReview(state.reviewedAt[slug]);
+        // Don't inflate the interval by reopening a lesson that isn't due yet.
+        if (cur && !isLessonDue(slug, state.reviewedAt)) return;
+        const nextBox = cur
+          ? Math.min(cur.box + 1, SRS_INTERVALS_DAYS.length - 1)
+          : 0;
         set({
-          reviewedAt: { ...state.reviewedAt, [slug]: new Date().toISOString() },
+          reviewedAt: {
+            ...state.reviewedAt,
+            [slug]: { at: new Date().toISOString(), box: nextBox },
+          },
         });
       },
 
       isLessonCompleted: (slug: string) => {
+        if (isShowcase()) return true;
         return get().completedLessons.includes(slug);
       },
 
       getModuleProgress: (moduleSlug: string, totalLessons: number) => {
+        if (isShowcase()) return 100;
         const completedInModule = get().completedLessons.filter(
           slug => slug.startsWith(`${moduleSlug}/`)
         ).length;

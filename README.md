@@ -1,6 +1,6 @@
 # SQL Mastery
 
-Interactive SQL learning platform. Write real queries against real databases in the browser. 52 lessons across 10 modules, with an AI tutor that helps when you get stuck.
+Interactive SQL learning platform. Write real queries against real databases in the browser. 55 lessons across 11 modules, with an AI tutor that helps when you get stuck.
 
 **Live site:** [damato-sql.vercel.app](https://damato-sql.vercel.app)
 
@@ -14,7 +14,7 @@ Interactive SQL learning platform. Write real queries against real databases in 
 - **Schema viewer.** See the tables and columns alongside the editor so you don't have to keep guessing what's available.
 - **Progress + XP + streaks.** Standard gamification to keep momentum going.
 
-## Curriculum (10 modules, 52 lessons)
+## Curriculum (11 modules, 55 lessons)
 
 | Module | Topic | Lessons |
 |---|---|---|

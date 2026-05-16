@@ -23,6 +23,7 @@ const moduleNumbers: Record<string, number> = {
   'database-objects': 8,
   'advanced': 9,
   'school-advanced': 10,
+  'set-design': 11,
 };
 
 export default function ModuleCard({ module, lessonCount, firstLessonSlug }: ModuleCardProps) {

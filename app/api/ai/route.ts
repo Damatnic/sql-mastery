@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { SCHEMA_DESCRIPTIONS } from '@/lib/databases';
+import { clientIp, rateLimit } from '@/lib/rate-limit';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy so a keyless deploy degrades gracefully instead of crashing at import.
+let _openai: OpenAI | null = null;
+function getOpenAI(): OpenAI | null {
+  if (_openai) return _openai;
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return null;
+  _openai = new OpenAI({ apiKey });
+  return _openai;
+}
 
 interface AIRequest {
   messages: Array<{ role: 'user' | 'assistant'; content: string }>;
@@ -38,13 +45,22 @@ Current context:
 
 export async function POST(request: NextRequest) {
   try {
+    const limit = rateLimit(clientIp(request));
+    if (!limit.ok) {
+      return NextResponse.json(
+        { error: 'rate limit: too many tutor requests. give it a minute.' },
+        { status: 429, headers: { 'Retry-After': String(limit.retryAfter) } }
+      );
+    }
+
     const body: AIRequest = await request.json();
     const { messages, context } = body;
 
-    if (!process.env.OPENAI_API_KEY) {
+    const openai = getOpenAI();
+    if (!openai) {
       return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
-        { status: 500 }
+        { error: 'AI tutor is not configured on this deployment.' },
+        { status: 503 }
       );
     }
 

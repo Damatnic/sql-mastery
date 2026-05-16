@@ -4,14 +4,20 @@ import Link from 'next/link';
 import XPBadge from '@/components/XPBadge';
 import ModuleCard from '@/components/ModuleCard';
 import { getAllModules, getModuleLessons } from '@/lib/lessons';
-import { useProgressStore } from '@/lib/progress';
+import { useProgressStore, getDueLessons } from '@/lib/progress';
+import { useShowcase } from '@/lib/mode';
 
 export default function LearnPage() {
   const modules = getAllModules();
   const completedLessons = useProgressStore((state) => state.completedLessons);
+  const reviewedAt = useProgressStore((state) => state.reviewedAt);
+  const showcase = useShowcase();
 
   const totalLessons = modules.reduce((sum, m) => sum + m.lessons.length, 0);
-  const completedCount = completedLessons.length;
+  const completedCount = showcase ? totalLessons : completedLessons.length;
+  const dueCount = showcase
+    ? 0
+    : getDueLessons(completedLessons, reviewedAt).length;
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -41,6 +47,14 @@ export default function LearnPage() {
           </p>
           <p className="mt-2 text-xs text-slate-500">
             {completedCount} of {totalLessons} lessons done across {modules.length} modules
+            {dueCount > 0 && (
+              <>
+                {' · '}
+                <Link href="/stats" className="text-amber-400 hover:underline">
+                  {dueCount} due for review
+                </Link>
+              </>
+            )}
           </p>
         </section>
 

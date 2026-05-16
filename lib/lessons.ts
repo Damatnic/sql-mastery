@@ -50,6 +50,7 @@ export const modules: ModuleInfo[] = [
   { slug: 'database-objects', name: 'Database Objects', color: 'indigo', lessons: [34, 35, 36, 37, 38] },
   { slug: 'advanced', name: 'SQL Server Advanced', color: 'yellow', lessons: [39, 40, 41, 42] },
   { slug: 'school-advanced', name: 'Advanced SQL (WCTC)', color: 'emerald', lessons: [43, 44, 45, 46, 47, 48, 49, 50, 51, 52] },
+  { slug: 'set-design', name: 'Set Ops & Design', color: 'cyan', lessons: [53, 54, 55] },
 ];
 
 export const lessons: Lesson[] = [
@@ -2470,6 +2471,106 @@ Without temporal table support, you can use triggers to maintain a history table
       { id: "52-1", prompt: "Create a salary_history table that will store: emp_id, old_salary, new_salary, changed_at. Then create a trigger that populates it on salary updates.", hint: "CREATE TABLE then CREATE TRIGGER AFTER UPDATE WHEN OLD.salary != NEW.salary.", expectedColumns: ["emp_id","old_salary","new_salary","changed_at"], validateFn: "return rows.length >= 0;", solution: "CREATE TABLE IF NOT EXISTS salary_history (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    emp_id INTEGER,\n    old_salary REAL,\n    new_salary REAL,\n    changed_at TEXT\n);\n\nCREATE TRIGGER IF NOT EXISTS trg_salary_history\nAFTER UPDATE ON employees\nFOR EACH ROW\nWHEN OLD.salary != NEW.salary\nBEGIN\n    INSERT INTO salary_history (emp_id, old_salary, new_salary, changed_at)\n    VALUES (NEW.id, OLD.salary, NEW.salary, datetime('now'));\nEND;\n\n-- test it\nUPDATE employees SET salary = salary + 5000 WHERE id = 2;\nSELECT * FROM salary_history;" },
       { id: "52-2", prompt: "Create a department_changes table that tracks when employees change departments. Record emp_id, old_dept, new_dept, and timestamp.", hint: "Similar to salary history but check OLD.department != NEW.department.", expectedColumns: ["emp_id","old_dept","new_dept"], validateFn: "return rows.length >= 0;", solution: "CREATE TABLE IF NOT EXISTS department_changes (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    emp_id INTEGER,\n    emp_name TEXT,\n    old_dept TEXT,\n    new_dept TEXT,\n    changed_at TEXT\n);\n\nCREATE TRIGGER IF NOT EXISTS trg_dept_change\nAFTER UPDATE ON employees\nFOR EACH ROW\nWHEN OLD.department != NEW.department\nBEGIN\n    INSERT INTO department_changes (emp_id, emp_name, old_dept, new_dept, changed_at)\n    VALUES (NEW.id, NEW.name, OLD.department, NEW.department, datetime('now'));\nEND;\n\nSELECT 'Trigger created' AS status;" },
       { id: "52-3", prompt: "Query any history/audit tables you've created to show all tracked changes.", hint: "SELECT from salary_history or any audit table you created.", expectedColumns: [], validateFn: "return true;", solution: "-- show all salary changes tracked\nSELECT sh.*, e.name\nFROM salary_history sh\nJOIN employees e ON sh.emp_id = e.id\nORDER BY sh.changed_at DESC;" }
+    ]
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  // MODULE 11: SET OPS & DESIGN
+  // ════════════════════════════════════════════════════════════════
+
+  {
+    module: 11, lesson: 53,
+    slug: "set-design/set-operations",
+    moduleSlug: "set-design", lessonSlug: "set-operations",
+    title: "Set Operations", badge: "concept", database: "company",
+    theory: { content: `> 🎯 **Why This Matters:** JOINs combine columns side by side. Set operations stack result sets on top of each other. When you need "everything in A and B", "only what's in both", or "in A but not B", this is the tool.
+
+All set operations need both queries to return the **same number of columns** with compatible types.
+
+\`\`\`sql
+SELECT col FROM a
+UNION
+SELECT col FROM b;
+\`\`\`
+
+| Operator | Returns |
+|----------|---------|
+| UNION | rows from either, duplicates removed |
+| UNION ALL | rows from either, duplicates kept (faster) |
+| INTERSECT | rows in both |
+| EXCEPT | rows in the first but not the second |
+
+> ⚠️ **Common Mistake:** \`UNION\` deduplicates, which costs a sort. If you know there are no duplicates, or you want them, use \`UNION ALL\`. It's faster and it's the honest answer when counts matter.` },
+    examples: [
+      { title: "UNION removes duplicates", explanation: "Department names from two sources, collapsed to a distinct set", sql: "SELECT name AS dept FROM departments\nUNION\nSELECT department FROM employees;" },
+      { title: "UNION ALL keeps every row", explanation: "Same two sources, duplicates preserved (5 + 20 = 25 rows)", sql: "SELECT name AS dept FROM departments\nUNION ALL\nSELECT department FROM employees;" },
+      { title: "EXCEPT subtracts a set", explanation: "Every department name except Engineering", sql: "SELECT name FROM departments\nEXCEPT\nSELECT 'Engineering';" }
+    ],
+    challenges: [
+      { id: "53-1", prompt: "Return every department name from BOTH the departments table and the employees.department column as a single column named dept, with no duplicates.", hint: "SELECT name AS dept FROM departments UNION SELECT department FROM employees.", expectedColumns: ["dept"], validateFn: "return rows.length === 5;", solution: "SELECT name AS dept FROM departments\nUNION\nSELECT department FROM employees;" },
+      { id: "53-2", prompt: "Stack departments.name and employees.department into one column dept using UNION ALL so duplicates are kept. The result should have 25 rows.", hint: "UNION ALL does not deduplicate: 5 department rows + 20 employee rows.", expectedColumns: ["dept"], validateFn: "return rows.length === 25;", solution: "SELECT name AS dept FROM departments\nUNION ALL\nSELECT department FROM employees;" },
+      { id: "53-3", prompt: "Return only the department names that appear in BOTH departments.name and employees.department.", hint: "Use INTERSECT between the two SELECTs.", expectedColumns: ["name"], validateFn: "return rows.length === 5;", solution: "SELECT name FROM departments\nINTERSECT\nSELECT department FROM employees;" }
+    ]
+  },
+
+  {
+    module: 11, lesson: 54,
+    slug: "set-design/normalization",
+    moduleSlug: "set-design", lessonSlug: "normalization",
+    title: "Normalization", badge: "concept", database: "company",
+    theory: { content: `> 🎯 **Why This Matters:** Normalization is why you store a department once and point at it, instead of repeating its budget on every employee row. Repetition is how data goes wrong: update one copy, forget the other, now your numbers disagree.
+
+The forms, in plain terms:
+
+- **1NF** — one value per cell, no repeating groups. No \`phone1, phone2, phone3\` columns.
+- **2NF** — 1NF, and every non-key column depends on the *whole* key, not part of it.
+- **3NF** — 2NF, and no column depends on another non-key column. Department budget belongs on the department row, not duplicated onto every employee.
+
+In this database \`employees.department\` is stored as text (a denormalized shortcut). The \`departments\` table holds the budget once. To get an employee's department budget you **join** instead of duplicating it.
+
+\`\`\`sql
+SELECT e.name, d.budget
+FROM employees e
+JOIN departments d ON e.department = d.name;
+\`\`\`
+
+> ⚠️ **Common Mistake:** Over-normalizing read-heavy reporting tables. Normalize the source of truth; denormalize deliberately (and knowingly) in a reporting layer if joins get expensive.` },
+    examples: [
+      { title: "The lookup that replaces duplication", explanation: "Budget lives once on departments; reach it with a join", sql: "SELECT e.name, d.budget\nFROM employees e\nJOIN departments d ON e.department = d.name;" },
+      { title: "Aggregating across the relationship", explanation: "Count employees per department via the join", sql: "SELECT d.name AS department, COUNT(e.id) AS emp_count\nFROM departments d\nJOIN employees e ON e.department = d.name\nGROUP BY d.name;" }
+    ],
+    challenges: [
+      { id: "54-1", prompt: "employees.department is denormalized text. Join employees to departments on the department name and return each employee's name and their department budget.", hint: "JOIN departments d ON e.department = d.name, then SELECT e.name, d.budget.", expectedColumns: ["name","budget"], validateFn: "return rows.length === 20;", solution: "SELECT e.name, d.budget\nFROM employees e\nJOIN departments d ON e.department = d.name;" },
+      { id: "54-2", prompt: "Return one row per department: the department name and emp_count, the number of employees in it.", hint: "JOIN then GROUP BY d.name, COUNT(e.id) AS emp_count.", expectedColumns: ["department","emp_count"], validateFn: "return rows.length === 5;", solution: "SELECT d.name AS department, COUNT(e.id) AS emp_count\nFROM departments d\nJOIN employees e ON e.department = d.name\nGROUP BY d.name;" }
+    ]
+  },
+
+  {
+    module: 11, lesson: 55,
+    slug: "set-design/data-modeling",
+    moduleSlug: "set-design", lessonSlug: "data-modeling",
+    title: "Data Modeling & Keys", badge: "concept", database: "company",
+    theory: { content: `> 🎯 **Why This Matters:** A primary key uniquely identifies a row. A foreign key points at another table's primary key. Get the keys right and the relationships are self-documenting and impossible to corrupt.
+
+- **One-to-many:** \`projects.dept_id\` is a foreign key to \`departments.id\`. One department, many projects. You follow the key with a JOIN.
+- **Many-to-many:** an employee can be on many projects and a project has many employees. You can't model that with one foreign key, so you use a **junction table**: \`employee_projects(employee_id, project_id, role)\`.
+
+\`\`\`sql
+SELECT p.name AS project, d.name AS department
+FROM projects p
+JOIN departments d ON p.dept_id = d.id;
+\`\`\`
+
+The junction table turns a many-to-many into two one-to-many relationships you can join through.
+
+> ⚠️ **Common Mistake:** Trying to fake a many-to-many with a comma-separated list in a column (\`"2,5,9"\`). It's unqueryable and unjoinable. A junction table is the answer, every time.` },
+    examples: [
+      { title: "Following a foreign key (one-to-many)", explanation: "projects.dept_id points at departments.id", sql: "SELECT p.name AS project, d.name AS department\nFROM projects p\nJOIN departments d ON p.dept_id = d.id;" },
+      { title: "Walking a junction table (many-to-many)", explanation: "employee_projects connects employees and projects", sql: "SELECT e.name, COUNT(ep.project_id) AS project_count\nFROM employees e\nJOIN employee_projects ep ON e.id = ep.employee_id\nGROUP BY e.id, e.name;" }
+    ],
+    challenges: [
+      { id: "55-1", prompt: "Follow the foreign key projects.dept_id -> departments.id. Return each project's name as project and its department name as department.", hint: "JOIN departments d ON p.dept_id = d.id; alias the columns project and department.", expectedColumns: ["project","department"], validateFn: "return rows.length === 6;", solution: "SELECT p.name AS project, d.name AS department\nFROM projects p\nJOIN departments d ON p.dept_id = d.id;" },
+      { id: "55-2", prompt: "employee_projects is the junction table for a many-to-many. For every employee on at least one project, return name and project_count, ordered by project_count descending.", hint: "JOIN employee_projects on e.id = ep.employee_id, GROUP BY the employee, COUNT(ep.project_id).", expectedColumns: ["name","project_count"], validateFn: "return rows.length === 18;", solution: "SELECT e.name, COUNT(ep.project_id) AS project_count\nFROM employees e\nJOIN employee_projects ep ON e.id = ep.employee_id\nGROUP BY e.id, e.name\nORDER BY project_count DESC;" }
     ]
   },
 

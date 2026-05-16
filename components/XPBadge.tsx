@@ -1,6 +1,7 @@
 'use client';
 
 import { useProgressStore } from '@/lib/progress';
+import { useShowcase } from '@/lib/mode';
 
 interface XPBadgeProps {
   showStreak?: boolean;
@@ -10,6 +11,9 @@ interface XPBadgeProps {
 export default function XPBadge({ showStreak = true, className = '' }: XPBadgeProps) {
   const xp = useProgressStore((state) => state.xp);
   const streak = useProgressStore((state) => state.streak);
+  const showcase = useShowcase();
+
+  if (showcase) return null;
 
   return (
     <span className={`font-mono text-xs text-slate-400 ${className}`}>
