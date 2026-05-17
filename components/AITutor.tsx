@@ -59,6 +59,16 @@ export default function AITutor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initialPrompt]);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- setIsOpen is stable enough for this
+  }, [isOpen]);
+
   const sendMessage = useCallback(
     async (content: string) => {
       if (!content.trim() || isLoading) return;
@@ -159,11 +169,21 @@ export default function AITutor({
           role="dialog"
           aria-label="AI tutor"
         >
-          <div className="px-4 py-3 border-b border-slate-800">
-            <p className="text-slate-100">
-              <span className="text-indigo-400">&gt; </span>ai-tutor
-            </p>
-            <p className="mt-1 text-xs text-slate-500"># ask about the current lesson or your query.</p>
+          <div className="px-4 py-3 border-b border-slate-800 flex items-start justify-between gap-3">
+            <div>
+              <p className="text-slate-100">
+                <span className="text-indigo-400">&gt; </span>ai-tutor
+              </p>
+              <p className="mt-1 text-xs text-slate-500"># ask about the current lesson or your query.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              className="shrink-0 rounded px-1.5 py-0.5 text-slate-400 hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              aria-label="Close AI tutor"
+            >
+              ×
+            </button>
           </div>
 
           <div className="px-3 py-2 border-b border-slate-800 flex flex-wrap gap-2">
