@@ -29,6 +29,7 @@ export default function LessonToolDock({ tools, open, onOpen, children }: Lesson
     } catch {
       return;
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot attention pulse on first visit, gated by localStorage
     setPulse(true);
     const t = setTimeout(() => {
       setPulse(false);

@@ -29,6 +29,8 @@ function daysAgo(iso: string): string {
 
 export default function StatsPage() {
   const [mounted, setMounted] = useState(false);
+  // Captured once (lazy init) so relative-time labels stay pure across renders.
+  const [now] = useState(() => Date.now());
   const showcase = useShowcase();
 
   const xp = useProgressStore((s) => s.xp);
@@ -40,6 +42,7 @@ export default function StatsPage() {
   const completedSteps = useProjectProgressStore((s) => s.completedSteps);
   const completedChallenges = useThreadProgressStore((s) => s.completedChallenges);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- mount flag to avoid SSR/hydration mismatch
   useEffect(() => setMounted(true), []);
 
   const rank = getRank(xp);
@@ -119,7 +122,7 @@ export default function StatsPage() {
   const daysSince = (iso: string): string => {
     if (!iso) return "never";
     const days = Math.round(
-      (Date.now() - new Date(iso).getTime()) / 86_400_000,
+      (now - new Date(iso).getTime()) / 86_400_000,
     );
     if (days <= 0) return "today";
     if (days === 1) return "1d ago";

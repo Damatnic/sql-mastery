@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { AlertCircle, CheckCircle2, Table, Clock, Rows3, Hash, Type, Calendar, ArrowUpDown, ArrowUp, ArrowDown, Search, Lightbulb, Database } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, Rows3, Hash, Type, Calendar, ArrowUpDown, ArrowUp, ArrowDown, Search, Lightbulb, Database } from 'lucide-react';
 import type { QueryResponse } from '@/lib/db';
 
 interface ResultsTableProps {

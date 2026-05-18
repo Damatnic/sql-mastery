@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // CommonJS config file — require() is correct here, not lintable as TS source.
+    "next.config.js",
   ]),
 ]);
 

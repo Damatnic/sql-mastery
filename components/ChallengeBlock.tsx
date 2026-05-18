@@ -60,6 +60,7 @@ export default function ChallengeBlock({
       const saved = localStorage.getItem(`sql-mastery-editor-h-${challenge.id}`);
       if (saved) {
         const n = parseInt(saved, 10);
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrating from localStorage
         if (Number.isFinite(n) && n >= 100 && n <= 800) setEditorHeight(n);
       }
     } catch {
@@ -72,6 +73,8 @@ export default function ChallengeBlock({
   useEffect(() => {
     if (!expanded) return;
     const previouslyFocused = document.activeElement as HTMLElement | null;
+    // Capture the trigger now; the ref may point elsewhere by cleanup time.
+    const trigger = expandTriggerRef.current;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setExpanded(false);
     };
@@ -81,7 +84,7 @@ export default function ChallengeBlock({
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
       // restore focus to expand trigger or previously focused element
-      (expandTriggerRef.current ?? previouslyFocused)?.focus?.();
+      (trigger ?? previouslyFocused)?.focus?.();
     };
   }, [expanded]);
 
@@ -131,16 +134,14 @@ export default function ChallengeBlock({
 
   useEffect(() => {
     const saved = localStorage.getItem(`sql-mastery-code-${challenge.id}`);
-    if (saved) {
-      setQuery(saved);
-    } else {
-      setQuery('');
-    }
-    
-    // Also reset other states on challenge change just in case
+    // Reset editor state when the challenge changes (hydrate code from
+    // localStorage, clear prior result). All intentional.
+    /* eslint-disable react-hooks/set-state-in-effect -- reset-on-challenge-change */
+    setQuery(saved ?? '');
     setResult(null);
     setExecutionTime(undefined);
     setIsCorrect(false);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [challenge.id]);
 
   useEffect(() => {
