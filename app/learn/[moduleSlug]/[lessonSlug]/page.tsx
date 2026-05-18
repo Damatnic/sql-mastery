@@ -26,6 +26,7 @@ import {
   getPreviousLesson,
 } from '@/lib/lessons';
 import { useProgressStore, XP_VALUES } from '@/lib/progress';
+import { useShowcase } from '@/lib/mode';
 import { getProjectChallengeForLesson, getProjectThread } from '@/lib/project-threads';
 import type { Database as SqlJsDatabase } from 'sql.js';
 
@@ -69,8 +70,9 @@ export default function LessonPage({ params }: LessonPageProps) {
   const completedLessons = useProgressStore((state) => state.completedLessons);
   const markReviewed = useProgressStore((state) => state.markReviewed);
 
+  const showcase = useShowcase();
   const lessonKey = lesson ? `${lesson.moduleSlug}/${lesson.lessonSlug}` : '';
-  const isAlreadyComplete = completedLessons.includes(lessonKey);
+  const isAlreadyComplete = showcase || completedLessons.includes(lessonKey);
 
   // Track when a completed lesson is revisited (drives the review queue on /stats)
   useEffect(() => {

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useProgressStore } from '@/lib/progress';
+import { useShowcase } from '@/lib/mode';
 import type { Lesson, ModuleInfo } from '@/lib/lessons';
 
 interface LessonNavProps {
@@ -18,6 +19,7 @@ export default function LessonNav({
   className = '',
 }: LessonNavProps) {
   const completedLessons = useProgressStore((state) => state.completedLessons);
+  const showcase = useShowcase();
 
   return (
     <nav
@@ -29,9 +31,11 @@ export default function LessonNav({
 
         <ul className="mt-1 space-y-0.5">
           {moduleLessons.map((lesson, idx) => {
-            const isCompleted = completedLessons.includes(
-              `${lesson.moduleSlug}/${lesson.lessonSlug}`
-            );
+            const isCompleted =
+              showcase ||
+              completedLessons.includes(
+                `${lesson.moduleSlug}/${lesson.lessonSlug}`,
+              );
             const isCurrent =
               lesson.moduleSlug === currentLesson.moduleSlug &&
               lesson.lessonSlug === currentLesson.lessonSlug;
