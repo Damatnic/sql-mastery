@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-interface CheatSheetSection {
+export interface CheatSheetSection {
   title: string;
   items: Array<{
     syntax: string;
@@ -11,7 +11,7 @@ interface CheatSheetSection {
   }>;
 }
 
-const CHEAT_SHEET_DATA: CheatSheetSection[] = [
+export const CHEAT_SHEET_DATA: CheatSheetSection[] = [
   {
     title: 'Basic Queries',
     items: [

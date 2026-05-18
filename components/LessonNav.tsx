@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useProgressStore } from '@/lib/progress';
 import { useShowcase } from '@/lib/mode';
+import DownloadNotesButton from '@/components/DownloadNotesButton';
 import type { Lesson, ModuleInfo } from '@/lib/lessons';
 
 interface LessonNavProps {
@@ -67,6 +68,7 @@ export default function LessonNav({
             );
           })}
         </ul>
+        <DownloadNotesButton moduleInfo={moduleInfo} lessons={moduleLessons} />
       </div>
     </nav>
   );
