@@ -1,7 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import HomeTerminal from "@/components/HomeTerminal";
+import DownloadNotesButton from "@/components/DownloadNotesButton";
+import { getModuleBySlug, getModuleLessons } from "@/lib/lessons";
+import { useShowcase } from "@/lib/mode";
 
 const modules = [
   { num: "01", slug: "getting-started", firstLesson: "select-basics", title: "getting-started", desc: "SELECT, WHERE, ORDER BY.", lessons: 5 },
@@ -17,10 +21,26 @@ const modules = [
   { num: "11", slug: "set-design", firstLesson: "set-operations", title: "set-design", desc: "UNION/INTERSECT/EXCEPT, normalization, keys.", lessons: 3 },
 ];
 
-const moduleCount = modules.length;
-const lessonCount = modules.reduce((sum, m) => sum + m.lessons, 0);
+interface PersistedProgress {
+  state?: { completedLessons?: string[] };
+}
+
+function loadCompletedLessons(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem("sql-mastery-progress");
+    if (!raw) return new Set();
+    const parsed: PersistedProgress = JSON.parse(raw);
+    return new Set(parsed.state?.completedLessons ?? []);
+  } catch {
+    return new Set();
+  }
+}
 
 export default function HomePage() {
+  const [completed] = useState(loadCompletedLessons);
+  const showcase = useShowcase();
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground font-mono text-sm">
       <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12 sm:py-16">
@@ -36,19 +56,51 @@ export default function HomePage() {
         </section>
 
         <section className="mt-8">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground"># lessons</p>
-          <Link
-            href="/learn"
-            className="mt-3 group flex items-center justify-between gap-3 py-3 px-3 -mx-3 rounded border border-border/60 hover:bg-card/60 hover:border-accent/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
-            <span className="min-w-0 truncate">
-              <span className="text-foreground">cd ~/lessons</span>
-              <span className="ml-3 text-muted-foreground text-xs">
-                {lessonCount} lessons · {moduleCount} modules · progress, review queue &amp; per-module notes
-              </span>
-            </span>
-            <span className="text-muted-foreground group-hover:text-accent transition-colors">→</span>
-          </Link>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground"># modules</p>
+          <ul className="mt-3 border-y border-border/60 divide-y divide-border/40">
+            {modules.map((m) => {
+              const doneCount = showcase
+                ? m.lessons
+                : Array.from(completed).filter((k) =>
+                    k === m.slug || k.startsWith(`${m.slug}/`)
+                  ).length;
+              const status = doneCount === 0
+                ? "─"
+                : doneCount >= m.lessons
+                ? "✓ complete"
+                : `${doneCount}/${m.lessons}`;
+              const statusClass = doneCount >= m.lessons
+                ? "text-success"
+                : doneCount > 0
+                ? "text-accent"
+                : "text-muted-foreground";
+              return (
+                <li key={m.slug} className="flex items-center gap-1">
+                  <Link
+                    href={`/learn/${m.slug}/${m.firstLesson}`}
+                    className="group grid flex-1 grid-cols-[2.5rem_minmax(0,1fr)_5rem_7rem_1rem] gap-3 items-center py-2 px-2 -ml-2 rounded hover:bg-card/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    aria-label={`Open module ${m.title}`}
+                  >
+                    <span className="text-muted-foreground">{m.num}</span>
+                    <span className="min-w-0 truncate">
+                      <span className="text-foreground">modules/{m.title}/</span>
+                      <span className="text-muted-foreground hidden md:inline">  {m.desc}</span>
+                    </span>
+                    <span className="text-muted-foreground text-xs">{m.lessons} lessons</span>
+                    <span className={`text-xs ${statusClass}`}>{status}</span>
+                    <span className="text-muted-foreground group-hover:text-accent transition-colors">→</span>
+                  </Link>
+                  {(() => {
+                    const mi = getModuleBySlug(m.slug);
+                    const ml = getModuleLessons(m.slug);
+                    return mi ? (
+                      <DownloadNotesButton moduleInfo={mi} lessons={ml} compact />
+                    ) : null;
+                  })()}
+                </li>
+              );
+            })}
+          </ul>
         </section>
 
         <section className="mt-10 grid sm:grid-cols-3 gap-4">
