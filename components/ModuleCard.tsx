@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useProgressStore } from '@/lib/progress';
 import { useThreadProgressStore } from '@/lib/thread-progress';
 import { getThreadForModule, projectChallenges } from '@/lib/project-threads';
+import { getModuleLessons } from '@/lib/lessons';
+import DownloadNotesButton from '@/components/DownloadNotesButton';
 import type { ModuleInfo } from '@/lib/lessons';
 
 interface ModuleCardProps {
@@ -54,27 +56,37 @@ export default function ModuleCard({ module, lessonCount, firstLessonSlug }: Mod
     : 'text-slate-500';
 
   return (
-    <Link
-      href={`/learn/${module.slug}/${firstLessonSlug}`}
-      className="group block font-mono p-4 rounded border border-slate-800 bg-slate-900/40 hover:bg-slate-900 hover:border-indigo-400/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
-      aria-label={`Open module ${module.name}`}
-    >
-      <div className="flex items-baseline gap-2 text-sm">
-        <span className="text-indigo-400">{String(moduleNumber).padStart(2, '0')}</span>
-        <span className="text-slate-100">modules/{module.slug}/</span>
-      </div>
+    <div className="relative">
+      <Link
+        href={`/learn/${module.slug}/${firstLessonSlug}`}
+        className="group block font-mono p-4 rounded border border-slate-800 bg-slate-900/40 hover:bg-slate-900 hover:border-indigo-400/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+        aria-label={`Open module ${module.name}`}
+      >
+        <div className="flex items-baseline gap-2 text-sm pr-16">
+          <span className="text-indigo-400">{String(moduleNumber).padStart(2, '0')}</span>
+          <span className="text-slate-100">modules/{module.slug}/</span>
+        </div>
 
-      <p className="mt-2 text-xs leading-relaxed text-slate-400 line-clamp-2">{module.name}</p>
+        <p className="mt-2 text-xs leading-relaxed text-slate-400 line-clamp-2">{module.name}</p>
 
-      <div className="mt-4 flex items-center justify-between text-xs">
-        <span className="text-slate-500">
-          {lessonCount} lessons
-          {thread && threadProgress.total > 0 && (
-            <span className="ml-2">· {threadProgress.completed}/{threadProgress.total} project</span>
-          )}
-        </span>
-        <span className={statusClass}>{statusText}</span>
+        <div className="mt-4 flex items-center justify-between text-xs">
+          <span className="text-slate-500">
+            {lessonCount} lessons
+            {thread && threadProgress.total > 0 && (
+              <span className="ml-2">· {threadProgress.completed}/{threadProgress.total} project</span>
+            )}
+          </span>
+          <span className={statusClass}>{statusText}</span>
+        </div>
+      </Link>
+
+      <div className="absolute top-3 right-3">
+        <DownloadNotesButton
+          moduleInfo={module}
+          lessons={getModuleLessons(module.slug)}
+          compact
+        />
       </div>
-    </Link>
+    </div>
   );
 }
