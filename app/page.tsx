@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import HomeTerminal from "@/components/HomeTerminal";
+import DownloadNotesButton from "@/components/DownloadNotesButton";
+import { getModuleBySlug, getModuleLessons } from "@/lib/lessons";
 import { useShowcase } from "@/lib/mode";
 
 const modules = [
@@ -73,10 +75,10 @@ export default function HomePage() {
                 ? "text-accent"
                 : "text-muted-foreground";
               return (
-                <li key={m.slug}>
+                <li key={m.slug} className="flex items-center gap-1">
                   <Link
                     href={`/learn/${m.slug}/${m.firstLesson}`}
-                    className="group grid grid-cols-[2.5rem_minmax(0,1fr)_5rem_7rem_1rem] gap-3 items-center py-2 px-2 -mx-2 rounded hover:bg-card/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className="group grid flex-1 grid-cols-[2.5rem_minmax(0,1fr)_5rem_7rem_1rem] gap-3 items-center py-2 px-2 -ml-2 rounded hover:bg-card/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     aria-label={`Open module ${m.title}`}
                   >
                     <span className="text-muted-foreground">{m.num}</span>
@@ -88,6 +90,13 @@ export default function HomePage() {
                     <span className={`text-xs ${statusClass}`}>{status}</span>
                     <span className="text-muted-foreground group-hover:text-accent transition-colors">→</span>
                   </Link>
+                  {(() => {
+                    const mi = getModuleBySlug(m.slug);
+                    const ml = getModuleLessons(m.slug);
+                    return mi ? (
+                      <DownloadNotesButton moduleInfo={mi} lessons={ml} compact />
+                    ) : null;
+                  })()}
                 </li>
               );
             })}
@@ -135,14 +144,6 @@ export default function HomePage() {
           </span>
           <span className="flex flex-wrap gap-x-3 gap-y-1">
             <Link href="/playground" className="hover:text-foreground transition-colors">playground/</Link>
-            <a
-              href="https://python-practice-omega.vercel.app"
-              className="hover:text-foreground transition-colors"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              practice/
-            </a>
           </span>
         </div>
       </footer>
