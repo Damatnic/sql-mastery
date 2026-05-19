@@ -86,7 +86,7 @@ function ReviewSession() {
   if (items.length === 0) {
     return (
       <p className="font-mono text-sm text-slate-400">
-        # nothing to review yet — finish a lesson first.{' '}
+        # nothing to review yet. finish a lesson first.{' '}
         <Link href="/learn" className="text-indigo-400 hover:underline">cd ~/lessons</Link>
       </p>
     );
@@ -140,7 +140,7 @@ function ReviewSession() {
       )}
       {dbError ? (
         <p className="font-mono text-xs text-rose-400">
-          failed to load {item?.database}.db — refresh to retry.
+          failed to load {item?.database}.db · refresh to retry.
         </p>
       ) : !db || !item ? (
         <p className="font-mono text-xs text-slate-500">loading {item?.database}.db…</p>
@@ -173,7 +173,7 @@ export default function ReviewPage() {
       <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-10">
         <p className="font-mono text-xs uppercase tracking-widest text-slate-500 mb-1"># mixed review</p>
         <p className="font-mono text-[11px] text-slate-500 mb-6">
-          spaced repetition across modules. solve from memory — each one re-solved
+          spaced repetition across modules. solve from memory. each one re-solved
           pushes that lesson&apos;s next review further out.
         </p>
         <ReviewSession />

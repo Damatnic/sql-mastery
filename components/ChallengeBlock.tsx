@@ -387,7 +387,7 @@ export default function ChallengeBlock({
                 return (
                   <p className="text-amber-400">
                     # not there yet · your columns:{' '}
-                    <span className="text-slate-300">[{got.join(', ') || '—'}]</span> · expected:{' '}
+                    <span className="text-slate-300">[{got.join(', ') || 'none'}]</span> · expected:{' '}
                     <span className="text-slate-300">[{want.join(', ')}]</span>
                     {rows === 0 && <span className="text-slate-500"> · 0 rows returned</span>}
                   </p>
@@ -408,7 +408,7 @@ export default function ChallengeBlock({
                 <div className="space-y-1">
                   <label className="text-slate-500" htmlFor={`why-${challenge.id}`}>
                     why does this work?{' '}
-                    <span className="text-slate-600">(for you — saved locally, never sent)</span>
+                    <span className="text-slate-600">(for you, saved locally, never sent)</span>
                   </label>
                   <textarea
                     id={`why-${challenge.id}`}
