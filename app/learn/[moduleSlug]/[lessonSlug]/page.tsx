@@ -25,7 +25,7 @@ import {
   getNextLesson,
   getPreviousLesson,
 } from '@/lib/lessons';
-import { useProgressStore, XP_VALUES } from '@/lib/progress';
+import { useProgressStore, XP_VALUES, isLessonDue } from '@/lib/progress';
 import { useShowcase } from '@/lib/mode';
 import { getProjectChallengeForLesson, getProjectThread } from '@/lib/project-threads';
 import type { Database as SqlJsDatabase } from 'sql.js';
@@ -68,18 +68,29 @@ export default function LessonPage({ params }: LessonPageProps) {
   const completeLesson = useProgressStore((state) => state.completeLesson);
   const addXP = useProgressStore((state) => state.addXP);
   const completedLessons = useProgressStore((state) => state.completedLessons);
+  const reviewedAt = useProgressStore((state) => state.reviewedAt);
   const markReviewed = useProgressStore((state) => state.markReviewed);
 
   const showcase = useShowcase();
   const lessonKey = lesson ? `${lesson.moduleSlug}/${lesson.lessonSlug}` : '';
   const isAlreadyComplete = showcase || completedLessons.includes(lessonKey);
 
-  // Track when a completed lesson is revisited (drives the review queue on /stats)
+  // Recall-gated SRS: a due+completed lesson in learn mode is a review
+  // session. The box advances only on a real re-solve (handleChallengeComplete),
+  // never just by opening the page.
+  const [reviewSession, setReviewSession] = useState(false);
+  const [reviewRecorded, setReviewRecorded] = useState(false);
+  const reviewMarkedRef = useRef(false);
+
   useEffect(() => {
-    if (isAlreadyComplete && lessonKey) {
-      markReviewed(lessonKey);
-    }
-  }, [isAlreadyComplete, lessonKey, markReviewed]);
+    // Resolve review-session flag after mount (mode/SRS are client-only).
+    setReviewSession(
+      !showcase &&
+        !!lessonKey &&
+        completedLessons.includes(lessonKey) &&
+        isLessonDue(lessonKey, reviewedAt),
+    );
+  }, [showcase, lessonKey, completedLessons, reviewedAt]);
 
   const projectChallenge = lesson ? getProjectChallengeForLesson(lesson.moduleSlug, lesson.lessonSlug) : null;
   const projectThread = projectChallenge ? getProjectThread(projectChallenge.threadId) : null;
@@ -112,6 +123,13 @@ export default function LessonPage({ params }: LessonPageProps) {
   const handleChallengeComplete = useCallback(
     (challengeId: string) => {
       if (!lesson) return;
+      // Active-recall review: re-solving one challenge from memory in a due
+      // review session records the review and pushes the box out.
+      if (reviewSession && !reviewMarkedRef.current && !showcase) {
+        reviewMarkedRef.current = true;
+        markReviewed(lessonKey);
+        setReviewRecorded(true);
+      }
       setCompletedChallengeIds((prev) => {
         if (prev.has(challengeId)) return prev;
         const next = new Set(prev);
@@ -126,7 +144,7 @@ export default function LessonPage({ params }: LessonPageProps) {
         return next;
       });
     },
-    [lesson, lessonKey, completeLesson, addXP],
+    [lesson, lessonKey, completeLesson, addXP, reviewSession, showcase, markReviewed],
   );
 
   const handleMarkComplete = useCallback(() => {
@@ -249,6 +267,27 @@ export default function LessonPage({ params }: LessonPageProps) {
             <h1 className="mt-2 text-2xl font-semibold text-slate-100">{lesson.title}</h1>
           </section>
 
+          {reviewSession && (
+            <div
+              className="mb-6 rounded border border-amber-400/40 bg-amber-400/[0.06] px-4 py-3 font-mono text-xs"
+              role="status"
+            >
+              {reviewRecorded ? (
+                <span className="text-emerald-400">
+                  ✓ review recorded · next review pushed further out
+                </span>
+              ) : (
+                <>
+                  <span className="text-amber-400">review · due now</span>
+                  <span className="ml-2 text-slate-400">
+                    re-solve a challenge from memory (editor starts blank) to
+                    record the review and widen the next interval
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+
           <LessonAnchorNav sections={anchorSections} />
 
           {isLoading ? (
@@ -315,6 +354,7 @@ export default function LessonPage({ params }: LessonPageProps) {
                         }}
                         challengeNumber={idx + 1}
                         totalChallenges={totalChallenges}
+                        reviewMode={reviewSession}
                         onAskTutor={handleAskTutor}
                       />
                     ))}

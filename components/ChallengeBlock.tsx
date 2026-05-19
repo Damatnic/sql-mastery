@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import SQLEditor from './SQLEditor';
 import ResultsTable from './ResultsTable';
+import { useShowcase } from '@/lib/mode';
 import type { QueryResponse } from '@/lib/db';
 import type { Database as SqlJsDatabase } from 'sql.js';
 
@@ -25,6 +26,9 @@ interface ChallengeBlockProps {
   challengeNumber?: number;
   totalChallenges?: number;
   className?: string;
+  /** Active-recall review: start blank (ignore saved query) and don't persist,
+   *  so re-solving is genuine recall and the saved solution is untouched. */
+  reviewMode?: boolean;
   onAskTutor?: (prompt: string) => void;
 }
 
@@ -38,9 +42,13 @@ export default function ChallengeBlock({
   challengeNumber,
   totalChallenges,
   className = '',
+  reviewMode = false,
   onAskTutor,
 }: ChallengeBlockProps) {
+  const learn = !useShowcase();
   const [query, setQuery] = useState('');
+  const [why, setWhy] = useState('');
+  const [showWhy, setShowWhy] = useState(false);
   const [result, setResult] = useState<QueryResponse | null>(null);
   const [executionTime, setExecutionTime] = useState<number | undefined>();
   const [attempts, setAttempts] = useState(0);
@@ -133,22 +141,26 @@ export default function ChallengeBlock({
   }, [editorHeight, challenge.id]);
 
   useEffect(() => {
-    const saved = localStorage.getItem(`sql-mastery-code-${challenge.id}`);
-    // Reset editor state when the challenge changes (hydrate code from
-    // localStorage, clear prior result). All intentional.
+    // Review mode starts blank (genuine recall); otherwise hydrate saved code.
+    const saved = reviewMode
+      ? null
+      : localStorage.getItem(`sql-mastery-code-${challenge.id}`);
+    // Reset editor state when the challenge changes. All intentional.
     /* eslint-disable react-hooks/set-state-in-effect -- reset-on-challenge-change */
     setQuery(saved ?? '');
     setResult(null);
     setExecutionTime(undefined);
     setIsCorrect(false);
+    setWhy(localStorage.getItem(`sql-mastery-why-${challenge.id}`) || '');
+    setShowWhy(false);
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, [challenge.id]);
+  }, [challenge.id, reviewMode]);
 
   useEffect(() => {
-    if (query) {
+    if (!reviewMode && query) {
       localStorage.setItem(`sql-mastery-code-${challenge.id}`, query);
     }
-  }, [query, challenge.id]);
+  }, [query, challenge.id, reviewMode]);
 
   const validateResult = useCallback(
     (queryResult: QueryResponse): boolean => {
@@ -368,10 +380,54 @@ export default function ChallengeBlock({
                 <span className="text-emerald-400">exit 0</span> · query matches expected columns
               </p>
             ) : result.success ? (
-              <p className="text-amber-400">
-                # validation failed · check your columns and try again
-              </p>
+              (() => {
+                const got = result.results[0]?.columns ?? [];
+                const want = challenge.expectedColumns;
+                const rows = result.results[0]?.values.length ?? 0;
+                return (
+                  <p className="text-amber-400">
+                    # not there yet · your columns:{' '}
+                    <span className="text-slate-300">[{got.join(', ') || '—'}]</span> · expected:{' '}
+                    <span className="text-slate-300">[{want.join(', ')}]</span>
+                    {rows === 0 && <span className="text-slate-500"> · 0 rows returned</span>}
+                  </p>
+                );
+              })()
             ) : null}
+
+            {isCorrect && learn && (
+              !showWhy ? (
+                <button
+                  type="button"
+                  onClick={() => setShowWhy(true)}
+                  className="text-slate-500 hover:text-indigo-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 rounded"
+                >
+                  + explain: in one sentence, why does this work?
+                </button>
+              ) : (
+                <div className="space-y-1">
+                  <label className="text-slate-500" htmlFor={`why-${challenge.id}`}>
+                    why does this work?{' '}
+                    <span className="text-slate-600">(for you — saved locally, never sent)</span>
+                  </label>
+                  <textarea
+                    id={`why-${challenge.id}`}
+                    value={why}
+                    onChange={(e) => {
+                      setWhy(e.target.value);
+                      try {
+                        localStorage.setItem(`sql-mastery-why-${challenge.id}`, e.target.value);
+                      } catch {
+                        /* private mode / quota */
+                      }
+                    }}
+                    rows={2}
+                    className="w-full resize-none rounded border border-slate-800 bg-slate-900/40 px-2 py-1.5 text-slate-100 placeholder:text-slate-600 focus:border-indigo-400 focus:outline-none"
+                    placeholder="in your own words…"
+                  />
+                </div>
+              )
+            )}
 
             <ResultsTable result={result} executionTime={executionTime} />
 
