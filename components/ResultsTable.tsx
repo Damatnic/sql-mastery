@@ -140,7 +140,9 @@ function TypeIcon({ type }: { type: 'numeric' | 'text' | 'date' | 'null' }) {
 }
 
 export default function ResultsTable({ result, executionTime, className = '' }: ResultsTableProps) {
-  const [sortState, setSortState] = useState<SortState>({ column: -1, direction: null });
+  // Each result set owns its own sort state so sorting one set does not
+  // affect the others (column index spaces differ between result sets).
+  const [sortStates, setSortStates] = useState<SortState[]>([]);
 
   // Initial empty state
   if (!result) {
@@ -209,15 +211,24 @@ export default function ResultsTable({ result, executionTime, className = '' }: 
   // Render results
   return (
     <div className={`space-y-4 ${className}`}>
-      {result.results.map((resultSet, idx) => (
-        <ResultSetTable
-          key={idx}
-          resultSet={resultSet}
-          executionTime={idx === 0 ? executionTime : undefined}
-          sortState={sortState}
-          setSortState={setSortState}
-        />
-      ))}
+      {result.results.map((resultSet, idx) => {
+        const sortState = sortStates[idx] ?? { column: -1, direction: null };
+        const setSortState = (s: SortState) =>
+          setSortStates((prev) => {
+            const next = [...prev];
+            next[idx] = s;
+            return next;
+          });
+        return (
+          <ResultSetTable
+            key={idx}
+            resultSet={resultSet}
+            executionTime={idx === 0 ? executionTime : undefined}
+            sortState={sortState}
+            setSortState={setSortState}
+          />
+        );
+      })}
 
       {result.results.length > 1 && (
         <p className="text-xs text-slate-500 text-center">

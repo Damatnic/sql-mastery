@@ -53,8 +53,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body: AIRequest = await request.json();
+    let body: AIRequest;
+    try {
+      body = await request.json() as AIRequest;
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body.' }, { status: 400 });
+    }
+
     const { messages, context } = body;
+
+    // Basic shape validation — prevents crashes and nonsense prompts from
+    // reaching the model if the client sends a malformed payload.
+    if (!Array.isArray(messages)) {
+      return NextResponse.json({ error: 'messages must be an array.' }, { status: 400 });
+    }
+    if (!context || typeof context !== 'object') {
+      return NextResponse.json({ error: 'context is required.' }, { status: 400 });
+    }
+    if (messages.length > 50) {
+      return NextResponse.json({ error: 'conversation too long.' }, { status: 400 });
+    }
 
     const openai = getOpenAI();
     if (!openai) {

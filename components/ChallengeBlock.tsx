@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import SQLEditor from './SQLEditor';
 import ResultsTable from './ResultsTable';
 import { useShowcase } from '@/lib/mode';
@@ -59,16 +59,23 @@ export default function ChallengeBlock({
   const [copiedSolution, setCopiedSolution] = useState(false);
   const [validatorBroken, setValidatorBroken] = useState(false);
   const [editorHeight, setEditorHeight] = useState<number>(150);
+  const editorHeightRef = useRef(150);
   const [expanded, setExpanded] = useState(false);
   const dragOriginRef = useRef<{ startY: number; startHeight: number } | null>(null);
   const hasFiredCompleteRef = useRef(false);
+
+  // Keep the ref in sync (in layout effect to satisfy the linter rule that
+  // prohibits ref mutations during render, and to stay synchronous with paint).
+  useLayoutEffect(() => {
+    editorHeightRef.current = editorHeight;
+  });
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem(`sql-mastery-editor-h-${challenge.id}`);
       if (saved) {
         const n = parseInt(saved, 10);
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrating from localStorage
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrating from localStorage on mount
         if (Number.isFinite(n) && n >= 100 && n <= 800) setEditorHeight(n);
       }
     } catch {
@@ -101,7 +108,9 @@ export default function ChallengeBlock({
       e.preventDefault();
       const target = e.currentTarget;
       target.setPointerCapture?.(e.pointerId);
-      dragOriginRef.current = { startY: e.clientY, startHeight: editorHeight };
+      // Read height from the ref so this callback stays stable (no re-creations
+      // on every height change) and still seeds the drag origin correctly.
+      dragOriginRef.current = { startY: e.clientY, startHeight: editorHeightRef.current };
       const onMove = (ev: PointerEvent) => {
         if (!dragOriginRef.current) return;
         const delta = ev.clientY - dragOriginRef.current.startY;
@@ -118,7 +127,9 @@ export default function ChallengeBlock({
       target.addEventListener('pointerup', onUp);
       target.addEventListener('pointercancel', onUp);
     },
-    [editorHeight],
+    // editorHeightRef is a stable ref — no dep needed. setEditorHeight is
+    // stable from useState. dragOriginRef is also stable.
+    [],
   );
 
   const onResizeKeyDown = useCallback((e: React.KeyboardEvent<HTMLButtonElement>) => {

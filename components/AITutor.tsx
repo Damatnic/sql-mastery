@@ -34,10 +34,16 @@ export default function AITutor({
 }: AITutorProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = controlledOpen ?? internalOpen;
-  const setIsOpen = (v: boolean) => {
-    if (onOpenChange) onOpenChange(v);
-    else setInternalOpen(v);
-  };
+  // Stable setter so effects that close the panel (Escape key) don't
+  // need to re-register on every render. onOpenChange is expected to be
+  // stable from the parent (it's always an inline setter in LessonPage).
+  const setIsOpen = useCallback(
+    (v: boolean) => {
+      if (onOpenChange) onOpenChange(v);
+      else setInternalOpen(v);
+    },
+    [onOpenChange],
+  );
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -66,8 +72,7 @@ export default function AITutor({
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- setIsOpen is stable enough for this
-  }, [isOpen]);
+  }, [isOpen, setIsOpen]);
 
   const sendMessage = useCallback(
     async (content: string) => {

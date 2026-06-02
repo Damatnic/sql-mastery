@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Database, Table2, ChevronDown, ChevronRight, Key, Hash, Type, X, Search, Calendar, Link2, Eye, EyeOff } from 'lucide-react';
 import { getDatabaseSchema, getTableNames, runQuery } from '@/lib/db';
 import type { Database as SqlJsDatabase } from 'sql.js';
@@ -43,10 +43,24 @@ export default function SchemaViewer({
 }: SchemaViewerProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = controlledOpen ?? internalOpen;
-  const setIsOpen = (v: boolean) => {
-    if (onOpenChange) onOpenChange(v);
-    else setInternalOpen(v);
-  };
+  const setIsOpen = useCallback(
+    (v: boolean) => {
+      if (onOpenChange) onOpenChange(v);
+      else setInternalOpen(v);
+    },
+    [onOpenChange],
+  );
+
+  // Close on Escape key while open
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, setIsOpen]);
+
   const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set());
   const [previewTable, setPreviewTable] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -173,7 +187,8 @@ export default function SchemaViewer({
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1.5 hover:bg-slate-700 rounded-lg transition-colors"
+              className="p-1.5 hover:bg-slate-700 rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+              aria-label="Close schema viewer"
             >
               <X className="w-4 h-4 text-slate-400" />
             </button>

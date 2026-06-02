@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export interface CheatSheetSection {
   title: string;
@@ -134,10 +134,24 @@ export default function SQLCheatSheet({
 }: SQLCheatSheetProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = controlledOpen ?? internalOpen;
-  const setIsOpen = (v: boolean) => {
-    if (onOpenChange) onOpenChange(v);
-    else setInternalOpen(v);
-  };
+  const setIsOpen = useCallback(
+    (v: boolean) => {
+      if (onOpenChange) onOpenChange(v);
+      else setInternalOpen(v);
+    },
+    [onOpenChange],
+  );
+
+  // Close on Escape key while open
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, setIsOpen]);
+
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['Basic Queries', 'Filtering']));
 
   const toggleSection = (title: string) => {
