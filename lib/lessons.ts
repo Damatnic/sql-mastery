@@ -51,6 +51,10 @@ export const modules: ModuleInfo[] = [
   { slug: 'advanced', name: 'SQL Server Advanced', color: 'yellow', lessons: [39, 40, 41, 42] },
   { slug: 'school-advanced', name: 'Advanced SQL (WCTC)', color: 'emerald', lessons: [43, 44, 45, 46, 47, 48, 49, 50, 51, 52] },
   { slug: 'set-design', name: 'Set Ops & Design', color: 'cyan', lessons: [53, 54, 55] },
+  { slug: 'window-advanced', name: 'Advanced Window Functions', color: 'rose', lessons: [56, 57, 58] },
+  { slug: 'recursive-queries', name: 'Recursive Queries', color: 'amber', lessons: [59, 60] },
+  { slug: 'performance-indexing', name: 'Performance & Indexing', color: 'lime', lessons: [61, 62] },
+  { slug: 'capstone', name: 'Capstone Projects', color: 'violet', lessons: [63, 64, 65] },
 ];
 
 export const lessons: Lesson[] = [
@@ -2534,6 +2538,14 @@ FROM employees e
 JOIN departments d ON e.department = d.name;
 \`\`\`
 
+## anti-patterns that look fine until they don't
+
+- **The comma-list column.** A \`tags\` column holding \`"sql,python,etl"\` cannot be joined, filtered, or counted without ugly string surgery. \`WHERE tags LIKE '%python%'\` also matches \`pythonic\`. The fix is a junction table with one row per tag.
+- **Repeating groups.** \`phone1, phone2, phone3\` columns break the moment someone has a fourth phone, and "find everyone with a given number" means checking three columns. Move them to a related \`phones\` table.
+- **Storing what you can compute.** A stored \`age\` column is wrong the day after you write it. Store \`birth_date\` and compute age when you query.
+
+When **is** denormalization right? In a reporting or analytics layer where the data is read far more than it is written, and a join across huge tables is the bottleneck. You denormalize on purpose, document it, and accept the duplication because you control how it gets refreshed. That is a deliberate trade, not the accidental mess above.
+
 > ⚠️ **Common Mistake:** Over-normalizing read-heavy reporting tables. Normalize the source of truth; denormalize deliberately (and knowingly) in a reporting layer if joins get expensive.` },
     examples: [
       { title: "The lookup that replaces duplication", explanation: "Budget lives once on departments; reach it with a join", sql: "SELECT e.name, d.budget\nFROM employees e\nJOIN departments d ON e.department = d.name;" },
@@ -2571,6 +2583,374 @@ The junction table turns a many-to-many into two one-to-many relationships you c
     challenges: [
       { id: "55-1", prompt: "Follow the foreign key projects.dept_id -> departments.id. Return each project's name as project and its department name as department.", hint: "JOIN departments d ON p.dept_id = d.id; alias the columns project and department.", expectedColumns: ["project","department"], validateFn: "return rows.length === 6;", solution: "SELECT p.name AS project, d.name AS department\nFROM projects p\nJOIN departments d ON p.dept_id = d.id;" },
       { id: "55-2", prompt: "employee_projects is the junction table for a many-to-many. For every employee on at least one project, return name and project_count, ordered by project_count descending.", hint: "JOIN employee_projects on e.id = ep.employee_id, GROUP BY the employee, COUNT(ep.project_id).", expectedColumns: ["name","project_count"], validateFn: "return rows.length === 18;", solution: "SELECT e.name, COUNT(ep.project_id) AS project_count\nFROM employees e\nJOIN employee_projects ep ON e.id = ep.employee_id\nGROUP BY e.id, e.name\nORDER BY project_count DESC;" }
+    ]
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  // M12 Advanced Window Functions (56-58)
+  // ════════════════════════════════════════════════════════════════
+  {
+    module: 12, lesson: 56, slug: "window-frames", title: "Frames: Running Totals & Moving Averages",
+    badge: "concept", database: "store", moduleSlug: "window-advanced", lessonSlug: "window-frames",
+    theory: { content: `## the frame is the window inside the window
+
+You met \`OVER (ORDER BY ...)\` already. What you may not have noticed is that an ordered window has a **frame**: the slice of rows the function actually sees for the current row. By default, an ordered window's frame is "everything from the start up to the current row," which is exactly what makes a running total work.
+
+\`\`\`sql
+SELECT id, total,
+       SUM(total) OVER (ORDER BY order_date, id) AS running_total
+FROM orders;
+\`\`\`
+
+When you want a moving window instead (the last 3 rows, say), you spell the frame out with \`ROWS BETWEEN\`:
+
+\`\`\`sql
+SELECT id, total,
+       AVG(total) OVER (
+         ORDER BY order_date, id
+         ROWS BETWEEN 2 PRECEDING AND CURRENT ROW
+       ) AS moving_avg_3
+FROM orders;
+\`\`\`
+
+\`ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\` means "this row and the two before it," so you get a 3-row moving average that slides down the table.
+
+> 💡 **Key:** \`ROWS\` counts physical rows. \`RANGE\` counts by value of the ORDER BY column (rows with the same value share a frame). For most running totals and moving averages you want \`ROWS\`.
+
+> ⚠️ **Common Mistake:** Adding a running total but forgetting the ORDER BY inside OVER. With no order, every row sees the whole partition and the "running" total is just the grand total repeated.` },
+    examples: [
+      { title: "Running total of order value", explanation: "Default frame is start-to-current, so SUM accumulates", sql: "SELECT id, total,\n       SUM(total) OVER (ORDER BY order_date, id) AS running_total\nFROM orders\nORDER BY order_date, id;" },
+      { title: "3-order moving average", explanation: "ROWS BETWEEN 2 PRECEDING AND CURRENT ROW is a sliding 3-row window", sql: "SELECT id, total,\n       ROUND(AVG(total) OVER (\n         ORDER BY order_date, id\n         ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\n       ), 2) AS moving_avg\nFROM orders\nORDER BY order_date, id;" }
+    ],
+    challenges: [
+      { id: "56-1", prompt: "For every order return id, total, and a running_total of total ordered by order_date then id. Use a window SUM with an ORDER BY.", hint: "SUM(total) OVER (ORDER BY order_date, id) AS running_total", expectedColumns: ["id","total","running_total"], validateFn: "return rows.length === 30 && rows[0] && 'running_total' in rows[0];", solution: "SELECT id, total,\n       SUM(total) OVER (ORDER BY order_date, id) AS running_total\nFROM orders\nORDER BY order_date, id;" },
+      { id: "56-2", prompt: "Return id, total, and moving_avg: the average of total over the current order and the two before it (a 3-row moving average), ordered by order_date then id. Round to 2 decimals.", hint: "AVG(total) OVER (ORDER BY order_date, id ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)", expectedColumns: ["id","total","moving_avg"], validateFn: "return rows.length === 30 && rows[0] && 'moving_avg' in rows[0];", solution: "SELECT id, total,\n       ROUND(AVG(total) OVER (\n         ORDER BY order_date, id\n         ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\n       ), 2) AS moving_avg\nFROM orders\nORDER BY order_date, id;" }
+    ]
+  },
+  {
+    module: 12, lesson: 57, slug: "window-distribution", title: "Distribution: NTILE, PERCENT_RANK, CUME_DIST",
+    badge: "practice", database: "school", moduleSlug: "window-advanced", lessonSlug: "window-distribution",
+    theory: { content: `## where does this row stand in the pack
+
+Ranking tells you who is first. Distribution functions tell you **where in the spread** a row sits, which is what you want for things like quartiles and percentiles.
+
+- \`NTILE(n)\` splits the ordered rows into n roughly equal buckets and labels each row with its bucket number. \`NTILE(4)\` gives quartiles.
+- \`PERCENT_RANK()\` returns a value from 0 to 1: the fraction of rows that rank strictly below this one. The lowest row is 0.
+- \`CUME_DIST()\` is the cumulative distribution: the fraction of rows at or below this one.
+
+\`\`\`sql
+SELECT name, gpa,
+       NTILE(4)       OVER (ORDER BY gpa DESC) AS quartile,
+       PERCENT_RANK() OVER (ORDER BY gpa)      AS pct_rank
+FROM students;
+\`\`\`
+
+A quartile of 1 (with \`ORDER BY gpa DESC\`) is the top 25 percent of students.
+
+> 💡 **Key:** these all need an \`ORDER BY\` inside \`OVER\`, because "distribution" only means something once the rows are sorted.
+
+> ⚠️ **Common Mistake:** reading NTILE as "equal value ranges." It makes equal-**count** buckets. If 20 rows go into NTILE(4), each bucket gets 5 rows regardless of how the values cluster.` },
+    examples: [
+      { title: "GPA quartiles", explanation: "NTILE(4) over gpa DESC: bucket 1 is the strongest quarter", sql: "SELECT name, gpa,\n       NTILE(4) OVER (ORDER BY gpa DESC) AS quartile\nFROM students\nORDER BY gpa DESC;" },
+      { title: "Percentile rank", explanation: "PERCENT_RANK is the fraction of students below this GPA", sql: "SELECT name, gpa,\n       ROUND(PERCENT_RANK() OVER (ORDER BY gpa), 2) AS pct_rank\nFROM students\nORDER BY gpa;" }
+    ],
+    challenges: [
+      { id: "57-1", prompt: "Return name, gpa, and quartile using NTILE(4) ordered by gpa descending, so quartile 1 is the top quarter of students.", hint: "NTILE(4) OVER (ORDER BY gpa DESC) AS quartile", expectedColumns: ["name","gpa","quartile"], validateFn: "return rows.length === 20 && rows.some(r => r.quartile === 4);", solution: "SELECT name, gpa,\n       NTILE(4) OVER (ORDER BY gpa DESC) AS quartile\nFROM students;" },
+      { id: "57-2", prompt: "Return name, gpa, and pct_rank using PERCENT_RANK() ordered by gpa ascending, rounded to 2 decimals.", hint: "ROUND(PERCENT_RANK() OVER (ORDER BY gpa), 2) AS pct_rank", expectedColumns: ["name","gpa","pct_rank"], validateFn: "return rows.length === 20 && rows[0] && 'pct_rank' in rows[0];", solution: "SELECT name, gpa,\n       ROUND(PERCENT_RANK() OVER (ORDER BY gpa), 2) AS pct_rank\nFROM students;" }
+    ]
+  },
+  {
+    module: 12, lesson: 58, slug: "window-value-functions", title: "FIRST_VALUE, LAST_VALUE, and the Frame Trap",
+    badge: "challenge", database: "store", moduleSlug: "window-advanced", lessonSlug: "window-value-functions",
+    theory: { content: `## pull a value from somewhere else in the window
+
+\`FIRST_VALUE\` and \`LAST_VALUE\` grab a column's value from a specific position in the window, so every row can compare itself to the top (or bottom) of its group.
+
+\`\`\`sql
+SELECT name, category_id, price,
+       FIRST_VALUE(price) OVER (
+         PARTITION BY category_id ORDER BY price DESC
+       ) AS top_price_in_category
+FROM products;
+\`\`\`
+
+Each product now carries the highest price in its category, so you can see how far it sits below the leader.
+
+> ⚠️ **Common Mistake:** \`LAST_VALUE\` surprises everyone. Because the default frame ends at the current row, \`LAST_VALUE\` returns the current row, not the real last one. To get the true last value you must extend the frame: \`ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING\`. \`FIRST_VALUE\` does not have this problem, which is why it is usually the safer choice.
+
+> 💡 **Key:** when you only need the leader of each group, \`FIRST_VALUE(...) OVER (PARTITION BY ... ORDER BY ... DESC)\` is clean and correct without touching the frame.` },
+    examples: [
+      { title: "Top price per category", explanation: "FIRST_VALUE with DESC order gives each category's highest price", sql: "SELECT name, category_id, price,\n       FIRST_VALUE(price) OVER (\n         PARTITION BY category_id ORDER BY price DESC\n       ) AS top_price\nFROM products\nORDER BY category_id, price DESC;" },
+      { title: "Name of the priciest product per category", explanation: "FIRST_VALUE works on any column, including text", sql: "SELECT name, category_id,\n       FIRST_VALUE(name) OVER (\n         PARTITION BY category_id ORDER BY price DESC\n       ) AS priciest\nFROM products\nORDER BY category_id;" }
+    ],
+    challenges: [
+      { id: "58-1", prompt: "For every product return name, category_id, price, and top_price: the highest price within that product's category, using FIRST_VALUE.", hint: "FIRST_VALUE(price) OVER (PARTITION BY category_id ORDER BY price DESC) AS top_price", expectedColumns: ["name","category_id","price","top_price"], validateFn: "return rows.length === 15 && rows[0] && 'top_price' in rows[0];", solution: "SELECT name, category_id, price,\n       FIRST_VALUE(price) OVER (\n         PARTITION BY category_id ORDER BY price DESC\n       ) AS top_price\nFROM products;" },
+      { id: "58-2", prompt: "For every product return name, category_id, and priciest: the name of the most expensive product in the same category, using FIRST_VALUE on the name column.", hint: "FIRST_VALUE(name) OVER (PARTITION BY category_id ORDER BY price DESC) AS priciest", expectedColumns: ["name","category_id","priciest"], validateFn: "return rows.length === 15 && rows[0] && 'priciest' in rows[0];", solution: "SELECT name, category_id,\n       FIRST_VALUE(name) OVER (\n         PARTITION BY category_id ORDER BY price DESC\n       ) AS priciest\nFROM products;" }
+    ]
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  // M13 Recursive Queries (59-60)
+  // ════════════════════════════════════════════════════════════════
+  {
+    module: 13, lesson: 59, slug: "recursive-org-chart", title: "Recursive CTEs: Walking a Hierarchy",
+    badge: "concept", database: "company", moduleSlug: "recursive-queries", lessonSlug: "recursive-org-chart",
+    theory: { content: `## a query that calls itself
+
+Some data is a tree. \`employees.manager_id\` points at another employee, so the table holds an org chart folded into itself. A normal join reaches one level. To walk the whole chain you need a **recursive CTE**.
+
+A recursive CTE has two halves joined by \`UNION ALL\`:
+
+\`\`\`sql
+WITH RECURSIVE chain AS (
+  -- anchor: where the walk starts
+  SELECT id, name, 0 AS level
+  FROM employees
+  WHERE id = 1
+  UNION ALL
+  -- recursive step: everyone who reports to a row already in 'chain'
+  SELECT e.id, e.name, c.level + 1
+  FROM employees e
+  JOIN chain c ON e.manager_id = c.id
+)
+SELECT id, name, level FROM chain ORDER BY level, id;
+\`\`\`
+
+The anchor runs once. Then the recursive step runs again and again, each pass joining new employees onto the rows found in the previous pass, until no new rows appear. The \`level\` column counts how deep each person sits below the starting employee.
+
+> 💡 **Key:** the recursive part must reference the CTE name (\`chain\`) in its FROM. That self-reference is what makes it loop.
+
+> ⚠️ **Common Mistake:** forgetting a stopping condition in data that has cycles. A clean tree ends on its own; messy data with a loop (A manages B manages A) runs forever. Real systems add a depth guard or a visited-path check.` },
+    examples: [
+      { title: "Everyone under Sarah Chen", explanation: "Anchor on id 1, then follow manager_id down the tree", sql: "WITH RECURSIVE chain AS (\n  SELECT id, name, 0 AS level FROM employees WHERE id = 1\n  UNION ALL\n  SELECT e.id, e.name, c.level + 1\n  FROM employees e JOIN chain c ON e.manager_id = c.id\n)\nSELECT id, name, level FROM chain ORDER BY level, id;" },
+      { title: "The whole company with depth", explanation: "Anchor on every top-level manager (manager_id IS NULL)", sql: "WITH RECURSIVE org AS (\n  SELECT id, name, manager_id, 0 AS level FROM employees WHERE manager_id IS NULL\n  UNION ALL\n  SELECT e.id, e.name, e.manager_id, o.level + 1\n  FROM employees e JOIN org o ON e.manager_id = o.id\n)\nSELECT id, name, level FROM org ORDER BY level, id;" }
+    ],
+    challenges: [
+      { id: "59-1", prompt: "Using a recursive CTE, return id, name, and level for Sarah Chen (id 1) and everyone below her in the org. Her level is 0; her direct reports are level 1.", hint: "Anchor: WHERE id = 1 with 0 AS level. Recursive: JOIN the CTE ON e.manager_id = cte.id, level + 1.", expectedColumns: ["id","name","level"], validateFn: "return rows.length === 6;", solution: "WITH RECURSIVE chain AS (\n  SELECT id, name, 0 AS level FROM employees WHERE id = 1\n  UNION ALL\n  SELECT e.id, e.name, c.level + 1\n  FROM employees e JOIN chain c ON e.manager_id = c.id\n)\nSELECT id, name, level FROM chain ORDER BY level, id;" },
+      { id: "59-2", prompt: "Using a recursive CTE anchored on every top-level manager (manager_id IS NULL), return id, name, and level for the entire company.", hint: "Anchor: WHERE manager_id IS NULL with 0 AS level. Recursive step joins manager_id to the CTE's id.", expectedColumns: ["id","name","level"], validateFn: "return rows.length === 20 && rows.some(r => r.level === 0);", solution: "WITH RECURSIVE org AS (\n  SELECT id, name, manager_id, 0 AS level FROM employees WHERE manager_id IS NULL\n  UNION ALL\n  SELECT e.id, e.name, e.manager_id, o.level + 1\n  FROM employees e JOIN org o ON e.manager_id = o.id\n)\nSELECT id, name, level FROM org ORDER BY level, id;" }
+    ]
+  },
+  {
+    module: 13, lesson: 60, slug: "recursive-series-tree", title: "Recursive CTEs: Series and Category Trees",
+    badge: "challenge", database: "store", moduleSlug: "recursive-queries", lessonSlug: "recursive-series-tree",
+    theory: { content: `## generating rows from nothing, and walking a category tree
+
+A recursive CTE does not need a table to start from. It can count:
+
+\`\`\`sql
+WITH RECURSIVE nums(n) AS (
+  SELECT 1
+  UNION ALL
+  SELECT n + 1 FROM nums WHERE n < 10
+)
+SELECT n FROM nums;
+\`\`\`
+
+The anchor produces 1. Each step adds 1 until the \`WHERE n < 10\` guard stops it. That \`WHERE\` is the off switch, leave it out and the query never ends.
+
+The same shape walks the \`categories\` tree, where \`parent_id\` points up to a parent category. Building a readable path as you descend is a classic use:
+
+\`\`\`sql
+WITH RECURSIVE tree AS (
+  SELECT id, name, parent_id, name AS path, 0 AS depth
+  FROM categories WHERE parent_id IS NULL
+  UNION ALL
+  SELECT c.id, c.name, c.parent_id, t.path || ' > ' || c.name, t.depth + 1
+  FROM categories c JOIN tree t ON c.parent_id = t.id
+)
+SELECT name, path, depth FROM tree ORDER BY path;
+\`\`\`
+
+Concatenating \`t.path || ' > ' || c.name\` at each step turns a flat parent_id column into a breadcrumb like \`Electronics > Laptops\`.
+
+> 💡 **Key:** the anchor selects the roots (\`parent_id IS NULL\`), and the recursive step attaches children to parents already found. Same engine as the org chart, different tree.` },
+    examples: [
+      { title: "Generate 1 to 10", explanation: "No table needed; the guard WHERE n < 10 stops the loop", sql: "WITH RECURSIVE nums(n) AS (\n  SELECT 1\n  UNION ALL\n  SELECT n + 1 FROM nums WHERE n < 10\n)\nSELECT n FROM nums;" },
+      { title: "Category breadcrumbs", explanation: "Build a path string while descending the parent_id tree", sql: "WITH RECURSIVE tree AS (\n  SELECT id, name, parent_id, name AS path, 0 AS depth\n  FROM categories WHERE parent_id IS NULL\n  UNION ALL\n  SELECT c.id, c.name, c.parent_id, t.path || ' > ' || c.name, t.depth + 1\n  FROM categories c JOIN tree t ON c.parent_id = t.id\n)\nSELECT name, path, depth FROM tree ORDER BY path;" }
+    ],
+    challenges: [
+      { id: "60-1", prompt: "Use a recursive CTE to generate a single column n with the numbers 1 through 10.", hint: "Anchor SELECT 1; recursive SELECT n + 1 FROM cte WHERE n < 10.", expectedColumns: ["n"], validateFn: "return rows.length === 10;", solution: "WITH RECURSIVE nums(n) AS (\n  SELECT 1\n  UNION ALL\n  SELECT n + 1 FROM nums WHERE n < 10\n)\nSELECT n FROM nums;" },
+      { id: "60-2", prompt: "Walk the categories tree with a recursive CTE. Return each category's name, a path breadcrumb built with ' > ', and its depth (roots are depth 0).", hint: "Anchor on parent_id IS NULL with name AS path. Recursive step: t.path || ' > ' || c.name.", expectedColumns: ["name","path","depth"], validateFn: "return rows.length === 6 && rows.some(r => r.depth === 1);", solution: "WITH RECURSIVE tree AS (\n  SELECT id, name, parent_id, name AS path, 0 AS depth\n  FROM categories WHERE parent_id IS NULL\n  UNION ALL\n  SELECT c.id, c.name, c.parent_id, t.path || ' > ' || c.name, t.depth + 1\n  FROM categories c JOIN tree t ON c.parent_id = t.id\n)\nSELECT name, path, depth FROM tree ORDER BY path;" }
+    ]
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  // M14 Performance & Indexing (61-62)
+  // ════════════════════════════════════════════════════════════════
+  {
+    module: 14, lesson: 61, slug: "explain-query-plan", title: "Reading EXPLAIN QUERY PLAN",
+    badge: "concept", database: "store", moduleSlug: "performance-indexing", lessonSlug: "explain-query-plan",
+    theory: { content: `## ask the database how it will run your query
+
+Before you optimize anything, find out what the database actually does. \`EXPLAIN QUERY PLAN\` shows the strategy without running the real work:
+
+\`\`\`sql
+EXPLAIN QUERY PLAN
+SELECT c.name, COUNT(o.id) AS order_count
+FROM customers c
+JOIN orders o ON o.customer_id = c.id
+WHERE c.state = 'TX'
+GROUP BY c.id, c.name;
+\`\`\`
+
+You read the plan top to bottom. The words that matter:
+
+- **SCAN** means the database reads every row of a table. Fine for small tables, a warning sign on big ones.
+- **SEARCH ... USING INDEX** means it jumped straight to the rows it needed. That is what you want on the hot path.
+- **USE TEMP B-TREE** for an ORDER BY or GROUP BY means it had to build a temporary structure to sort or group, which an index can sometimes remove.
+
+> 💡 **Key:** a SCAN on a 20-row table is nothing. The same SCAN on 20 million rows inside a loop is why a page takes 30 seconds. Plans matter at scale, so learn to read them on small data now.
+
+The query below is the kind of thing you would profile: a join with a filter and a grouped count. Write it, then imagine running EXPLAIN QUERY PLAN in front of it to see how the engine attacks it.` },
+    examples: [
+      { title: "Inspect a join plan", explanation: "EXPLAIN QUERY PLAN reports the strategy, not the rows", sql: "EXPLAIN QUERY PLAN\nSELECT c.name, COUNT(o.id) AS order_count\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nWHERE c.state = 'TX'\nGROUP BY c.id, c.name;" },
+      { title: "The query itself", explanation: "This is the query whose plan you would study", sql: "SELECT c.name, COUNT(o.id) AS order_count\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nWHERE c.state = 'TX'\nGROUP BY c.id, c.name\nORDER BY order_count DESC;" }
+    ],
+    challenges: [
+      { id: "61-1", prompt: "Write the query whose plan you would profile: for customers in TX, return name and order_count (their number of orders), ordered by order_count descending.", hint: "JOIN orders ON o.customer_id = c.id, WHERE c.state = 'TX', GROUP BY the customer, COUNT(o.id).", expectedColumns: ["name","order_count"], validateFn: "return rows.length === 5;", solution: "SELECT c.name, COUNT(o.id) AS order_count\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nWHERE c.state = 'TX'\nGROUP BY c.id, c.name\nORDER BY order_count DESC;" },
+      { id: "61-2", prompt: "Write a query that joins order_items to products and returns each product's name and units_sold (the total quantity sold), ordered by units_sold descending. This is a join the database would scan order_items for.", hint: "JOIN order_items ON oi.product_id = p.id, GROUP BY the product, SUM(oi.quantity).", expectedColumns: ["name","units_sold"], validateFn: "return rows.length === 15;", solution: "SELECT p.name, SUM(oi.quantity) AS units_sold\nFROM products p\nJOIN order_items oi ON oi.product_id = p.id\nGROUP BY p.id, p.name\nORDER BY units_sold DESC;" }
+    ]
+  },
+  {
+    module: 14, lesson: 62, slug: "indexes-that-help", title: "Indexes That Actually Help",
+    badge: "practice", database: "store", moduleSlug: "performance-indexing", lessonSlug: "indexes-that-help",
+    theory: { content: `## the right index turns a scan into a jump
+
+An index is a sorted lookup structure on one or more columns. With it, the database finds matching rows directly instead of reading the whole table.
+
+\`\`\`sql
+CREATE INDEX idx_orders_customer ON orders(customer_id);
+CREATE INDEX idx_orders_status   ON orders(status);
+\`\`\`
+
+Index the columns you **filter and join on**, the ones in your \`WHERE\` and \`ON\` clauses. A query that filters orders by \`status\` and joins on \`customer_id\` benefits from indexes on exactly those columns.
+
+A **composite** index covers more than one column and helps when you filter on its leading columns together:
+
+\`\`\`sql
+CREATE INDEX idx_orders_cust_status ON orders(customer_id, status);
+\`\`\`
+
+A **covering** index includes every column a query needs, so the database answers from the index alone and never touches the table.
+
+> ⚠️ **Common Mistake:** indexing everything. Each index speeds reads but slows every insert and update, because the index has to be maintained too. Index for the queries you actually run, then verify with EXPLAIN QUERY PLAN.
+
+> 💡 **Key:** an index on a column you never filter or join on is pure overhead. Match indexes to your real query patterns, not to a hunch.
+
+Write the query below; it filters orders by status, which is exactly the kind of column worth indexing.` },
+    examples: [
+      { title: "Create an index", explanation: "Index the columns you filter and join on", sql: "CREATE INDEX idx_orders_status ON orders(status);" },
+      { title: "Composite index for a combined filter", explanation: "Helps queries that filter on the leading columns together", sql: "CREATE INDEX idx_orders_cust_status ON orders(customer_id, status);" }
+    ],
+    challenges: [
+      { id: "62-1", prompt: "Write the query that an index on orders(status) would speed up: for Pending orders, return each customer's name and pending_total (the sum of their pending order totals), ordered by pending_total descending.", hint: "WHERE o.status = 'Pending', JOIN customers, GROUP BY the customer, SUM(o.total).", expectedColumns: ["name","pending_total"], validateFn: "return rows.length === 11;", solution: "SELECT c.name, SUM(o.total) AS pending_total\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nWHERE o.status = 'Pending'\nGROUP BY c.id, c.name\nORDER BY pending_total DESC;" },
+      { id: "62-2", prompt: "Write a query that returns name and stock for products with stock below 50, ordered by stock ascending. An index on products(stock) would turn this filter into a fast range lookup.", hint: "WHERE stock < 50, ORDER BY stock.", expectedColumns: ["name","stock"], validateFn: "return rows.length === 6;", solution: "SELECT name, stock\nFROM products\nWHERE stock < 50\nORDER BY stock;" }
+    ]
+  },
+
+  // ════════════════════════════════════════════════════════════════
+  // M15 Capstone Projects (63-65)
+  // ════════════════════════════════════════════════════════════════
+  {
+    module: 15, lesson: 63, slug: "capstone-customer-value", title: "Capstone: Customer Value Leaderboard",
+    badge: "challenge", database: "store", moduleSlug: "capstone", lessonSlug: "capstone-customer-value",
+    theory: { content: `## put it together: joins, aggregation, and a window in one query
+
+This is a synthesis lesson. No new syntax, just the pieces you already have working together on a real question: who are our best customers, and which products drive the most revenue.
+
+Ranking customers by spend needs a join (customers to orders), an aggregate (SUM of order totals), and a window (RANK over that sum):
+
+\`\`\`sql
+SELECT c.name,
+       SUM(o.total) AS total_spent,
+       RANK() OVER (ORDER BY SUM(o.total) DESC) AS spend_rank
+FROM customers c
+JOIN orders o ON o.customer_id = c.id
+GROUP BY c.id, c.name
+ORDER BY spend_rank;
+\`\`\`
+
+Notice the window function sits on top of the aggregate: \`RANK() OVER (ORDER BY SUM(o.total) DESC)\` ranks the grouped totals. That layering, aggregate first, window over the result, is the move that unlocks most real reporting.
+
+> 💡 **Key:** you can use an aggregate inside a window's ORDER BY. The database computes the GROUP BY, then ranks the grouped rows. This is how leaderboards, top-N-per-group, and share-of-total reports get written.` },
+    examples: [
+      { title: "Customer spend leaderboard", explanation: "RANK over the summed total per customer", sql: "SELECT c.name,\n       SUM(o.total) AS total_spent,\n       RANK() OVER (ORDER BY SUM(o.total) DESC) AS spend_rank\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nGROUP BY c.id, c.name\nORDER BY spend_rank;" },
+      { title: "Each product's share of revenue", explanation: "A window SUM over the grand total gives a percentage", sql: "SELECT p.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue,\n       ROUND(100.0 * SUM(oi.quantity * oi.unit_price)\n             / SUM(SUM(oi.quantity * oi.unit_price)) OVER (), 1) AS pct_of_total\nFROM products p\nJOIN order_items oi ON oi.product_id = p.id\nGROUP BY p.id, p.name\nORDER BY revenue DESC;" }
+    ],
+    challenges: [
+      { id: "63-1", prompt: "Build a customer leaderboard: return name, total_spent (sum of their order totals), and spend_rank using RANK() over the total descending. Order by spend_rank.", hint: "RANK() OVER (ORDER BY SUM(o.total) DESC) AS spend_rank, with GROUP BY the customer.", expectedColumns: ["name","total_spent","spend_rank"], validateFn: "return rows.length === 20 && rows.some(r => r.spend_rank === 1);", solution: "SELECT c.name,\n       SUM(o.total) AS total_spent,\n       RANK() OVER (ORDER BY SUM(o.total) DESC) AS spend_rank\nFROM customers c\nJOIN orders o ON o.customer_id = c.id\nGROUP BY c.id, c.name\nORDER BY spend_rank;" },
+      { id: "63-2", prompt: "For each product in order_items return name, revenue (sum of quantity * unit_price), and pct_of_total: revenue as a percentage of total revenue using a window SUM over (). Round the percentage to 1 decimal, order by revenue descending.", hint: "Divide the per-product SUM by SUM(SUM(...)) OVER () and multiply by 100.0.", expectedColumns: ["name","revenue","pct_of_total"], validateFn: "return rows.length === 15 && rows[0] && 'pct_of_total' in rows[0];", solution: "SELECT p.name,\n       SUM(oi.quantity * oi.unit_price) AS revenue,\n       ROUND(100.0 * SUM(oi.quantity * oi.unit_price)\n             / SUM(SUM(oi.quantity * oi.unit_price)) OVER (), 1) AS pct_of_total\nFROM products p\nJOIN order_items oi ON oi.product_id = p.id\nGROUP BY p.id, p.name\nORDER BY revenue DESC;" }
+    ]
+  },
+  {
+    module: 15, lesson: 64, slug: "capstone-school-report", title: "Capstone: School Performance Report",
+    badge: "challenge", database: "school", moduleSlug: "capstone", lessonSlug: "capstone-school-report",
+    theory: { content: `## the same toolkit on a different shape of data
+
+The school database has students, courses, and enrollments. The questions are different but the moves are the same: join across the relationship, aggregate, filter the groups with HAVING, and rank within a slice.
+
+Department activity comes from joining courses to enrollments and counting:
+
+\`\`\`sql
+SELECT co.department,
+       COUNT(DISTINCT e.student_id) AS students,
+       COUNT(*) AS enrollments
+FROM courses co
+JOIN enrollments e ON e.course_id = co.id
+GROUP BY co.department
+ORDER BY enrollments DESC;
+\`\`\`
+
+\`COUNT(DISTINCT e.student_id)\` counts unique students, while \`COUNT(*)\` counts every enrollment row, so a department where students take multiple courses shows the gap.
+
+> 💡 **Key:** \`COUNT(*)\` and \`COUNT(DISTINCT col)\` answer different questions. Reaching for the wrong one is one of the most common reporting bugs, so name your columns clearly and know which you meant.` },
+    examples: [
+      { title: "Department activity", explanation: "Distinct students vs total enrollments per department", sql: "SELECT co.department,\n       COUNT(DISTINCT e.student_id) AS students,\n       COUNT(*) AS enrollments\nFROM courses co\nJOIN enrollments e ON e.course_id = co.id\nGROUP BY co.department\nORDER BY enrollments DESC;" },
+      { title: "Senior GPA ranking", explanation: "DENSE_RANK over GPA within grade 12", sql: "SELECT name, gpa,\n       DENSE_RANK() OVER (ORDER BY gpa DESC) AS rk\nFROM students\nWHERE grade_level = 12\nORDER BY rk;" }
+    ],
+    challenges: [
+      { id: "64-1", prompt: "For each department, return department, students (distinct students enrolled), and enrollments (total enrollment rows), ordered by enrollments descending. Join courses to enrollments.", hint: "COUNT(DISTINCT e.student_id) AS students, COUNT(*) AS enrollments, GROUP BY co.department.", expectedColumns: ["department","students","enrollments"], validateFn: "return rows.length === 7;", solution: "SELECT co.department,\n       COUNT(DISTINCT e.student_id) AS students,\n       COUNT(*) AS enrollments\nFROM courses co\nJOIN enrollments e ON e.course_id = co.id\nGROUP BY co.department\nORDER BY enrollments DESC;" },
+      { id: "64-2", prompt: "Rank the grade 12 students by GPA. Return name, gpa, and rk using DENSE_RANK() over gpa descending, filtered to grade_level 12, ordered by rk.", hint: "WHERE grade_level = 12, DENSE_RANK() OVER (ORDER BY gpa DESC) AS rk.", expectedColumns: ["name","gpa","rk"], validateFn: "return rows.length === 7 && rows.some(r => r.rk === 1);", solution: "SELECT name, gpa,\n       DENSE_RANK() OVER (ORDER BY gpa DESC) AS rk\nFROM students\nWHERE grade_level = 12\nORDER BY rk;" }
+    ]
+  },
+  {
+    module: 15, lesson: 65, slug: "capstone-org-analysis", title: "Capstone: Org & Salary Analysis",
+    badge: "challenge", database: "company", moduleSlug: "capstone", lessonSlug: "capstone-org-analysis",
+    theory: { content: `## the final synthesis: hierarchy, joins, and ranking together
+
+The company database is where everything you learned meets: a self-referencing hierarchy, a many-to-many through a junction table, and salaries to rank.
+
+Counting direct reports is a self-join on the employees table:
+
+\`\`\`sql
+SELECT m.name AS manager, COUNT(e.id) AS reports
+FROM employees m
+JOIN employees e ON e.manager_id = m.id
+GROUP BY m.id, m.name
+ORDER BY reports DESC;
+\`\`\`
+
+The same table appears twice with two aliases: \`m\` for the manager, \`e\` for the report. Joining \`e.manager_id = m.id\` connects each employee to their boss.
+
+Ranking salaries inside each department is a partitioned window:
+
+\`\`\`sql
+SELECT name, department, salary,
+       RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS dept_rank
+FROM employees
+ORDER BY department, dept_rank;
+\`\`\`
+
+> 💡 **Key:** \`PARTITION BY department\` restarts the ranking for each department, so every department gets its own number-one. This is the top-N-per-group pattern that shows up constantly in real reporting.
+
+That is the whole course in two queries: relationships, aggregation, and windows working together. Everything else is variation on these moves.` },
+    examples: [
+      { title: "Direct reports per manager", explanation: "Self-join on employees: manager m, report e", sql: "SELECT m.name AS manager, COUNT(e.id) AS reports\nFROM employees m\nJOIN employees e ON e.manager_id = m.id\nGROUP BY m.id, m.name\nORDER BY reports DESC;" },
+      { title: "Salary rank within department", explanation: "PARTITION BY department restarts the rank per group", sql: "SELECT name, department, salary,\n       RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS dept_rank\nFROM employees\nORDER BY department, dept_rank;" }
+    ],
+    challenges: [
+      { id: "65-1", prompt: "Using a self-join on employees, return manager (the manager's name) and reports (their count of direct reports), ordered by reports descending. Only managers who have reports should appear.", hint: "JOIN employees e ON e.manager_id = m.id, GROUP BY m.id, m.name, COUNT(e.id).", expectedColumns: ["manager","reports"], validateFn: "return rows.length === 5;", solution: "SELECT m.name AS manager, COUNT(e.id) AS reports\nFROM employees m\nJOIN employees e ON e.manager_id = m.id\nGROUP BY m.id, m.name\nORDER BY reports DESC;" },
+      { id: "65-2", prompt: "Rank employees by salary within their department. Return name, department, salary, and dept_rank using RANK() partitioned by department, ordered by salary descending. Order the output by department then dept_rank.", hint: "RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS dept_rank.", expectedColumns: ["name","department","salary","dept_rank"], validateFn: "return rows.length === 20 && rows.some(r => r.dept_rank === 1);", solution: "SELECT name, department, salary,\n       RANK() OVER (PARTITION BY department ORDER BY salary DESC) AS dept_rank\nFROM employees\nORDER BY department, dept_rank;" }
     ]
   },
 
