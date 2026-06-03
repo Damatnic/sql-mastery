@@ -79,19 +79,18 @@ export default function HomePage() {
           </p>
         </section>
 
-        <section className="mt-6">
+        <section className="mt-6 space-y-4">
           <ModeToggle />
-        </section>
-
-        <section className="mt-6 flex flex-wrap items-center gap-3">
-          <Link
-            href="/start"
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-accent text-accent hover:bg-accent/10 transition-colors text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
-            new here? start here →
-          </Link>
-          <Link href="/glossary" className="text-xs text-muted-foreground hover:text-foreground transition-colors">glossary</Link>
-          <Link href="/next-steps" className="text-xs text-muted-foreground hover:text-foreground transition-colors">where to go next</Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/start"
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-accent text-accent hover:bg-accent/10 transition-colors text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              new here? start here →
+            </Link>
+            <Link href="/glossary" className="text-xs text-muted-foreground hover:text-foreground transition-colors">glossary</Link>
+            <Link href="/next-steps" className="text-xs text-muted-foreground hover:text-foreground transition-colors">where to go next</Link>
+          </div>
         </section>
 
         <section className="mt-8">

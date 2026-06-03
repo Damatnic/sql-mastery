@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import ModeToggle from "@/components/ModeToggle";
 
 export default function StartPage() {
   return (
@@ -28,10 +27,6 @@ export default function StartPage() {
           assumes you know nothing and gets you reading data in about a minute.
         </p>
 
-        <div className="mt-6">
-          <ModeToggle />
-        </div>
-
         <section className="mt-10">
           <p className="text-xs uppercase tracking-widest text-muted-foreground"># the path</p>
           <ol className="mt-4 space-y-3 text-muted-foreground leading-relaxed">
@@ -57,7 +52,7 @@ export default function StartPage() {
           <p className="text-xs uppercase tracking-widest text-muted-foreground"># how to actually learn it</p>
           <ul className="mt-4 space-y-2 text-muted-foreground leading-relaxed">
             <li>Write the challenges from memory before you peek. The struggle is where it sticks.</li>
-            <li>Turn on learn mode (the button above) so finished lessons come back for review, spaced over days. That spacing is what turns “saw it once” into “just know it.”</li>
+            <li>Finished lessons come back for review, spaced out over days. That spacing is what turns “saw it once” into “just know it.”</li>
             <li>Short and often beats long and rare. Fifteen minutes a day will outrun a weekly cram.</li>
           </ul>
         </section>
