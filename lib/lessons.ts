@@ -40,6 +40,7 @@ export interface ModuleInfo {
 }
 
 export const modules: ModuleInfo[] = [
+  { slug: 'start-here', name: 'Start Here', color: 'blue', lessons: [66, 67, 68] },
   { slug: 'getting-started', name: 'Getting Started', color: 'blue', lessons: [1, 2, 3, 4, 5] },
   { slug: 'data-analysis', name: 'Data Analysis Basics', color: 'green', lessons: [6, 7, 8, 9, 10] },
   { slug: 'joining-tables', name: 'Joining Tables', color: 'purple', lessons: [11, 12, 13, 14, 15] },
@@ -58,6 +59,121 @@ export const modules: ModuleInfo[] = [
 ];
 
 export const lessons: Lesson[] = [
+  // ════════════════════════════════════════════════════════════════
+  // START HERE (absolute-beginner on-ramp, shown first)
+  // Lesson numbers are 66-68 to avoid renumbering; the global "lesson NN"
+  // label is suppressed for this module. Order comes from array position.
+  // ════════════════════════════════════════════════════════════════
+  {
+    module: 0, lesson: 66,
+    slug: "start-here/welcome",
+    moduleSlug: "start-here", lessonSlug: "welcome",
+    title: "What Is a Database", badge: "concept", database: "company",
+    theory: { content: `Never touched SQL? You are in the right place. We start from nothing.
+
+## what a database is
+
+A database is just information kept in tables. A table is a grid, like a
+spreadsheet. Each **row** is one thing (one employee). Each **column** is one
+fact about it (a name, a salary).
+
+This course comes with a small company database. One of its tables is called
+\`employees\`. To look at a table, you write a **query**. The simplest query
+reads a whole table:
+
+\`\`\`sql
+SELECT * FROM employees;
+\`\`\`
+
+Read it in plain English: \`SELECT\` means "get me", \`*\` means "every column",
+and \`FROM employees\` says which table. So the line means "get me every column
+from the employees table." Run it and all 20 employees appear below.
+
+> 💡 **Key:** SQL is how you ask a database questions. You write a query, run it,
+and read the rows that come back. That loop is the whole job.
+
+> ✨ **Tip:** the semicolon ends a statement. Get in the habit of adding it.` },
+    examples: [
+      { title: "Read a whole table", explanation: "SELECT * returns every column for every row", sql: "SELECT * FROM employees;" },
+      { title: "Same idea, different table", explanation: "Swap the table name to read a different one", sql: "SELECT * FROM departments;" }
+    ],
+    challenges: [
+      { id: "sh-sql-1", prompt: "Read the entire departments table. Type SELECT * FROM departments; and press Run.", hint: "SELECT * FROM departments;", expectedColumns: ["name"], validateFn: "return rows.length >= 1;", solution: "SELECT * FROM departments;" },
+      { id: "sh-sql-2", prompt: "Now read every column from the employees table the same way.", hint: "SELECT * FROM employees;", expectedColumns: ["name"], validateFn: "return rows.length >= 1;", solution: "SELECT * FROM employees;" }
+    ]
+  },
+  {
+    module: 0, lesson: 67,
+    slug: "start-here/first-select",
+    moduleSlug: "start-here", lessonSlug: "first-select",
+    title: "Picking Columns", badge: "concept", database: "company",
+    theory: { content: `## choosing the columns you want
+
+\`SELECT *\` grabs every column. Usually you only want a few. Instead of the
+star, list the columns you want by name, separated by commas:
+
+\`\`\`sql
+SELECT name, salary FROM employees;
+\`\`\`
+
+That returns just two columns, name and salary, for all employees. The order you
+list them is the order they come back in.
+
+> 💡 **Key:** name the columns you want and you get a cleaner result than
+\`SELECT *\`. In real work you almost always name them.
+
+> ⚠️ **Common Mistake:** misspelling a column name. SQL stops and tells you the
+column does not exist. Read the message, fix the spelling, run it again. Errors
+are normal and they are trying to help.` },
+    examples: [
+      { title: "Two columns", explanation: "List the columns you want, comma separated", sql: "SELECT name, salary FROM employees;" },
+      { title: "Just one column", explanation: "Only the names come back", sql: "SELECT name FROM employees;" }
+    ],
+    challenges: [
+      { id: "sh-sql-3", prompt: "Return just the name column from the employees table.", hint: "SELECT name FROM employees;", expectedColumns: ["name"], validateFn: "return rows.length >= 1 && Object.keys(rows[0]).length === 1;", solution: "SELECT name FROM employees;" },
+      { id: "sh-sql-4", prompt: "Return two columns, name and department, from the employees table.", hint: "SELECT name, department FROM employees;", expectedColumns: ["name","department"], validateFn: "return rows.length >= 1;", solution: "SELECT name, department FROM employees;" }
+    ]
+  },
+  {
+    module: 0, lesson: 68,
+    slug: "start-here/how-to-learn",
+    moduleSlug: "start-here", lessonSlug: "how-to-learn",
+    title: "How to Learn Here", badge: "concept", database: "company",
+    theory: { content: `You have written real SQL. Here is how to use this site so it sticks.
+
+Every lesson has the same shape:
+
+- **Theory** explains the idea in plain words (you are reading it).
+- **Examples** show it working. Read them, then change a column or a table name
+  and run them to see what happens. Poking at working examples is how you learn.
+- **Challenges** make you write the query yourself. This is where the learning
+  actually happens. Reading SQL feels easy and fools you. Writing it from memory
+  is the skill.
+
+> 💡 **Key:** finished lessons come back later for a quick review, spaced out
+over days. That spacing is the most reliable way known to move something from "I
+saw it once" to "I just know it." Let it happen.
+
+When you get stuck, and you will, work it in this order:
+
+1. Read the error. It tells you what went wrong and points at the problem.
+2. Re-read the prompt. Many stuck moments are a misread instruction.
+3. Open the hint.
+4. Ask the tutor (bottom-right dock). It nudges you toward the answer instead of
+   handing it over.
+
+> ⚠️ **Common Mistake:** revealing the solution the second you are stuck. You
+will feel like you learned it. You did not. Sit with it for a minute first.
+
+Do the last query below, then head to Getting Started.` },
+    examples: [
+      { title: "you already know this one", explanation: "The name column from a table", sql: "SELECT name FROM departments;" }
+    ],
+    challenges: [
+      { id: "sh-sql-5", prompt: "Last one. Return the name column from the departments table.", hint: "SELECT name FROM departments;", expectedColumns: ["name"], validateFn: "return rows.length >= 1;", solution: "SELECT name FROM departments;" }
+    ]
+  },
+
   // ════════════════════════════════════════════════════════════════
   // M1-M3 (Modules 1-3)
   // ════════════════════════════════════════════════════════════════

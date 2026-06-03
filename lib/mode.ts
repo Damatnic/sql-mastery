@@ -38,6 +38,23 @@ export function isLearn(): boolean {
   return getSiteMode() === "learn";
 }
 
+// Switch the site mode (persisted per-browser) and reload so every progress
+// gate re-reads it. Used by the visible learn-mode toggle.
+export function setSiteMode(mode: SiteMode): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem("site-mode", mode);
+    window.location.reload();
+  } catch {
+    // Private mode blocks localStorage; fall back to a URL param so the
+    // choice still applies for this session. Use URLSearchParams to preserve
+    // any other existing query params while replacing just the mode value.
+    const params = new URLSearchParams(window.location.search);
+    params.set("mode", mode);
+    window.location.href = `${window.location.pathname}?${params.toString()}`;
+  }
+}
+
 // SSR-safe: false on first paint (matches server), corrected after mount.
 export function useShowcase(): boolean {
   const [sc, setSc] = useState(false);

@@ -3,23 +3,47 @@
 import Link from "next/link";
 import { useState } from "react";
 import HomeTerminal from "@/components/HomeTerminal";
+import ModeToggle from "@/components/ModeToggle";
 import DownloadNotesButton from "@/components/DownloadNotesButton";
-import { getModuleBySlug, getModuleLessons } from "@/lib/lessons";
+import { getAllModules, getModuleBySlug, getModuleLessons } from "@/lib/lessons";
 import { useShowcase } from "@/lib/mode";
 
-const modules = [
-  { num: "01", slug: "getting-started", firstLesson: "select-basics", title: "getting-started", desc: "SELECT, WHERE, ORDER BY.", lessons: 5 },
-  { num: "02", slug: "data-analysis", firstLesson: "aggregate-functions", title: "data-analysis", desc: "Aggregates, GROUP BY, HAVING.", lessons: 5 },
-  { num: "03", slug: "joining-tables", firstLesson: "inner-join", title: "joining-tables", desc: "INNER, LEFT, self-joins.", lessons: 5 },
-  { num: "04", slug: "subqueries-ctes", firstLesson: "subqueries-where", title: "subqueries-ctes", desc: "Nested queries and WITH clauses.", lessons: 4 },
-  { num: "05", slug: "modifying-data", firstLesson: "insert", title: "modifying-data", desc: "INSERT, UPDATE, DELETE.", lessons: 4 },
-  { num: "06", slug: "functions", firstLesson: "string-functions", title: "functions", desc: "String, date, math.", lessons: 5 },
-  { num: "07", slug: "window-functions", firstLesson: "ranking-functions", title: "window-functions", desc: "RANK, LAG, running totals.", lessons: 5 },
-  { num: "08", slug: "database-objects", firstLesson: "views", title: "database-objects", desc: "Views, indexes, constraints.", lessons: 5 },
-  { num: "09", slug: "advanced", firstLesson: "recursive-ctes", title: "advanced", desc: "Recursive CTEs, pivot, optimization.", lessons: 4 },
-  { num: "10", slug: "school-advanced", firstLesson: "stored-procedures", title: "school-advanced", desc: "Course notes: procs, dynamic SQL, JSON.", lessons: 10 },
-  { num: "11", slug: "set-design", firstLesson: "set-operations", title: "set-design", desc: "UNION/INTERSECT/EXCEPT, normalization, keys.", lessons: 3 },
-];
+// One-line descriptions keyed by slug. The module list itself is derived from
+// the lesson data (getAllModules) so it can never go stale when modules are
+// added; a missing description just renders blank.
+const MODULE_DESCRIPTIONS: Record<string, string> = {
+  "start-here": "New to all this? Start at zero.",
+  "getting-started": "SELECT, WHERE, ORDER BY.",
+  "data-analysis": "Aggregates, GROUP BY, HAVING.",
+  "joining-tables": "INNER, LEFT, self-joins.",
+  "subqueries-ctes": "Nested queries and WITH clauses.",
+  "modifying-data": "INSERT, UPDATE, DELETE.",
+  "functions": "String, date, math.",
+  "window-functions": "RANK, LAG, running totals.",
+  "database-objects": "Views, indexes, constraints.",
+  "advanced": "Recursive CTEs, pivot, optimization.",
+  "school-advanced": "Course notes: procs, dynamic SQL, JSON.",
+  "set-design": "UNION/INTERSECT/EXCEPT, normalization, keys.",
+  "window-advanced": "Frames, NTILE, FIRST_VALUE.",
+  "recursive-queries": "Walk hierarchies and trees.",
+  "performance-indexing": "EXPLAIN plans and useful indexes.",
+  "capstone": "Put every piece together.",
+};
+
+const modules = getAllModules().map((m, i) => {
+  const lessons = getModuleLessons(m.slug);
+  return {
+    num: String(i + 1).padStart(2, "0"),
+    slug: m.slug,
+    firstLesson: lessons[0]?.lessonSlug ?? "",
+    // title is the slug used as the terminal-path display string; name is the
+    // human-readable label used in aria-label so screen readers get context.
+    title: m.slug,
+    name: m.name,
+    desc: MODULE_DESCRIPTIONS[m.slug] ?? "",
+    lessons: lessons.length,
+  };
+});
 
 interface PersistedProgress {
   state?: { completedLessons?: string[] };
@@ -55,6 +79,21 @@ export default function HomePage() {
           </p>
         </section>
 
+        <section className="mt-6">
+          <ModeToggle />
+        </section>
+
+        <section className="mt-6 flex flex-wrap items-center gap-3">
+          <Link
+            href="/start"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded border border-accent text-accent hover:bg-accent/10 transition-colors text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            new here? start here →
+          </Link>
+          <Link href="/glossary" className="text-xs text-muted-foreground hover:text-foreground transition-colors">glossary</Link>
+          <Link href="/next-steps" className="text-xs text-muted-foreground hover:text-foreground transition-colors">where to go next</Link>
+        </section>
+
         <section className="mt-8">
           <p className="text-xs uppercase tracking-widest text-muted-foreground"># modules</p>
           <ul className="mt-3 border-y border-border/60 divide-y divide-border/40">
@@ -79,7 +118,7 @@ export default function HomePage() {
                   <Link
                     href={`/learn/${m.slug}/${m.firstLesson}`}
                     className="group grid flex-1 grid-cols-[2.5rem_minmax(0,1fr)_5rem_7rem_1rem] gap-3 items-center py-2 px-2 -ml-2 rounded hover:bg-card/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                    aria-label={`Open module ${m.title}`}
+                    aria-label={`Open module: ${m.name}`}
                   >
                     <span className="text-muted-foreground">{m.num}</span>
                     <span className="min-w-0 truncate">
@@ -143,7 +182,11 @@ export default function HomePage() {
             <span className="text-success">exit 0</span> · personal use · next.js + sql.js
           </span>
           <span className="flex flex-wrap gap-x-3 gap-y-1">
+            <Link href="/start" className="hover:text-foreground transition-colors">start</Link>
+            <Link href="/glossary" className="hover:text-foreground transition-colors">glossary</Link>
+            <Link href="/next-steps" className="hover:text-foreground transition-colors">next steps</Link>
             <Link href="/playground" className="hover:text-foreground transition-colors">playground/</Link>
+            <a href="https://damato-python.vercel.app" className="hover:text-foreground transition-colors">learn python →</a>
           </span>
         </div>
       </footer>

@@ -261,7 +261,9 @@ export default function LessonPage({ params }: LessonPageProps) {
           <section className="mb-4">
             <p className="font-mono text-xs text-slate-400">
               <span className="text-indigo-400">[{lesson.badge}]</span>
-              <span className="ml-2 text-slate-500">lesson {String(lesson.lesson).padStart(2, '0')}</span>
+              {lesson.moduleSlug !== 'start-here' && (
+                <span className="ml-2 text-slate-500">lesson {String(lesson.lesson).padStart(2, '0')}</span>
+              )}
               {isAlreadyComplete && <span className="ml-2 text-emerald-400">· done</span>}
             </p>
             <h1 className="mt-2 text-2xl font-semibold text-slate-100">{lesson.title}</h1>
