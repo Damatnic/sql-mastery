@@ -45,3 +45,6 @@ next-env.d.ts
 
 # jupyter
 .ipynb_checkpoints/
+
+# Playwright MCP browser-test artifacts
+.playwright-mcp/
