@@ -48,3 +48,9 @@ next-env.d.ts
 
 # Playwright MCP browser-test artifacts
 .playwright-mcp/
+
+# secrets (added by cleanup 2026-06-02)
+.env
+.env.*
+!.env.example
+!.env.template
