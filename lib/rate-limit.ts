@@ -1,6 +1,6 @@
 // In-memory per-IP fixed window. Fluid Compute reuses instances so this
 // blunts abuse of the tutor endpoint without a datastore. Not perfect across
-// instances — good enough for a personal portfolio's public AI route.
+// instances, good enough for a personal portfolio's public AI route.
 type Bucket = { count: number; resetAt: number };
 
 const buckets = new Map<string, Bucket>();

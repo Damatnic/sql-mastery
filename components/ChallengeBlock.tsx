@@ -127,7 +127,7 @@ export default function ChallengeBlock({
       target.addEventListener('pointerup', onUp);
       target.addEventListener('pointercancel', onUp);
     },
-    // editorHeightRef is a stable ref — no dep needed. setEditorHeight is
+    // editorHeightRef is a stable ref, no dep needed. setEditorHeight is
     // stable from useState. dragOriginRef is also stable.
     [],
   );

@@ -209,8 +209,8 @@ ORDER BY total_spent DESC;`,
           const nameIdx = columns.findIndex(c => c.toLowerCase().includes('name'));
           const totalIdx = columns.findIndex(c => c.toLowerCase().includes('total') || c.toLowerCase().includes('spent'));
           if (nameIdx === -1 || totalIdx === -1) return false;
-          const topName = values[0][nameIdx];
-          return topName && (topName.includes('John') || topName.includes('Henry'));
+          // top 5, sorted descending: first row's spend is the highest
+          return values[0][totalIdx] >= values[values.length - 1][totalIdx];
         `,
         solution: `SELECT
   c.name AS customer_name,
@@ -244,20 +244,22 @@ ORDER BY month;`,
       },
       {
         id: 'sales-step-5',
-        title: 'Products Never Ordered',
-        description: 'Find products that have never been purchased.',
-        context: 'Find products with no entries in order_items. A LEFT JOIN from products to order_items will show NULL on the right side for anything that\'s never been ordered.',
-        hint: 'Use LEFT JOIN with order_items and filter WHERE the order_id IS NULL.',
-        expectedColumns: ['product_name'],
+        title: 'Lowest-Selling Products',
+        description: 'Find the 5 products with the fewest total units sold.',
+        context: 'A LEFT JOIN from products to order_items keeps products that have no sales at all; COALESCE the summed quantity to 0 so they count as zero, then sort ascending to surface the weakest sellers.',
+        hint: 'LEFT JOIN order_items, COALESCE(SUM(quantity), 0) AS units_sold, GROUP BY the product, ORDER BY units_sold ASC, LIMIT 5.',
+        expectedColumns: ['product_name', 'units_sold'],
         validateFn: `
           const nameIdx = columns.findIndex(c => c.toLowerCase().includes('name') || c.toLowerCase().includes('product'));
           if (nameIdx === -1) return false;
-          return values.length === 0 || (values.length <= 5 && values.every(r => r[nameIdx]));
+          return values.length === 5;
         `,
-        solution: `SELECT p.name AS product_name
+        solution: `SELECT p.name AS product_name, COALESCE(SUM(oi.quantity), 0) AS units_sold
 FROM products p
 LEFT JOIN order_items oi ON p.id = oi.product_id
-WHERE oi.id IS NULL;`,
+GROUP BY p.id, p.name
+ORDER BY units_sold ASC
+LIMIT 5;`,
       },
       {
         id: 'sales-step-6',

@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
 
     const { messages, context } = body;
 
-    // Basic shape validation — prevents crashes and nonsense prompts from
+    // Basic shape validation, prevents crashes and nonsense prompts from
     // reaching the model if the client sends a malformed payload.
     if (!Array.isArray(messages)) {
       return NextResponse.json({ error: 'messages must be an array.' }, { status: 400 });

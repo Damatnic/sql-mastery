@@ -178,13 +178,13 @@ export const projectChallenges: Record<string, ProjectChallenge> = {
     id: 'pc-2-3',
     threadId: 'company-dashboard',
     stepNumber: 8,
-    title: 'Projects Missing Deadlines',
-    scenario: `The project manager asks: "Which projects don't have a deadline set yet? We need to assign dates to these ASAP. Show the project name and budget."`,
-    hint: 'Use IS NULL to find rows where a column has no value.',
-    expectedColumns: ['name', 'budget'],
-    validateFn: `return rows.length >= 0;`,
-    solution: `SELECT name, budget FROM projects WHERE deadline IS NULL;`,
-    starterCode: `-- Projects without deadlines\nSELECT name, budget\nFROM projects\nWHERE `,
+    title: 'Employees at the Top of the Org Chart',
+    scenario: `HR asks: "Which employees have no manager above them? They sit at the top of the org chart. Show their name and salary."`,
+    hint: 'Use IS NULL to find rows where a column has no value (manager_id).',
+    expectedColumns: ['name', 'salary'],
+    validateFn: `return rows.length >= 1 && rows.every(r => r.name);`,
+    solution: `SELECT name, salary FROM employees WHERE manager_id IS NULL;`,
+    starterCode: `-- Employees with no manager above them\nSELECT name, salary\nFROM employees\nWHERE `,
     xpReward: 50,
   },
   'data-analysis/column-aliases': {
@@ -415,16 +415,18 @@ ORDER BY price DESC;`,
     id: 'pc-5-3',
     threadId: 'ecommerce-intelligence',
     stepNumber: 7,
-    title: 'Zero-Order Products Audit',
-    scenario: `Before removing any products, we need to identify them: "Find products that have never been ordered. These might be candidates for discontinuation."`,
-    hint: 'Use LEFT JOIN with order_items and filter for NULL matches.',
-    expectedColumns: ['name', 'price'],
-    validateFn: `return rows.length >= 0;`,
-    solution: `SELECT p.name, p.price
+    title: 'Lowest-Selling Products',
+    scenario: `Before removing any products, find the weakest sellers: "Show the 5 products with the fewest total units sold. These are candidates for discontinuation."`,
+    hint: 'LEFT JOIN products to order_items so unsold products still appear, COALESCE the summed quantity to 0, then ORDER BY it ascending.',
+    expectedColumns: ['name', 'units_sold'],
+    validateFn: `return rows.length === 5 && rows[0].units_sold <= rows[rows.length - 1].units_sold;`,
+    solution: `SELECT p.name, COALESCE(SUM(oi.quantity), 0) AS units_sold
 FROM products p
 LEFT JOIN order_items oi ON p.id = oi.product_id
-WHERE oi.id IS NULL;`,
-    starterCode: `-- Products with zero orders\nSELECT p.name, p.price\nFROM products p\nLEFT JOIN `,
+GROUP BY p.id, p.name
+ORDER BY units_sold ASC
+LIMIT 5;`,
+    starterCode: `-- The 5 weakest-selling products\nSELECT p.name, COALESCE(SUM(oi.quantity), 0) AS units_sold\nFROM products p\nLEFT JOIN `,
     xpReward: 50,
   },
   'modifying-data/transactions': {
@@ -610,21 +612,21 @@ ORDER BY rank;`,
     stepNumber: 4,
     title: 'Top Students Per Grade Level',
     scenario: `Each grade's counselor wants to recognize achievers: "Rank students by GPA within their grade level. Show the top 3 per grade."`,
-    hint: 'Use PARTITION BY grade with ROW_NUMBER, then filter in a subquery.',
+    hint: 'The column is grade_level. PARTITION BY grade_level with ROW_NUMBER, alias it AS grade, then filter rank in an outer query.',
     expectedColumns: ['grade', 'name', 'gpa', 'rank'],
     validateFn: `return rows.length > 0 && rows.every(r => r.rank <= 3);`,
     solution: `SELECT grade, name, gpa, rank
 FROM (
   SELECT
-    grade,
+    grade_level AS grade,
     name,
     gpa,
-    ROW_NUMBER() OVER(PARTITION BY grade ORDER BY gpa DESC) AS rank
+    ROW_NUMBER() OVER(PARTITION BY grade_level ORDER BY gpa DESC) AS rank
   FROM students
 ) ranked
 WHERE rank <= 3
 ORDER BY grade, rank;`,
-    starterCode: `-- Top 3 students per grade level\nSELECT grade, name, gpa, rank\nFROM (\n  SELECT \n    grade,\n    name,\n    gpa,\n    ROW_NUMBER() OVER(`,
+    starterCode: `-- Top 3 students per grade level\nSELECT grade, name, gpa, rank\nFROM (\n  SELECT \n    grade_level AS grade,\n    name,\n    gpa,\n    ROW_NUMBER() OVER(`,
     xpReward: 50,
   },
   'window-functions/lead-lag': {
@@ -693,17 +695,16 @@ ORDER BY name;`,
     id: 'pc-8-3',
     threadId: 'school-analytics',
     stepNumber: 8,
-    title: 'Data Integrity Audit',
-    scenario: `Before adding constraints, audit the data: "Find any enrollments that reference non-existent students or courses. These would violate foreign key constraints."`,
-    hint: 'Use LEFT JOINs and check for NULL matches to find orphaned records.',
-    expectedColumns: ['enrollment_id', 'student_id', 'course_id'],
-    validateFn: `return rows.length >= 0;`,
-    solution: `SELECT e.id AS enrollment_id, e.student_id, e.course_id
-FROM enrollments e
-LEFT JOIN students s ON e.student_id = s.id
-LEFT JOIN courses c ON e.course_id = c.id
-WHERE s.id IS NULL OR c.id IS NULL;`,
-    starterCode: `-- Find orphaned enrollment records\nSELECT e.id AS enrollment_id, e.student_id, e.course_id\nFROM enrollments e\nLEFT JOIN `,
+    title: 'Courses Missing Assignments',
+    scenario: `Audit the course setup before the term starts: "Find courses that have no assignments created yet. These need attention. Show the course id and name."`,
+    hint: 'LEFT JOIN courses to assignments, then keep the rows where no assignment matched (a.id IS NULL).',
+    expectedColumns: ['id', 'name'],
+    validateFn: `return rows.length >= 1 && rows.every(r => r.name);`,
+    solution: `SELECT c.id, c.name
+FROM courses c
+LEFT JOIN assignments a ON a.course_id = c.id
+WHERE a.id IS NULL;`,
+    starterCode: `-- Courses with no assignments yet\nSELECT c.id, c.name\nFROM courses c\nLEFT JOIN `,
     xpReward: 50,
   },
   'database-objects/temp-tables': {
@@ -826,7 +827,7 @@ ORDER BY rank;`,
     validateFn: `return rows.length > 0 && rows.every(r => ['High', 'Medium', 'Low'].includes(r.gpa_tier));`,
     solution: `SELECT
   name,
-  grade,
+  grade_level AS grade,
   CASE
     WHEN gpa >= 3.5 THEN 'High'
     WHEN gpa >= 2.5 THEN 'Medium'
@@ -834,7 +835,7 @@ ORDER BY rank;`,
   END AS gpa_tier
 FROM students
 ORDER BY grade, name;`,
-    starterCode: `-- Privacy-compliant student report (no raw GPA)\nSELECT \n  name,\n  grade,\n  CASE \n    `,
+    starterCode: `-- Privacy-compliant student report (no raw GPA)\nSELECT \n  name,\n  grade_level AS grade,\n  CASE \n    `,
     xpReward: 50,
   },
 };

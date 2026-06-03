@@ -2355,16 +2355,20 @@ FOR XML PATH('emp'), ROOT('team');
 -- </team>
 \`\`\`
 
-## reading XML WITH OPENXML
+## reading XML with the .nodes() method
+
+The modern way to shred XML into rows is the \`.nodes()\` method (which gives you
+one row per matched element) paired with \`.value()\` to pull out attributes.
 
 \`\`\`sql
 DECLARE @xml XML = '<employees>
     <emp id="1" name="Test" salary="80000"/>
 </employees>';
 
-SELECT *
-FROM OPENXML(@xml.nodes('/employees/emp') AS t(c))
--- or use the newer .nodes() and .value() methods
+SELECT
+    T.c.value('@id', 'int')             AS id,
+    T.c.value('@name', 'nvarchar(100)') AS name
+FROM @xml.nodes('/employees/emp') AS T(c);
 \`\`\`
 
 ## SQLite note
@@ -2585,7 +2589,7 @@ This tells you WHAT changed but not the old values.
 Without temporal table support, you can use triggers to maintain a history table. That's what we'll do in the challenges.` },
     examples: [
       { title: "Manual history tracking with triggers", explanation: "Store old values before every update", sql: "-- create history table\nCREATE TABLE IF NOT EXISTS employee_history (\n    history_id INTEGER PRIMARY KEY AUTOINCREMENT,\n    emp_id INTEGER,\n    name TEXT,\n    salary REAL,\n    department TEXT,\n    valid_from TEXT,\n    valid_to TEXT\n);\n\n-- trigger to capture changes\nCREATE TRIGGER IF NOT EXISTS trg_emp_history\nBEFORE UPDATE ON employees\nFOR EACH ROW\nBEGIN\n    INSERT INTO employee_history (emp_id, name, salary, department, valid_from, valid_to)\n    VALUES (OLD.id, OLD.name, OLD.salary, OLD.department, \n            datetime('now', '-1 year'), datetime('now'));\nEND;\n\nSELECT 'History tracking enabled' AS status;" },
-      { title: "Query point-in-time data", explanation: "Find what data looked like at a specific time", sql: "-- assuming we have history data\n-- find records valid at a specific point\nSELECT * FROM employee_history\nWHERE valid_from <= '2025-06-01'\n  AND valid_to > '2025-06-01'\nLIMIT 5;" }
+      { title: "Query point-in-time data", explanation: "Find what data looked like at a specific time", sql: "-- build a tiny history table so this runs on its own\nCREATE TABLE IF NOT EXISTS employee_history (\n    history_id INTEGER PRIMARY KEY AUTOINCREMENT,\n    emp_id INTEGER, name TEXT, salary REAL,\n    valid_from TEXT, valid_to TEXT\n);\nINSERT INTO employee_history (emp_id, name, salary, valid_from, valid_to) VALUES\n    (1, 'Sarah Chen', 110000, '2024-01-01', '2025-01-01'),\n    (1, 'Sarah Chen', 120000, '2025-01-01', '9999-12-31');\n\n-- what did the data look like on 2024-06-01?\nSELECT emp_id, name, salary\nFROM employee_history\nWHERE valid_from <= '2024-06-01' AND valid_to > '2024-06-01';" }
     ],
     challenges: [
       { id: "52-1", prompt: "Create a salary_history table that will store: emp_id, old_salary, new_salary, changed_at. Then create a trigger that populates it on salary updates.", hint: "CREATE TABLE then CREATE TRIGGER AFTER UPDATE WHEN OLD.salary != NEW.salary.", expectedColumns: ["emp_id","old_salary","new_salary","changed_at"], validateFn: "return rows.length >= 0;", solution: "CREATE TABLE IF NOT EXISTS salary_history (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    emp_id INTEGER,\n    old_salary REAL,\n    new_salary REAL,\n    changed_at TEXT\n);\n\nCREATE TRIGGER IF NOT EXISTS trg_salary_history\nAFTER UPDATE ON employees\nFOR EACH ROW\nWHEN OLD.salary != NEW.salary\nBEGIN\n    INSERT INTO salary_history (emp_id, old_salary, new_salary, changed_at)\n    VALUES (NEW.id, OLD.salary, NEW.salary, datetime('now'));\nEND;\n\n-- test it\nUPDATE employees SET salary = salary + 5000 WHERE id = 2;\nSELECT * FROM salary_history;" },
@@ -2642,9 +2646,9 @@ SELECT col FROM b;
 
 The forms, in plain terms:
 
-- **1NF** — one value per cell, no repeating groups. No \`phone1, phone2, phone3\` columns.
-- **2NF** — 1NF, and every non-key column depends on the *whole* key, not part of it.
-- **3NF** — 2NF, and no column depends on another non-key column. Department budget belongs on the department row, not duplicated onto every employee.
+- **1NF**: one value per cell, no repeating groups. No \`phone1, phone2, phone3\` columns.
+- **2NF**: 1NF, and every non-key column depends on the *whole* key, not part of it.
+- **3NF**: 2NF, and no column depends on another non-key column. Department budget belongs on the department row, not duplicated onto every employee.
 
 In this database \`employees.department\` is stored as text (a denormalized shortcut). The \`departments\` table holds the budget once. To get an employee's department budget you **join** instead of duplicating it.
 
@@ -2751,7 +2755,7 @@ FROM orders;
 Ranking tells you who is first. Distribution functions tell you **where in the spread** a row sits, which is what you want for things like quartiles and percentiles.
 
 - \`NTILE(n)\` splits the ordered rows into n roughly equal buckets and labels each row with its bucket number. \`NTILE(4)\` gives quartiles.
-- \`PERCENT_RANK()\` returns a value from 0 to 1: the fraction of rows that rank strictly below this one. The lowest row is 0.
+- \`PERCENT_RANK()\` returns (rank - 1) / (total_rows - 1): a value from 0 to 1 where the lowest row is 0 and the highest is 1. It measures relative standing, not a literal count of the rows below you.
 - \`CUME_DIST()\` is the cumulative distribution: the fraction of rows at or below this one.
 
 \`\`\`sql
@@ -2768,7 +2772,7 @@ A quartile of 1 (with \`ORDER BY gpa DESC\`) is the top 25 percent of students.
 > ⚠️ **Common Mistake:** reading NTILE as "equal value ranges." It makes equal-**count** buckets. If 20 rows go into NTILE(4), each bucket gets 5 rows regardless of how the values cluster.` },
     examples: [
       { title: "GPA quartiles", explanation: "NTILE(4) over gpa DESC: bucket 1 is the strongest quarter", sql: "SELECT name, gpa,\n       NTILE(4) OVER (ORDER BY gpa DESC) AS quartile\nFROM students\nORDER BY gpa DESC;" },
-      { title: "Percentile rank", explanation: "PERCENT_RANK is the fraction of students below this GPA", sql: "SELECT name, gpa,\n       ROUND(PERCENT_RANK() OVER (ORDER BY gpa), 2) AS pct_rank\nFROM students\nORDER BY gpa;" }
+      { title: "Percentile rank", explanation: "PERCENT_RANK is this GPA's relative standing, from 0 (lowest) to 1 (highest)", sql: "SELECT name, gpa,\n       ROUND(PERCENT_RANK() OVER (ORDER BY gpa), 2) AS pct_rank\nFROM students\nORDER BY gpa;" }
     ],
     challenges: [
       { id: "57-1", prompt: "Return name, gpa, and quartile using NTILE(4) ordered by gpa descending, so quartile 1 is the top quarter of students.", hint: "NTILE(4) OVER (ORDER BY gpa DESC) AS quartile", expectedColumns: ["name","gpa","quartile"], validateFn: "return rows.length === 20 && rows.some(r => r.quartile === 4);", solution: "SELECT name, gpa,\n       NTILE(4) OVER (ORDER BY gpa DESC) AS quartile\nFROM students;" },

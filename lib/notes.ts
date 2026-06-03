@@ -14,7 +14,7 @@ export function moduleNotesMarkdown(
 
   lessons.forEach((lesson, i) => {
     out.push(`\n---\n`);
-    out.push(`## ${String(i + 1).padStart(2, "0")} — ${lesson.title}`);
+    out.push(`## ${String(i + 1).padStart(2, "0")}. ${lesson.title}`);
     if (lesson.theory?.content?.trim()) out.push(`\n${lesson.theory.content.trim()}`);
 
     if (lesson.examples.length) {
@@ -41,7 +41,7 @@ export function moduleNotesMarkdown(
     for (const section of CHEAT_SHEET_DATA) {
       out.push(`\n**${section.title}**`);
       for (const it of section.items) {
-        out.push(`\n- \`${it.syntax}\` — ${it.description}`);
+        out.push(`\n- \`${it.syntax}\`: ${it.description}`);
       }
     }
   }

@@ -130,19 +130,41 @@ export default function LessonPage({ params }: LessonPageProps) {
         markReviewed(lessonKey);
         setReviewRecorded(true);
       }
+      // Always reflect the solve in the UI set.
       setCompletedChallengeIds((prev) => {
         if (prev.has(challengeId)) return prev;
         const next = new Set(prev);
         next.add(challengeId);
-        addXP(XP_VALUES.CHALLENGE_COMPLETE);
-        const allDone =
-          lesson.challenges.length > 0 &&
-          lesson.challenges.every((c) => next.has(c.id));
-        if (allDone) {
-          completeLesson(lessonKey);
-        }
         return next;
       });
+      if (showcase) return;
+      // Award challenge XP at most once ever, persisted per lesson, and OUTSIDE
+      // any state updater so React StrictMode's double-invoke (npm run dev) can
+      // never double-award. Re-running a solved challenge after a remount no
+      // longer re-grants XP.
+      const awardKey = `sql-mastery-xp-${lessonKey}`;
+      let awarded: Set<string>;
+      try {
+        awarded = new Set(JSON.parse(localStorage.getItem(awardKey) || "[]") as string[]);
+      } catch {
+        awarded = new Set();
+      }
+      if (!awarded.has(challengeId)) {
+        awarded.add(challengeId);
+        try {
+          localStorage.setItem(awardKey, JSON.stringify([...awarded]));
+        } catch {
+          /* private mode */
+        }
+        addXP(XP_VALUES.CHALLENGE_COMPLETE);
+      }
+      // Complete the lesson once every challenge has been solved at least once.
+      if (
+        lesson.challenges.length > 0 &&
+        lesson.challenges.every((c) => awarded.has(c.id))
+      ) {
+        completeLesson(lessonKey);
+      }
     },
     [lesson, lessonKey, completeLesson, addXP, reviewSession, showcase, markReviewed],
   );
@@ -151,9 +173,10 @@ export default function LessonPage({ params }: LessonPageProps) {
     if (!lesson || isAlreadyComplete) return;
     if (markCompleteFiredRef.current) return;
     markCompleteFiredRef.current = true;
+    // completeLesson already awards the +10 lesson XP internally; do not add it
+    // again here or no-challenge lessons would grant double.
     completeLesson(lessonKey);
-    addXP(XP_VALUES.LESSON_COMPLETE ?? 10);
-  }, [lesson, lessonKey, isAlreadyComplete, completeLesson, addXP]);
+  }, [lesson, lessonKey, isAlreadyComplete, completeLesson]);
 
   if (!lesson || !moduleInfo) {
     return (
