@@ -48,6 +48,9 @@ export default function AITutor({
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -67,11 +70,30 @@ export default function AITutor({
 
   useEffect(() => {
     if (!isOpen) return;
+    restoreFocusRef.current = document.activeElement as HTMLElement | null;
+    const raf = requestAnimationFrame(() => inputRef.current?.focus());
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false);
+      if (e.key === 'Escape') { setIsOpen(false); return; }
+      if (e.key === 'Tab' && panelRef.current) {
+        const f = panelRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        );
+        if (f.length === 0) return;
+        const first = f[0];
+        const last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
     };
     document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    return () => {
+      cancelAnimationFrame(raf);
+      document.removeEventListener('keydown', onKey);
+      // Restore focus to the opener only if it is still mounted (the dock
+      // trigger unmounts on open), otherwise leave focus where it is.
+      const opener = restoreFocusRef.current;
+      if (opener && document.contains(opener)) opener.focus?.();
+    };
   }, [isOpen, setIsOpen]);
 
   const sendMessage = useCallback(
@@ -170,8 +192,10 @@ export default function AITutor({
 
       {isOpen && (
         <div
+          ref={panelRef}
           className="fixed right-4 bottom-20 z-50 w-[min(24rem,calc(100vw-2rem))] h-[min(500px,calc(100vh-6rem))] bg-slate-950 border border-slate-800 rounded shadow-2xl flex flex-col overflow-hidden font-mono text-sm"
           role="dialog"
+          aria-modal="true"
           aria-label="AI tutor"
         >
           <div className="px-4 py-3 border-b border-slate-800 flex items-start justify-between gap-3">
@@ -242,6 +266,7 @@ export default function AITutor({
           <div className="p-3 border-t border-slate-800">
             <div className="flex gap-2">
               <input
+                ref={inputRef}
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const STORAGE_KEY = 'sql-mastery-onboarding-seen';
 
@@ -39,6 +39,7 @@ function markSeen() {
 export default function InterfaceOnboarding() {
   const [step, setStep] = useState<number>(-1);
   const [rect, setRect] = useState<DOMRect | null>(null);
+  const nextBtnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     try {
@@ -78,6 +79,28 @@ export default function InterfaceOnboarding() {
       window.removeEventListener('scroll', update, true);
     };
   }, [step]);
+
+  // Escape dismisses the tour from anywhere.
+  useEffect(() => {
+    if (step < 0) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        markSeen();
+        setStep(-1);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [step]);
+
+  // Move focus to the primary action once the dialog has actually rendered.
+  useEffect(() => {
+    if (rect && step >= 0 && step < STEPS.length) {
+      const raf = requestAnimationFrame(() => nextBtnRef.current?.focus());
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [rect, step]);
 
   function done() {
     markSeen();
@@ -145,6 +168,7 @@ export default function InterfaceOnboarding() {
               skip
             </button>
             <button
+              ref={nextBtnRef}
               type="button"
               onClick={() => (isLast ? done() : setStep(step + 1))}
               className="rounded border border-indigo-400 px-2 py-1 text-indigo-400 hover:bg-indigo-400/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"

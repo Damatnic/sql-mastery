@@ -84,6 +84,7 @@ export default function ChallengeBlock({
   }, [challenge.id]);
 
   const expandTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const collapseBtnRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     if (!expanded) return;
@@ -95,9 +96,12 @@ export default function ChallengeBlock({
     };
     document.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
+    // Move focus into the dialog so keyboard/screen-reader users land inside it.
+    const focusTimer = setTimeout(() => collapseBtnRef.current?.focus(), 50);
     return () => {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
+      clearTimeout(focusTimer);
       // restore focus to expand trigger or previously focused element
       (trigger ?? previouslyFocused)?.focus?.();
     };
@@ -364,6 +368,7 @@ export default function ChallengeBlock({
             <div className="flex items-center justify-between mb-3 font-mono text-xs">
               <span className="text-slate-400"># editor · esc to close</span>
               <button
+                ref={collapseBtnRef}
                 type="button"
                 onClick={() => setExpanded(false)}
                 className="px-3 py-1 rounded border border-slate-700 text-slate-300 hover:text-slate-100 hover:border-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
@@ -395,6 +400,16 @@ export default function ChallengeBlock({
                 const got = result.results[0]?.columns ?? [];
                 const want = challenge.expectedColumns;
                 const rows = result.results[0]?.values.length ?? 0;
+                const gotSet = new Set(got.map((c) => c.toLowerCase()));
+                const columnsMatch = want.every((c) => gotSet.has(c.toLowerCase()));
+                if (columnsMatch) {
+                  return (
+                    <p className="text-amber-400">
+                      # columns look right, but the rows do not match the task yet. re-read the prompt: are you filtering, sorting, or aggregating the way it asks?{' '}
+                      <span className="text-slate-500">(got {rows} row{rows === 1 ? '' : 's'})</span>
+                    </p>
+                  );
+                }
                 return (
                   <p className="text-amber-400">
                     # not there yet · your columns:{' '}

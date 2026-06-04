@@ -51,7 +51,7 @@ export default function GlossaryPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
+      <main id="main" tabIndex={-1} className="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
         <h1 className="text-2xl font-semibold">Glossary</h1>
         <p className="mt-3 text-muted-foreground leading-relaxed">
           Plain-language definitions of the words the lessons use. If a term ever trips you up, it is probably here.

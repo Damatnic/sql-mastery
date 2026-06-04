@@ -19,7 +19,7 @@ export default function StartPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
+      <main id="main" tabIndex={-1} className="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
         <h1 className="text-2xl font-semibold">Start here</h1>
         <p className="mt-3 text-muted-foreground leading-relaxed">
           This is a place to learn SQL by writing it against real databases, right in your browser, with

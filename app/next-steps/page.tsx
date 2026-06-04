@@ -16,7 +16,7 @@ export default function NextStepsPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
+      <main id="main" tabIndex={-1} className="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
         <h1 className="text-2xl font-semibold">Where this leads</h1>
         <p className="mt-3 text-muted-foreground leading-relaxed">
           This site teaches SQL and gives you a lot of practice against realistic data. To use SQL for real

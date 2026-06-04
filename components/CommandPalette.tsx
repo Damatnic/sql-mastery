@@ -31,6 +31,7 @@ export default function CommandPalette() {
   const [cmdHistory, setCmdHistory] = useState<string[]>([]);
   const [cmdIdx, setCmdIdx] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
   const router = useRouter();
 
   // Global Cmd/Ctrl+K toggles the palette (unless the code editor owns focus).
@@ -48,12 +49,16 @@ export default function CommandPalette() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
-  // Focus the input whenever the palette opens.
+  // Focus the input whenever the palette opens, and restore focus to the opener
+  // (the bottom-left trigger, or wherever Cmd+K was pressed) on close.
   useEffect(() => {
-    if (open) {
-      const id = requestAnimationFrame(() => inputRef.current?.focus());
-      return () => cancelAnimationFrame(id);
-    }
+    if (!open) return;
+    restoreFocusRef.current = document.activeElement as HTMLElement | null;
+    const id = requestAnimationFrame(() => inputRef.current?.focus());
+    return () => {
+      cancelAnimationFrame(id);
+      restoreFocusRef.current?.focus?.();
+    };
   }, [open]);
 
   const runCommand = useCallback(
@@ -121,6 +126,7 @@ export default function CommandPalette() {
         onClick={() => setOpen(true)}
         aria-label="Open command menu (Command K)"
         aria-haspopup="dialog"
+        aria-expanded={open}
         className="fixed bottom-4 left-4 z-40 inline-flex items-center gap-1.5 rounded border border-slate-700 bg-slate-900/80 px-2.5 py-1.5 font-mono text-xs text-slate-400 backdrop-blur hover:text-slate-100 hover:border-indigo-400/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
       >
         <span className="text-indigo-400" aria-hidden="true">{">_"}</span>
@@ -141,7 +147,7 @@ export default function CommandPalette() {
             className="w-full max-w-xl rounded border border-slate-800 bg-slate-900 font-mono text-sm shadow-2xl"
           >
             <div className="flex items-center justify-between border-b border-slate-800 px-3 py-1.5 text-xs text-slate-500">
-              <span>command · type <span className="text-slate-300">help</span></span>
+              <span id="cmd-palette-hint">command · type <span className="text-slate-300">help</span></span>
               <span aria-hidden="true">esc to close</span>
             </div>
 
@@ -149,21 +155,23 @@ export default function CommandPalette() {
               className="max-h-[40vh] overflow-y-auto px-3 py-2 cursor-text"
               onClick={() => inputRef.current?.focus()}
             >
-              {history.map((h, i) => (
-                <div key={i} className="mb-1">
-                  <p>
-                    <span className="text-indigo-400">damato@sql</span>
-                    <span className="text-slate-500">:</span>
-                    <span className="text-slate-500">{PROMPT_PATH}</span>{" "}
-                    <span>{h.cmd}</span>
-                  </p>
-                  {h.out.length > 0 && (
-                    <pre className="text-slate-300 text-xs leading-relaxed mt-1 mb-2 whitespace-pre-wrap">
-                      {h.out.join("\n")}
-                    </pre>
-                  )}
-                </div>
-              ))}
+              <div role="log" aria-live="polite" aria-label="command output">
+                {history.map((h, i) => (
+                  <div key={i} className="mb-1">
+                    <p>
+                      <span className="text-indigo-400">damato@sql</span>
+                      <span className="text-slate-500">:</span>
+                      <span className="text-slate-500">{PROMPT_PATH}</span>{" "}
+                      <span>{h.cmd}</span>
+                    </p>
+                    {h.out.length > 0 && (
+                      <pre className="text-slate-300 text-xs leading-relaxed mt-1 mb-2 whitespace-pre-wrap">
+                        {h.out.join("\n")}
+                      </pre>
+                    )}
+                  </div>
+                ))}
+              </div>
 
               <p className="flex items-baseline flex-wrap">
                 <span className="text-indigo-400">damato@sql</span>
@@ -186,7 +194,8 @@ export default function CommandPalette() {
                 autoCapitalize="off"
                 autoCorrect="off"
                 autoComplete="off"
-                aria-label="command input. type help"
+                aria-label="Command input"
+                aria-describedby="cmd-palette-hint"
                 className="sr-only"
               />
             </div>

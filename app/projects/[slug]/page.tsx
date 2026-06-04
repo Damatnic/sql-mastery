@@ -131,7 +131,7 @@ export default function ProjectPage({ params }: ProjectPageProps) {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-8">
+      <main id="main" tabIndex={-1} className="max-w-5xl mx-auto px-6 py-8">
         <section className="font-mono text-sm">
           <p>
             <span className="text-indigo-400">damato@sql</span>

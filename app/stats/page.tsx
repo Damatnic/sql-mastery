@@ -180,7 +180,7 @@ export default function StatsPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-5xl mx-auto w-full px-6 py-10 font-mono">
+      <main id="main" tabIndex={-1} className="flex-1 max-w-5xl mx-auto w-full px-6 py-10 font-mono">
         <section className="text-sm">
           <p>
             <span className="text-indigo-400">damato@sql</span>

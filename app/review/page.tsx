@@ -170,7 +170,7 @@ export default function ReviewPage() {
           </Link>
         </div>
       </header>
-      <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-10">
+      <main id="main" tabIndex={-1} className="flex-1 max-w-3xl mx-auto w-full px-6 py-10">
         <p className="font-mono text-xs uppercase tracking-widest text-slate-500 mb-1"># mixed review</p>
         <p className="font-mono text-[11px] text-slate-500 mb-6">
           spaced repetition across modules. solve from memory. each one re-solved

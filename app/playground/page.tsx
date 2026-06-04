@@ -124,7 +124,7 @@ export default function PlaygroundPage() {
         </div>
       </header>
 
-      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
+      <main id="main" tabIndex={-1} className="flex-1 max-w-6xl mx-auto w-full px-6 py-8">
         <section className="font-mono text-sm mb-6">
           <p>
             <span className="text-indigo-400">damato@sql</span>

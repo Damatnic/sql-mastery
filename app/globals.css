@@ -474,7 +474,7 @@ button, a, input, textarea {
   position: sticky;
   top: 0;
   z-index: 10;
-  padding: 0.625rem 1rem;
+  padding: 0;
   text-align: left;
   font-size: 0.75rem;
   font-weight: 600;
@@ -482,13 +482,33 @@ button, a, input, textarea {
   background: #1e293b;
   border-bottom: 2px solid #334155;
   white-space: nowrap;
-  cursor: pointer;
   user-select: none;
   transition: background 0.15s;
 }
 
 .results-table th:hover {
   background: #334155;
+}
+
+/* The full header is a real button so it is keyboard-sortable. It fills the
+   cell and inherits the header look; the padding moved here from the th. */
+.results-table th .sort-button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: inherit;
+  white-space: nowrap;
+}
+
+.results-table th .sort-button:focus-visible {
+  outline: 2px solid #818cf8;
+  outline-offset: -2px;
 }
 
 .results-table th .sort-indicator {

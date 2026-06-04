@@ -331,10 +331,16 @@ function ResultSetTable({ resultSet, executionTime, sortState, setSortState }: R
                 return (
                   <th
                     key={colIdx}
-                    onClick={() => handleSort(colIdx)}
+                    aria-sort={isSorted ? (sortState.direction === 'asc' ? 'ascending' : 'descending') : 'none'}
                     className={`${type === 'numeric' ? 'text-right' : 'text-left'} ${isSorted ? 'sorted' : ''}`}
                   >
-                    <div className="flex items-center gap-1.5" style={{ justifyContent: type === 'numeric' ? 'flex-end' : 'flex-start' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleSort(colIdx)}
+                      aria-label={`Sort by ${column}`}
+                      className="sort-button flex items-center gap-1.5 w-full"
+                      style={{ justifyContent: type === 'numeric' ? 'flex-end' : 'flex-start' }}
+                    >
                       <span className="type-badge opacity-50" title={type}>
                         <TypeIcon type={type} />
                       </span>
@@ -346,7 +352,7 @@ function ResultSetTable({ resultSet, executionTime, sortState, setSortState }: R
                           <ArrowUpDown className="w-3 h-3" />
                         )}
                       </span>
-                    </div>
+                    </button>
                   </th>
                 );
               })}

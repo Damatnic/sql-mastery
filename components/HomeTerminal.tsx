@@ -81,21 +81,23 @@ export default function HomeTerminal({ modules }: HomeTerminalProps) {
 
   return (
     <div onClick={focusInput} className="cursor-text">
-      {history.map((h, i) => (
-        <div key={i} className="mb-1">
-          <p>
-            <span className="text-indigo-400">damato@sql</span>
-            <span className="text-slate-500">:</span>
-            <span className="text-slate-500">{PROMPT_PATH}</span>{" "}
-            <span>{h.cmd}</span>
-          </p>
-          {h.out.length > 0 && (
-            <pre className="text-slate-300 text-xs leading-relaxed mt-1 mb-2 whitespace-pre-wrap">
-              {h.out.join("\n")}
-            </pre>
-          )}
-        </div>
-      ))}
+      <div role="log" aria-live="polite" aria-label="command output">
+        {history.map((h, i) => (
+          <div key={i} className="mb-1">
+            <p>
+              <span className="text-indigo-400">damato@sql</span>
+              <span className="text-slate-500">:</span>
+              <span className="text-slate-500">{PROMPT_PATH}</span>{" "}
+              <span>{h.cmd}</span>
+            </p>
+            {h.out.length > 0 && (
+              <pre className="text-slate-300 text-xs leading-relaxed mt-1 mb-2 whitespace-pre-wrap">
+                {h.out.join("\n")}
+              </pre>
+            )}
+          </div>
+        ))}
+      </div>
 
       <label className="block rounded has-[:focus-visible]:outline-none has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-indigo-400 has-[:focus-visible]:ring-offset-2 has-[:focus-visible]:ring-offset-slate-950">
         <p className="flex items-baseline flex-wrap">

@@ -286,7 +286,7 @@ ORDER BY column1 ASC, column2 DESC;
     ],
     challenges: [
       { id: "3-1", prompt: "List all employees sorted alphabetically by department, then by name within each department.", hint: "ORDER BY two columns; department first, then name.", expectedColumns: ["name","department"], validateFn: "return rows.length > 0 && rows[0].department <= rows[rows.length-1].department;", solution: "SELECT name, department\nFROM employees\nORDER BY department ASC, name ASC;" },
-      { id: "3-2", prompt: "Find the 5 lowest-paid employees (show name and salary).", hint: "ORDER BY salary ASC; smallest first.", expectedColumns: ["name","salary"], validateFn: "return rows.length > 0 && rows[0].salary <= rows[rows.length-1].salary;", solution: "SELECT name, salary\nFROM employees\nORDER BY salary ASC\nLIMIT 5;" },
+      { id: "3-2", prompt: "List all employees from lowest to highest salary. Show name and salary, lowest first.", hint: "ORDER BY salary ASC; smallest first.", expectedColumns: ["name","salary"], validateFn: "return rows.length === 20 && rows.every((r,i) => i === 0 || r.salary >= rows[i-1].salary);", solution: "SELECT name, salary\nFROM employees\nORDER BY salary ASC;" },
       { id: "3-3", prompt: "Show all employees hired most recently first.", hint: "Dates sort lexicographically in SQLite; DESC on hire_date works correctly.", expectedColumns: ["name","hire_date"], validateFn: "return rows.length > 0 && rows[0].hire_date >= rows[rows.length-1].hire_date;", solution: "SELECT name, hire_date\nFROM employees\nORDER BY hire_date DESC;" }
     ]
   },
@@ -561,8 +561,8 @@ In Python/NumPy this is \`np.where(condition, value_if_true, value_if_false)\` f
       { title: "Remote-friendly label", explanation: "Simple CASE matching a value", sql: "SELECT name, manager_id,\n  CASE\n    WHEN manager_id IS NULL THEN 'Team Lead'\n    ELSE 'IC'\n  END AS role_type\nFROM employees;" }
     ],
     challenges: [
-      { id: "10-1", prompt: "Label each employee as 'High Budget' if their department budget > 1,500,000 or 'Standard' otherwise. Show employee name, department, and the label.", hint: "JOIN employees to departments, then use CASE on budget.", expectedColumns: ["name","department","budget_tier"], validateFn: "return rows.length > 0 && rows.some(r => r.budget_tier === 'High Budget') && rows.some(r => r.budget_tier === 'Standard');", solution: "SELECT e.name, e.department,\n  CASE\n    WHEN d.budget > 1500000 THEN 'High Budget'\n    ELSE 'Standard'\n  END AS budget_tier\nFROM employees e\nJOIN departments d ON e.department = d.name;" },
-      { id: "10-2", prompt: "Show each employee's name and seniority tier: 'Veteran' (5+ years since 2020), 'Experienced' (hired before 2021), 'Newer' (hired 2021 or later).", hint: "CASE with WHEN hire_date conditions.", expectedColumns: ["name","seniority"], validateFn: "return rows.length > 0 && rows.some(r => r.seniority === 'Veteran');", solution: "SELECT name,\n  CASE\n    WHEN hire_date < '2019-01-01' THEN 'Veteran'\n    WHEN hire_date < '2021-01-01' THEN 'Experienced'\n    ELSE 'Newer'\n  END AS seniority\nFROM employees;" },
+      { id: "10-1", prompt: "Label each employee 'Six Figures' if their salary is at least 100000, otherwise 'Under Six Figures'. Show name, salary, and the label.", hint: "CASE WHEN salary >= 100000 THEN 'Six Figures' ELSE 'Under Six Figures' END AS pay_tier.", expectedColumns: ["name","salary","pay_tier"], validateFn: "return rows.length > 0 && rows.some(r => r.pay_tier === 'Six Figures') && rows.some(r => r.pay_tier === 'Under Six Figures');", solution: "SELECT name, salary,\n  CASE\n    WHEN salary >= 100000 THEN 'Six Figures'\n    ELSE 'Under Six Figures'\n  END AS pay_tier\nFROM employees;" },
+      { id: "10-2", prompt: "Show each employee's name and seniority tier from their hire_date: 'Veteran' if hired before 2019, 'Experienced' if hired in 2019 or 2020, 'Newer' if hired in 2021 or later.", hint: "CASE with WHEN hire_date conditions.", expectedColumns: ["name","seniority"], validateFn: "return rows.length === 20 && rows.every(r => ['Veteran','Experienced','Newer'].includes(r.seniority)) && rows.some(r => r.seniority === 'Veteran') && rows.some(r => r.seniority === 'Newer');", solution: "SELECT name,\n  CASE\n    WHEN hire_date < '2019-01-01' THEN 'Veteran'\n    WHEN hire_date < '2021-01-01' THEN 'Experienced'\n    ELSE 'Newer'\n  END AS seniority\nFROM employees;" },
       { id: "10-3", prompt: "Count how many employees fall into each salary tier: 'High' (>= 95000), 'Mid' (70000-94999), 'Low' (< 70000).", hint: "Use CASE inside COUNT(); conditional aggregation.", expectedColumns: ["high","mid","low"], validateFn: "return rows.length === 1 && rows[0].hasOwnProperty('high') && rows[0].hasOwnProperty('low');", solution: "SELECT\n  COUNT(CASE WHEN salary >= 95000 THEN 1 END) AS high,\n  COUNT(CASE WHEN salary >= 70000 AND salary < 95000 THEN 1 END) AS mid,\n  COUNT(CASE WHEN salary < 70000 THEN 1 END) AS low\nFROM employees;" }
     ]
   },
@@ -668,7 +668,7 @@ Why: \`x NOT IN (... NULL ...)\` evaluates to \`x != NULL\`, which is UNKNOWN, w
     challenges: [
       { id: "12-1", prompt: "List all departments and the number of employees in each. Include departments with zero employees.", hint: "LEFT JOIN from departments to employees, then COUNT(e.id); not COUNT(*); so empty depts show 0.", expectedColumns: ["name","headcount"], validateFn: "return rows.length >= 5;", solution: "SELECT d.name, COUNT(e.id) AS headcount\nFROM departments d\nLEFT JOIN employees e ON d.name = e.department\nGROUP BY d.name;" },
       { id: "12-2", prompt: "Find all employees who are NOT assigned to any project.", hint: "LEFT JOIN employee_projects, WHERE ep.employee_id IS NULL.", expectedColumns: ["name"], validateFn: "return rows.length >= 0;", solution: "SELECT e.name\nFROM employees e\nLEFT JOIN employee_projects ep ON e.id = ep.employee_id\nWHERE ep.employee_id IS NULL;" },
-      { id: "12-3", prompt: "Show every employee with the name of their manager. Employees with no manager should show 'No Manager'.", hint: "Self-LEFT JOIN; employees e LEFT JOIN employees m ON e.manager_id = m.id.", expectedColumns: ["employee","manager"], validateFn: "return rows.length > 0 && rows.some(r => r.manager === 'No Manager');", solution: "SELECT e.name AS employee,\n       COALESCE(m.name, 'No Manager') AS manager\nFROM employees e\nLEFT JOIN employees m ON e.manager_id = m.id;" }
+      { id: "12-3", prompt: "List every employee and a project they are assigned to. Employees on no project should still appear, with NULL for the project.", hint: "LEFT JOIN employees to employee_projects, then to projects; unassigned employees keep NULL on the right.", expectedColumns: ["employee","project"], validateFn: "return rows.length > 0 && rows.some(r => r.project === null);", solution: "SELECT e.name AS employee, p.name AS project\nFROM employees e\nLEFT JOIN employee_projects ep ON e.id = ep.employee_id\nLEFT JOIN projects p ON ep.project_id = p.id;" }
     ]
   },
 
@@ -827,7 +827,7 @@ WHERE e.salary > d.avg_sal;
 
 Why: \`EXPLAIN QUERY PLAN\` on the first form shows a nested SCAN per outer row. The CTE form shows one SCAN of employees for the aggregate, then one SCAN for the outer query. Less work, easier to reason about.
 
-> ⚠️ **Common Mistake:** using \`=\` with a subquery that returns more than one row. SQLite errors; SQL Server errors louder. Use IN for multi-row subqueries; reserve \`=\` for ones guaranteed scalar (MAX, MIN, COUNT, a TOP 1 ORDER BY ...).` },
+> ⚠️ **Common Mistake:** using \`=\` with a subquery that returns more than one row. SQL Server errors. SQLite is more permissive and silently keeps only the first row it happens to read, which is worse: you get a wrong answer with no warning. Use IN for multi-row subqueries; reserve \`=\` for ones guaranteed scalar (MAX, MIN, COUNT, a LIMIT 1 ORDER BY ...).` },
     examples: [
       { title: "Above-average earners", explanation: "Subquery calculates the average, outer query filters against it", sql: "SELECT name, salary\nFROM employees\nWHERE salary > (SELECT AVG(salary) FROM employees)\nORDER BY salary DESC;" },
       { title: "Employees in high-budget departments", explanation: "Subquery returns a list, IN checks membership", sql: "SELECT name, department\nFROM employees\nWHERE department IN (\n  SELECT name FROM departments WHERE budget > 1000000\n);" },
@@ -1211,7 +1211,7 @@ Calculating tenure, finding records in a date range, grouping by month/year, agi
 ROUND(3.14159, 2)   → 3.14   -- round to N decimal places
 ABS(-42)            → 42     -- absolute value
 10 / 3              → 3      -- integer division in SQLite (both integers)
-10.0 / 3            → 3.333  -- float division (one must be decimal)
+10.0 / 3            → 3.33333...  -- float division (one operand must be decimal)
 10 % 3              → 1      -- modulo (remainder)
 MAX(a, b)           -- greater of two values (not aggregate here)
 MIN(a, b)           -- lesser of two values
@@ -1472,10 +1472,12 @@ COUNT(*)     OVER (ORDER BY hire_date) AS running_headcount
 
 ## frame clauses
 \`\`\`sql
-OVER (ORDER BY col)                                   -- running total (default: all preceding rows)
+OVER (ORDER BY col)                                   -- running total; default frame is RANGE ... CURRENT ROW, so rows that tie on col share a frame
 OVER (ORDER BY col ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)  -- 3-row moving window
 OVER (ORDER BY col ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)  -- explicit running total
 \`\`\`
+
+For a true row-by-row running total, spell out ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW, or order by a unique tiebreaker (e.g. ORDER BY hire_date, id). The default RANGE frame lumps rows that tie on the ORDER BY column into the same total.
 
 Running totals for payroll/revenue, moving averages for trends, cumulative counts.` },
     examples: [
@@ -1603,7 +1605,7 @@ DROP INDEX IF EXISTS idx_emp_dept;
     ],
     challenges: [
       { id: "35-1", prompt: "Create an index on the hire_date column of employees. Then use EXPLAIN QUERY PLAN to show it's being used on a query filtering by hire_date.", hint: "CREATE INDEX idx_hire ON employees(hire_date); EXPLAIN QUERY PLAN SELECT...", expectedColumns: [], validateFn: "return rows.length >= 0;", solution: "CREATE INDEX IF NOT EXISTS idx_hire ON employees(hire_date);\nEXPLAIN QUERY PLAN\nSELECT name, hire_date FROM employees WHERE hire_date > '2021-01-01';" },
-      { id: "35-2", prompt: "Check what indexes currently exist on the employees table.", hint: "SELECT * FROM sqlite_master WHERE type = 'index' AND tbl_name = 'employees'.", expectedColumns: [], validateFn: "return rows.length >= 0;", solution: "SELECT name, sql FROM sqlite_master WHERE type = 'index' AND tbl_name = 'employees';" },
+      { id: "35-2", prompt: "Add an index on the employees department column, then list the indexes on the employees table to confirm it exists.", hint: "CREATE INDEX ... ON employees(department); then SELECT name, sql FROM sqlite_master WHERE type = 'index'.", expectedColumns: ["name","sql"], validateFn: "return rows.length >= 1;", solution: "CREATE INDEX IF NOT EXISTS idx_emp_department ON employees(department);\nSELECT name, sql FROM sqlite_master WHERE type = 'index' AND tbl_name = 'employees';" },
       { id: "35-3", prompt: "Create a composite index on (department, salary) then run a query that would use it: find all Engineering employees earning over $90,000.", hint: "CREATE INDEX on two columns, then SELECT with both conditions.", expectedColumns: ["name","department","salary"], validateFn: "return rows.every(r => r.department === 'Engineering' && r.salary > 90000);", solution: "CREATE INDEX IF NOT EXISTS idx_dept_sal ON employees(department, salary);\nSELECT name, department, salary FROM employees\nWHERE department = 'Engineering' AND salary > 90000;" }
     ]
   },
@@ -1634,7 +1636,7 @@ EXEC GetEmployeesByDept @Department = 'Engineering';
 ## why use stored procedures?
 - Reusable; call with different parameters
 - Secure; grant EXECUTE permission without exposing tables
-- Faster; compiled execution plan
+- Fewer round trips; the app sends one call instead of a full query (SQL Server caches plans for parameterized ad-hoc queries too, so raw speed is rarely the main reason)
 - Maintainable; change the proc, all callers benefit
 
 ## SQLite reality
@@ -1678,8 +1680,8 @@ Audit logs (track every change), enforcing business rules the app can't enforce,
     ],
     challenges: [
       { id: "37-1", prompt: "Create an audit table and a trigger that logs salary changes: records the employee name, old salary, new salary, and timestamp whenever an UPDATE happens on employees.", hint: "AFTER UPDATE ON employees, use OLD.salary and NEW.salary.", expectedColumns: ["emp_name","old_salary","new_salary"], validateFn: "return rows.length > 0;", solution: "CREATE TABLE IF NOT EXISTS salary_audit (emp_name TEXT, old_salary REAL, new_salary REAL, changed_at TEXT);\n\nCREATE TRIGGER IF NOT EXISTS trg_salary_change\nAFTER UPDATE ON employees\nFOR EACH ROW\nWHEN OLD.salary != NEW.salary\nBEGIN\n  INSERT INTO salary_audit VALUES (NEW.name, OLD.salary, NEW.salary, datetime('now'));\nEND;\n\nUPDATE employees SET salary = 100000 WHERE id = 1;\nSELECT * FROM salary_audit;" },
-      { id: "37-2", prompt: "Create a trigger that prevents employees from being deleted if they are a manager (i.e., their id appears in someone else's manager_id). Use a trigger with SELECT RAISE(ABORT, 'message').", hint: "BEFORE DELETE, check if OLD.id IN (SELECT manager_id FROM employees WHERE manager_id IS NOT NULL).", expectedColumns: [], validateFn: "return true;", solution: "CREATE TRIGGER IF NOT EXISTS trg_no_delete_manager\nBEFORE DELETE ON employees\nFOR EACH ROW\nWHEN OLD.id IN (SELECT manager_id FROM employees WHERE manager_id IS NOT NULL)\nBEGIN\n  SELECT RAISE(ABORT, 'Cannot delete: employee is a manager');\nEND;\n\n-- Test: try to delete a manager (should fail)\n-- DELETE FROM employees WHERE id = 1;" },
-      { id: "37-3", prompt: "Check what triggers exist on the employees table.", hint: "SELECT * FROM sqlite_master WHERE type = 'trigger'.", expectedColumns: [], validateFn: "return rows.length >= 0;", solution: "SELECT name, sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'employees';" }
+      { id: "37-2", prompt: "Create a trigger that blocks deleting an employee who manages someone (their id appears in another row's manager_id), then list the triggers to confirm it exists.", hint: "BEFORE DELETE ... WHEN OLD.id IN (SELECT manager_id FROM employees WHERE manager_id IS NOT NULL) ... SELECT RAISE(ABORT, ...); then SELECT from sqlite_master.", expectedColumns: ["name"], validateFn: "return rows.length >= 1 && rows.some(r => r.name === 'trg_no_delete_manager');", solution: "CREATE TRIGGER IF NOT EXISTS trg_no_delete_manager\nBEFORE DELETE ON employees\nFOR EACH ROW\nWHEN OLD.id IN (SELECT manager_id FROM employees WHERE manager_id IS NOT NULL)\nBEGIN\n  SELECT RAISE(ABORT, 'Cannot delete: employee is a manager');\nEND;\nSELECT name FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'employees';" },
+      { id: "37-3", prompt: "Create a logging trigger on employees, then list the triggers on the employees table to confirm it was created.", hint: "CREATE TRIGGER ... AFTER INSERT ON employees BEGIN SELECT 1; END; then SELECT from sqlite_master WHERE type = 'trigger'.", expectedColumns: ["name","sql"], validateFn: "return rows.length >= 1;", solution: "CREATE TRIGGER IF NOT EXISTS trg_demo_log AFTER INSERT ON employees\nBEGIN\n  SELECT 1;\nEND;\nSELECT name, sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name = 'employees';" }
     ]
   },
 
@@ -1957,7 +1959,7 @@ END;
 ## why use them?
 
 - Reusable: write once, call from anywhere
-- Faster: SQL Server compiles and caches the execution plan
+- Fewer round trips: the app sends one call, not a full query (SQL Server also caches plans for parameterized ad-hoc queries, so raw speed is rarely the main reason)
 - Secure: you can grant EXEC permission without exposing tables
 - Maintainable: change the proc, all callers get the update
 

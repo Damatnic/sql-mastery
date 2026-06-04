@@ -67,7 +67,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground font-mono text-sm">
-      <main className="flex-1 max-w-3xl mx-auto w-full px-6 py-12 sm:py-16">
+      <main id="main" tabIndex={-1} className="flex-1 max-w-3xl mx-auto w-full px-6 py-12 sm:py-16">
         <section className="flex flex-wrap items-baseline justify-between gap-3">
           <div className="flex-1 min-w-0">
             <HomeTerminal modules={modules} />

@@ -280,7 +280,7 @@ export default function LessonPage({ params }: LessonPageProps) {
           <LessonNav currentLesson={lesson} moduleLessons={moduleLessons} moduleInfo={moduleInfo} />
         </aside>
 
-        <main className="flex-1 max-w-4xl mx-auto px-6 py-8">
+        <main id="main" tabIndex={-1} className="flex-1 max-w-4xl mx-auto px-6 py-8">
           <section className="mb-4">
             <p className="font-mono text-xs text-slate-400">
               <span className="text-indigo-400">[{lesson.badge}]</span>
