@@ -27,8 +27,8 @@ export const projects: Project[] = [
   {
     slug: 'hr-analytics',
     title: 'HR Analytics Report',
-    description: 'Write queries to analyze employee salaries, department payroll, and who earns above average in their own department. Uses subqueries and window functions.',
-    difficulty: 'Intermediate',
+    description: 'Write queries to analyze employee salaries, department payroll, and who earns above average in their own department. The last two steps use window functions (the Window Functions module), so save this one for after you reach them.',
+    difficulty: 'Advanced',
     estimatedTime: '~30 min',
     database: 'company',
     databaseLabel: 'COMPANY_DB',
