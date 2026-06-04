@@ -16,6 +16,8 @@ import LessonAnchorNav, { type AnchorSection } from '@/components/LessonAnchorNa
 import MobileModuleNav from '@/components/MobileModuleNav';
 import NextLessonCard from '@/components/NextLessonCard';
 import InterfaceOnboarding from '@/components/InterfaceOnboarding';
+import ModuleCheckpoint from '@/components/ModuleCheckpoint';
+import { hasCheckpoint } from '@/lib/checkpoints';
 import { createDatabase, runQuery } from '@/lib/db';
 import { COMPANY_DB, STORE_DB, SCHOOL_DB } from '@/lib/databases';
 import {
@@ -164,6 +166,8 @@ export default function LessonPage({ params }: LessonPageProps) {
         lesson.challenges.every((c) => awarded.has(c.id))
       ) {
         completeLesson(lessonKey);
+        // Let the pop-quiz listener consider a surprise recall check.
+        if (typeof window !== 'undefined') window.dispatchEvent(new Event('lesson-completed'));
       }
     },
     [lesson, lessonKey, completeLesson, addXP, reviewSession, showcase, markReviewed],
@@ -176,6 +180,7 @@ export default function LessonPage({ params }: LessonPageProps) {
     // completeLesson already awards the +10 lesson XP internally; do not add it
     // again here or no-challenge lessons would grant double.
     completeLesson(lessonKey);
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('lesson-completed'));
   }, [lesson, lessonKey, isAlreadyComplete, completeLesson]);
 
   if (!lesson || !moduleInfo) {
@@ -434,6 +439,10 @@ export default function LessonPage({ params }: LessonPageProps) {
                   )}
                 </div>
               )}
+
+              {moduleLessons.length > 0 &&
+                moduleLessons[moduleLessons.length - 1]?.lessonSlug === lesson.lessonSlug &&
+                hasCheckpoint(moduleSlug) && <ModuleCheckpoint moduleSlug={moduleSlug} />}
 
               {showNextLessonCard && nextLesson && (
                 <NextLessonCard

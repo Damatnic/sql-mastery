@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useProgressStore, getRank, getRankLadder, isLessonDue } from '@/lib/progress';
+import { useProgressStore, getRank, getRankLadder, isLessonDue, checkpointKey } from '@/lib/progress';
 import { useShowcase } from '@/lib/mode';
+import { MODULE_CHECKPOINTS } from '@/lib/checkpoints';
 import { useProjectProgressStore } from '@/lib/project-progress';
 import { useThreadProgressStore } from '@/lib/thread-progress';
 import { lessons, modules } from '@/lib/lessons';
@@ -38,6 +39,7 @@ export default function StatsPage() {
   const maxStreak = useProgressStore((s) => s.maxStreak);
   const lastActivity = useProgressStore((s) => s.lastActivity);
   const completedLessons = useProgressStore((s) => s.completedLessons);
+  const completedCheckpoints = useProgressStore((s) => s.completedCheckpoints ?? []);
   const reviewedAt = useProgressStore((s) => s.reviewedAt);
   const completedSteps = useProjectProgressStore((s) => s.completedSteps);
   const completedChallenges = useThreadProgressStore((s) => s.completedChallenges);
@@ -110,6 +112,15 @@ export default function StatsPage() {
       };
     });
   const dueCount = reviewItems.filter((r) => r.due).length;
+
+  // Module checkpoints: done, and due for a spaced re-check.
+  const checkpointRows = Object.keys(MODULE_CHECKPOINTS).map((slug) => {
+    const done = showcase || completedCheckpoints.includes(slug);
+    const due = done && !showcase && isLessonDue(checkpointKey(slug), reviewedAt);
+    return { slug, done, due };
+  });
+  const checkpointsDone = checkpointRows.filter((c) => c.done).length;
+  const checkpointsDue = checkpointRows.filter((c) => c.due).length;
   const reviewQueue = reviewItems
     .sort((a, b) => {
       if (a.due !== b.due) return a.due ? -1 : 1;
@@ -291,6 +302,26 @@ export default function StatsPage() {
                     <span className="text-slate-500 tabular-nums">
                       {m.done}/{m.total}
                     </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="mt-10">
+              <p className="text-xs uppercase tracking-widest text-slate-500">
+                # checkpoints <span className="text-slate-600">[{checkpointsDone}/{checkpointRows.length} done{checkpointsDue > 0 ? ` · ${checkpointsDue} due to review` : ''}]</span>
+              </p>
+              <ul className="mt-3 text-xs grid sm:grid-cols-2 gap-x-6 gap-y-1">
+                {checkpointRows.map((c) => (
+                  <li key={c.slug} className="flex items-baseline justify-between gap-3">
+                    <span className="text-slate-300 truncate">{c.slug}</span>
+                    {c.due ? (
+                      <span className="text-amber-400 tabular-nums shrink-0">due to review</span>
+                    ) : c.done ? (
+                      <span className="text-emerald-400 tabular-nums shrink-0">✓ done</span>
+                    ) : (
+                      <span className="text-slate-600 tabular-nums shrink-0">─</span>
+                    )}
                   </li>
                 ))}
               </ul>

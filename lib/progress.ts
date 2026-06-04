@@ -37,6 +37,7 @@ export function getDueLessons(
 
 interface ProgressState {
   completedLessons: string[];
+  completedCheckpoints: string[];
   xp: number;
   streak: number;
   maxStreak: number;
@@ -44,12 +45,17 @@ interface ProgressState {
   reviewedAt: Record<string, ReviewState>;
 
   completeLesson: (slug: string) => void;
+  completeCheckpoint: (moduleSlug: string) => void;
   addXP: (amount: number) => void;
   markReviewed: (slug: string) => void;
   isLessonCompleted: (slug: string) => boolean;
+  isCheckpointCompleted: (moduleSlug: string) => boolean;
   getModuleProgress: (moduleSlug: string, totalLessons: number) => number;
   resetProgress: () => void;
 }
+
+// Spaced-review key for a module checkpoint (kept distinct from lesson keys).
+export const checkpointKey = (moduleSlug: string): string => `checkpoint:${moduleSlug}`;
 
 const getToday = (): string => {
   return new Date().toISOString().split('T')[0];
@@ -76,6 +82,7 @@ export const useProgressStore = create<ProgressState>()(
   persist(
     (set, get) => ({
       completedLessons: [],
+      completedCheckpoints: [],
       xp: 0,
       streak: 0,
       maxStreak: 0,
@@ -98,6 +105,31 @@ export const useProgressStore = create<ProgressState>()(
           streak: newStreak,
           maxStreak: Math.max(state.maxStreak, newStreak),
           lastActivity: getToday(),
+        });
+      },
+
+      completeCheckpoint: (moduleSlug: string) => {
+        if (isShowcase()) return;
+        const key = checkpointKey(moduleSlug);
+        const state = get();
+        const done = state.completedCheckpoints ?? [];
+        if (done.includes(moduleSlug)) {
+          // Already completed: a re-do counts as a spaced review (advance the box).
+          get().markReviewed(key);
+          return;
+        }
+        const newStreak = calculateStreak(state.lastActivity, state.streak);
+        set({
+          completedCheckpoints: [...done, moduleSlug],
+          xp: state.xp + XP_VALUES.CHECKPOINT_COMPLETE,
+          streak: newStreak,
+          maxStreak: Math.max(state.maxStreak, newStreak),
+          lastActivity: getToday(),
+          // Enter spaced review at box 0 (due again tomorrow).
+          reviewedAt: {
+            ...state.reviewedAt,
+            [key]: { at: new Date().toISOString(), box: 0 },
+          },
         });
       },
 
@@ -136,6 +168,11 @@ export const useProgressStore = create<ProgressState>()(
         return get().completedLessons.includes(slug);
       },
 
+      isCheckpointCompleted: (moduleSlug: string) => {
+        if (isShowcase()) return true;
+        return (get().completedCheckpoints ?? []).includes(moduleSlug);
+      },
+
       getModuleProgress: (moduleSlug: string, totalLessons: number) => {
         if (isShowcase()) return 100;
         const completedInModule = get().completedLessons.filter(
@@ -149,6 +186,7 @@ export const useProgressStore = create<ProgressState>()(
       resetProgress: () => {
         set({
           completedLessons: [],
+          completedCheckpoints: [],
           xp: 0,
           streak: 0,
           maxStreak: 0,
@@ -169,6 +207,7 @@ export const XP_VALUES = {
   CHALLENGE_COMPLETE: 25,
   FIRST_TRY_CHALLENGE: 40,
   STREAK_BONUS: 5,
+  CHECKPOINT_COMPLETE: 30,
 } as const;
 
 export interface Rank {
