@@ -193,7 +193,7 @@ export default function AITutor({
       {isOpen && (
         <div
           ref={panelRef}
-          className="fixed right-4 bottom-20 z-50 w-[min(24rem,calc(100vw-2rem))] h-[min(500px,calc(100vh-6rem))] bg-slate-950 border border-slate-800 rounded shadow-2xl flex flex-col overflow-hidden font-mono text-sm"
+          className="fixed right-4 bottom-20 z-50 w-[min(30rem,calc(100vw-2rem))] h-[min(40rem,calc(100vh-7rem))] bg-slate-950 border border-slate-800 rounded shadow-2xl flex flex-col overflow-hidden font-mono text-sm"
           role="dialog"
           aria-modal="true"
           aria-label="AI tutor"

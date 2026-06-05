@@ -18,6 +18,7 @@ import NextLessonCard from '@/components/NextLessonCard';
 import InterfaceOnboarding from '@/components/InterfaceOnboarding';
 import ModuleCheckpoint from '@/components/ModuleCheckpoint';
 import { hasCheckpoint } from '@/lib/checkpoints';
+import YourTurn from '@/components/YourTurn';
 import { createDatabase, runQuery } from '@/lib/db';
 import { COMPANY_DB, STORE_DB, SCHOOL_DB } from '@/lib/databases';
 import {
@@ -364,6 +365,8 @@ export default function LessonPage({ params }: LessonPageProps) {
                   </div>
                 </section>
               )}
+
+              <YourTurn moduleSlug={moduleSlug} lessonSlug={lessonSlug} />
 
               {hasChallenges && database && (
                 <section id="challenges" className="scroll-mt-32">
