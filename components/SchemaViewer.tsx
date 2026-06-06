@@ -156,7 +156,7 @@ export default function SchemaViewer({
     const upperType = type.toUpperCase();
     if (upperType.includes('INT')) return <Hash className="w-3.5 h-3.5 text-emerald-400" />;
     if (upperType.includes('REAL') || upperType.includes('FLOAT') || upperType.includes('DOUBLE') || upperType.includes('DECIMAL')) {
-      return <Hash className="w-3.5 h-3.5 text-purple-400" />;
+      return <Hash className="w-3.5 h-3.5 text-sky-400" />;
     }
     if (upperType.includes('DATE') || upperType.includes('TIME')) return <Calendar className="w-3.5 h-3.5 text-cyan-400" />;
     return <Type className="w-3.5 h-3.5 text-slate-400" />;
@@ -180,7 +180,7 @@ export default function SchemaViewer({
       {isOpen && (
         <div className="fixed inset-y-0 right-0 z-50 w-96 bg-slate-900 border-l border-slate-700 shadow-2xl flex flex-col animate-slide-down">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 bg-gradient-to-b from-slate-800/80 to-slate-900">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700 bg-slate-800/60">
             <div className="flex items-center gap-2">
               <Database className="w-5 h-5 text-indigo-400" />
               <span className="font-semibold text-white">Database Explorer</span>
